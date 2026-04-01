@@ -7,6 +7,7 @@ import numpy as np
 
 from material_profiles import get_material_loss
 
+EPS = 1e-9
 
 BASE_DIR = Path(__file__).resolve().parent
 SCENE_PATH = BASE_DIR / "sample_scene.json"
@@ -16,6 +17,37 @@ OUTPUT_DIR = BASE_DIR / "output"
 def load_scene(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def normalize_wall(wall: dict) -> dict:
+    if "x1" in wall and "y1" in wall and "x2" in wall and "y2" in wall:
+        return {
+            "id": wall["id"],
+            "x1": float(wall["x1"]),
+            "y1": float(wall["y1"]),
+            "x2": float(wall["x2"]),
+            "y2": float(wall["y2"]),
+            "material": wall.get("material", "unknown"),
+            "boundary": wall.get("boundary", False),
+        }
+
+    if "centerline_geom" in wall:
+        coords = wall["centerline_geom"]["coordinates"]
+        return {
+            "id": wall["id"],
+            "x1": float(coords[0][0]),
+            "y1": float(coords[0][1]),
+            "x2": float(coords[1][0]),
+            "y2": float(coords[1][1]),
+            "material": wall.get("material", "unknown"),
+            "boundary": wall.get("wall_role") == "exterior",
+        }
+
+    raise ValueError(f"Unsupported wall format: {wall}")
+
+
+def normalize_walls(walls: list[dict]) -> list[dict]:
+    return [normalize_wall(w) for w in walls]
 
 
 def generate_grid(bounds: dict, resolution: float = 0.5):
@@ -47,14 +79,14 @@ def ccw(a, b, c) -> float:
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 
 
-def on_segment(a, b, c) -> bool:
+def on_segment(a, b, c, eps: float = EPS) -> bool:
     return (
-        min(a[0], b[0]) <= c[0] <= max(a[0], b[0])
-        and min(a[1], b[1]) <= c[1] <= max(a[1], b[1])
+        min(a[0], b[0]) - eps <= c[0] <= max(a[0], b[0]) + eps
+        and min(a[1], b[1]) - eps <= c[1] <= max(a[1], b[1]) + eps
     )
 
 
-def segments_intersect(p1, p2, q1, q2) -> bool:
+def segments_intersect(p1, p2, q1, q2, eps: float = EPS) -> bool:
     d1 = ccw(p1, p2, q1)
     d2 = ccw(p1, p2, q2)
     d3 = ccw(q1, q2, p1)
@@ -63,13 +95,13 @@ def segments_intersect(p1, p2, q1, q2) -> bool:
     if (d1 * d2 < 0) and (d3 * d4 < 0):
         return True
 
-    if d1 == 0 and on_segment(p1, p2, q1):
+    if abs(d1) < eps and on_segment(p1, p2, q1, eps):
         return True
-    if d2 == 0 and on_segment(p1, p2, q2):
+    if abs(d2) < eps and on_segment(p1, p2, q2, eps):
         return True
-    if d3 == 0 and on_segment(q1, q2, p1):
+    if abs(d3) < eps and on_segment(q1, q2, p1, eps):
         return True
-    if d4 == 0 and on_segment(q1, q2, p2):
+    if abs(d4) < eps and on_segment(q1, q2, p2, eps):
         return True
 
     return False
@@ -118,12 +150,16 @@ def save_outputs(
     x_coords: np.ndarray,
     y_coords: np.ndarray,
     rssi_map: np.ndarray,
+    path_loss_map: np.ndarray,
+    wall_loss_map: np.ndarray,
     scene: dict,
     output_dir: Path,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     np.save(output_dir / "rssi_map.npy", rssi_map)
+    np.save(output_dir / "path_loss_map.npy", path_loss_map)
+    np.save(output_dir / "wall_loss_map.npy", wall_loss_map)
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -138,7 +174,7 @@ def save_outputs(
     plt.colorbar(image, ax=ax, label="RSSI (dBm)")
 
     ap = scene["ap"]
-    walls = scene["walls"]
+    walls = normalize_walls(scene["walls"])
 
     ax.scatter(ap["x"], ap["y"], marker="x", s=120, label=ap["id"])
     ax.text(ap["x"] + 0.1, ap["y"] + 0.1, ap["id"])
@@ -174,7 +210,7 @@ def main():
 
     bounds = scene["bounds"]
     ap = scene["ap"]
-    walls = scene["walls"]
+    walls = normalize_walls(scene["walls"])
 
     x_coords, y_coords, xx, yy, points = generate_grid(bounds, resolution=0.5)
 
@@ -249,12 +285,16 @@ def main():
         x_coords=x_coords,
         y_coords=y_coords,
         rssi_map=rssi_map,
+        path_loss_map=path_loss_map,
+        wall_loss_map=wall_loss_map,
         scene=scene,
         output_dir=OUTPUT_DIR,
     )
 
     print("=== Output Saved ===")
-    print(f"npy: {OUTPUT_DIR / 'rssi_map.npy'}")
+    print(f"rssi npy: {OUTPUT_DIR / 'rssi_map.npy'}")
+    print(f"path loss npy: {OUTPUT_DIR / 'path_loss_map.npy'}")
+    print(f"wall loss npy: {OUTPUT_DIR / 'wall_loss_map.npy'}")
     print(f"png: {OUTPUT_DIR / 'rssi_heatmap.png'}")
 
 
