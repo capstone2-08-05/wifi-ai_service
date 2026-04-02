@@ -1,0 +1,118 @@
+{
+  "scene_version_id": "scene_v1",
+  "coordinate_unit": "meter",
+  "floor_id": "floor_01",
+  "walls": [
+    {
+      "id": "wall_001",
+      "version_id": "scene_v1",
+      "wall_role": "exterior",
+      "centerline_geom": {
+        "type": "LineString",
+        "coordinates": [[0.0, 0.0], [8.0, 0.0]]
+      },
+      "thickness_m": 0.2,
+      "height_m": 2.8,
+      "material": "concrete"
+    },
+    {
+      "id": "wall_002",
+      "version_id": "scene_v1",
+      "wall_role": "exterior",
+      "centerline_geom": {
+        "type": "LineString",
+        "coordinates": [[8.0, 0.0], [8.0, 6.0]]
+      },
+      "thickness_m": 0.2,
+      "height_m": 2.8,
+      "material": "concrete"
+    },
+    {
+      "id": "wall_003",
+      "version_id": "scene_v1",
+      "wall_role": "exterior",
+      "centerline_geom": {
+        "type": "LineString",
+        "coordinates": [[8.0, 6.0], [0.0, 6.0]]
+      },
+      "thickness_m": 0.2,
+      "height_m": 2.8,
+      "material": "concrete"
+    },
+    {
+      "id": "wall_004",
+      "version_id": "scene_v1",
+      "wall_role": "exterior",
+      "centerline_geom": {
+        "type": "LineString",
+        "coordinates": [[0.0, 6.0], [0.0, 0.0]]
+      },
+      "thickness_m": 0.2,
+      "height_m": 2.8,
+      "material": "concrete"
+    },
+    {
+      "id": "wall_005",
+      "version_id": "scene_v1",
+      "wall_role": "interior",
+      "centerline_geom": {
+        "type": "LineString",
+        "coordinates": [[4.0, 0.0], [4.0, 4.0]]
+      },
+      "thickness_m": 0.12,
+      "height_m": 2.8,
+      "material": "drywall"
+    }
+  ],
+  "openings": [
+    {
+      "id": "opening_001",
+      "version_id": "scene_v1",
+      "wall_id": "wall_005",
+      "opening_type": "door",
+      "line_geom": {
+        "type": "LineString",
+        "coordinates": [[4.0, 1.8], [4.0, 2.7]]
+      },
+      "width_m": 0.9,
+      "sill_height_m": 0.0,
+      "head_height_m": 2.1
+    }
+  ],
+  "rooms": [
+    {
+      "id": "room_001",
+      "version_id": "scene_v1",
+      "room_code": "R001",
+      "room_name": "Left Room",
+      "space_type": "room",
+      "polygon_geom": {
+        "type": "Polygon",
+        "coordinates": [[[0.0, 0.0], [4.0, 0.0], [4.0, 6.0], [0.0, 6.0], [0.0, 0.0]]]
+      },
+      "centroid_geom": {
+        "type": "Point",
+        "coordinates": [2.0, 3.0]
+      },
+      "area_m2": 24.0,
+      "occupancy": null
+    },
+    {
+      "id": "room_002",
+      "version_id": "scene_v1",
+      "room_code": "R002",
+      "room_name": "Right Room",
+      "space_type": "room",
+      "polygon_geom": {
+        "type": "Polygon",
+        "coordinates": [[[4.0, 0.0], [8.0, 0.0], [8.0, 6.0], [4.0, 6.0], [4.0, 0.0]]]
+      },
+      "centroid_geom": {
+        "type": "Point",
+        "coordinates": [6.0, 3.0]
+      },
+      "area_m2": 24.0,
+      "occupancy": null
+    }
+  ]
+}
