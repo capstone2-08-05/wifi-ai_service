@@ -1,0 +1,22 @@
+seed: 42
+
+data:
+  train_image_dir: data/unet/images/train
+  train_mask_dir: data/unet/masks/train
+  val_image_dir: data/unet/images/val
+  val_mask_dir: data/unet/masks/val
+  image_size: 512
+  augment: false
+
+train:
+  batch_size: 4
+  epochs: 30
+  lr: 0.0001
+  num_workers: 4
+  amp: true
+  loss_name: bce_dice
+  save_dir: checkpoints/unet_bce_dice
+
+model:
+  in_channels: 3
+  out_channels: 1

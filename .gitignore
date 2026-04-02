@@ -12,3 +12,5 @@ outputs/
 artifacts/
 service/ai-inference/.venv/
 service/ai-inference/data/output/
+*.pth
+*.csv
