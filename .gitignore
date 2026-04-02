@@ -12,3 +12,16 @@ outputs/
 artifacts/
 service/ai-inference/.venv/
 service/ai-inference/data/output/
+**/data/**
+/data/
+/outputs/
+/checkpoints/
+/.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.npy
+*.pt
+*.pth
+.DS_Store

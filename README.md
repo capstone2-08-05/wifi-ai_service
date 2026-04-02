@@ -21,3 +21,12 @@ GPU 계산 전용 레포입니다.
 ## Contract
 
 - 요청/응답 계약은 `web-platform/shared/api-contracts/`를 기준으로 맞춥니다.
+
+python -m scripts.train_yolo ^
+  --data data/yolo/dataset.yaml ^
+  --model yolo11n.pt ^
+  --imgsz 1024 ^
+  --epochs 100 ^
+  --batch 8 ^
+  --device 0 ^
+  --name cubicasa_4cls
