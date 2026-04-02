@@ -6,7 +6,7 @@ from ultralytics import YOLO
 def parse_args():
     parser = argparse.ArgumentParser(description="Train YOLO on CubiCasa-converted dataset")
     parser.add_argument("--data", type=str, default="data/yolo/dataset.yaml", help="dataset yaml path")
-    parser.add_argument("--model", type=str, default="yolo11n.pt", help="pretrained model path or name")
+    parser.add_argument("--model", type=str, default="yolo11n.pt", help="pretrained model or checkpoint path")
     parser.add_argument("--imgsz", type=int, default=1024, help="image size")
     parser.add_argument("--epochs", type=int, default=100, help="number of epochs")
     parser.add_argument("--batch", type=int, default=8, help="batch size")
@@ -16,6 +16,15 @@ def parse_args():
     parser.add_argument("--workers", type=int, default=4, help="dataloader workers")
     parser.add_argument("--patience", type=int, default=20, help="early stopping patience")
     parser.add_argument("--cache", action="store_true", help="cache images in RAM/disk")
+
+    # 추가
+    parser.add_argument("--resume", action="store_true", help="resume training from checkpoint")
+    parser.add_argument(
+        "--save_period",
+        type=int,
+        default=-1,
+        help="save checkpoint every x epochs, disabled if < 1",
+    )
     return parser.parse_args()
 
 
@@ -28,7 +37,7 @@ def main():
 
     model = YOLO(args.model)
 
-    results = model.train(
+    model.train(
         data=str(data_path),
         imgsz=args.imgsz,
         epochs=args.epochs,
@@ -39,13 +48,16 @@ def main():
         workers=args.workers,
         patience=args.patience,
         cache=args.cache,
-        pretrained=True,
+        pretrained=not args.resume,
+        resume=args.resume,
+        save_period=args.save_period,
         verbose=True,
     )
 
     print("\n[Done] Training finished.")
-    print(f"Best weights should be under: {Path(args.project) / args.name / 'weights' / 'best.pt'}")
-    print(f"Last weights should be under: {Path(args.project) / args.name / 'weights' / 'last.pt'}")
+    print(f"Run dir: {Path(args.project) / args.name}")
+    print(f"Best: {Path(args.project) / args.name / 'weights' / 'best.pt'}")
+    print(f"Last: {Path(args.project) / args.name / 'weights' / 'last.pt'}")
 
 
 if __name__ == "__main__":

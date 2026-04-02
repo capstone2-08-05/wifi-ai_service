@@ -29,4 +29,5 @@ python -m scripts.train_yolo ^
   --epochs 100 ^
   --batch 8 ^
   --device 0 ^
-  --name cubicasa_4cls
+  --name cubicasa_4cls ^
+  --save_period 10
