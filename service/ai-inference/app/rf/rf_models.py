@@ -8,6 +8,16 @@ class SchemaValidationError(ValueError):
     """Raised when the RF input JSON does not satisfy the expected schema."""
 
 
+def _wall_material_from_payload(data: dict[str, Any], *, schema_role: str) -> str:
+    """SceneSchema has no material; RF defaults by role, optional non-empty override."""
+    override = data.get("material")
+    if override is not None:
+        if not isinstance(override, str) or not override.strip():
+            raise SchemaValidationError("material must be a non-empty string when provided")
+        return override.strip()
+    return "concrete" if schema_role == "outer" else "drywall"
+
+
 @dataclass(frozen=True)
 class Point2D:
     x: float
@@ -39,17 +49,39 @@ class Wall:
         return self.wall_role == "exterior"
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Wall":
-        coords = _read_linestring_coordinates(data, field_name="centerline_geom")
-        return cls(
-            wall_id=_require_str(data, "id"),
-            version_id=_require_str(data, "version_id"),
-            wall_role=str(data.get("wall_role", "interior")),
-            start=Point2D.from_sequence(coords[0]),
-            end=Point2D.from_sequence(coords[1]),
-            thickness_m=_require_positive_number(data, "thickness_m"),
-            height_m=_require_positive_number(data, "height_m"),
-            material=_require_str(data, "material"),
+    def from_dict(cls, data: dict[str, Any], *, scene_version_id: str) -> "Wall":
+        """Parse a wall item from SceneSchema (endpoints + role) or optional RF extensions."""
+        wall_id = _require_str(data, "id")
+        version_id = data.get("version_id")
+        if version_id is not None and isinstance(version_id, str) and version_id.strip():
+            vid = version_id.strip()
+        else:
+            vid = scene_version_id
+
+        role = data.get("role")
+        if isinstance(role, str) and role in ("outer", "inner"):
+            x1 = _require_number(data, "x1")
+            y1 = _require_number(data, "y1")
+            x2 = _require_number(data, "x2")
+            y2 = _require_number(data, "y2")
+            thickness_m = _require_positive_number(data, "thickness")
+            height_m = _require_positive_number(data, "height")
+            wall_role = "exterior" if role == "outer" else "interior"
+            material = _wall_material_from_payload(data, schema_role=role)
+            return cls(
+                wall_id=wall_id,
+                version_id=vid,
+                wall_role=wall_role,
+                start=Point2D(x=x1, y=y1),
+                end=Point2D(x=x2, y=y2),
+                thickness_m=thickness_m,
+                height_m=height_m,
+                material=material,
+            )
+
+        raise SchemaValidationError(
+            "wall must define SceneSchema fields id, x1, y1, x2, y2, thickness, height, "
+            "and role (outer|inner)"
         )
 
 
@@ -121,25 +153,55 @@ class Room:
 
 @dataclass(frozen=True)
 class Scene:
+    """In-memory scene aligned to backend SceneSchema root + RF extensions."""
+
+    units: str
+    source_type: str
     scene_version_id: str
-    coordinate_unit: str
     floor_id: str | None
+    objects: tuple[dict[str, Any], ...]
     walls: tuple[Wall, ...]
     openings: tuple[Opening, ...]
     rooms: tuple[Room, ...]
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Scene":
-        coordinate_unit = _require_str(data, "coordinate_unit")
-        if coordinate_unit != "meter":
-            raise SchemaValidationError(
-                f"coordinate_unit must be 'meter', got {coordinate_unit!r}"
-            )
+        units = _require_str(data, "units")
+        if units != "m":
+            raise SchemaValidationError(f"units must be 'm', got {units!r}")
 
-        scene_version_id = _require_str(data, "scene_version_id")
-        walls = tuple(Wall.from_dict(item) for item in _require_list(data, "walls"))
-        openings = tuple(Opening.from_dict(item) for item in _require_list(data, "openings"))
-        rooms = tuple(Room.from_dict(item) for item in _require_list(data, "rooms"))
+        source_type = _require_str(data, "sourceType")
+        _require_list(data, "walls")
+        _require_list(data, "openings")
+        _require_list(data, "rooms")
+        objects_raw = _require_list(data, "objects")
+        for i, obj in enumerate(objects_raw):
+            if not isinstance(obj, dict):
+                raise SchemaValidationError(f"objects[{i}] must be an object")
+
+        scene_version_id = data.get("scene_version_id")
+        if isinstance(scene_version_id, str) and scene_version_id.strip():
+            svid = scene_version_id.strip()
+        else:
+            svid = source_type
+
+        wall_items = _require_list(data, "walls")
+        for i, item in enumerate(wall_items):
+            if not isinstance(item, dict):
+                raise SchemaValidationError(f"walls[{i}] must be an object")
+        walls = tuple(Wall.from_dict(item, scene_version_id=svid) for item in wall_items)
+
+        opening_items = _require_list(data, "openings")
+        for i, item in enumerate(opening_items):
+            if not isinstance(item, dict):
+                raise SchemaValidationError(f"openings[{i}] must be an object")
+        openings = tuple(Opening.from_dict(item) for item in opening_items)
+
+        room_items = _require_list(data, "rooms")
+        for i, item in enumerate(room_items):
+            if not isinstance(item, dict):
+                raise SchemaValidationError(f"rooms[{i}] must be an object")
+        rooms = tuple(Room.from_dict(item) for item in room_items)
 
         wall_ids = {wall.wall_id for wall in walls}
         for opening in openings:
@@ -148,10 +210,20 @@ class Scene:
                     f"opening {opening.opening_id} references unknown wall_id {opening.wall_id!r}"
                 )
 
+        raw_floor = data.get("floor_id")
+        if raw_floor is None:
+            floor_id = None
+        elif isinstance(raw_floor, str) and raw_floor.strip():
+            floor_id = raw_floor.strip()
+        else:
+            floor_id = None
+
         return cls(
-            scene_version_id=scene_version_id,
-            coordinate_unit=coordinate_unit,
-            floor_id=data.get("floor_id"),
+            units=units,
+            source_type=source_type,
+            scene_version_id=svid,
+            floor_id=floor_id,
+            objects=tuple(dict(obj) for obj in objects_raw),
             walls=walls,
             openings=openings,
             rooms=rooms,
@@ -298,4 +370,10 @@ def _read_polygon_coordinates(data: dict[str, Any], field_name: str) -> list[lis
     outer_ring = coords[0]
     if len(outer_ring) < 4:
         raise SchemaValidationError(f"{field_name} outer ring must contain at least 4 points")
+    first = outer_ring[0]
+    last = outer_ring[-1]
+    if first != last:
+        raise SchemaValidationError(
+            f"{field_name} outer ring must be closed (first coordinate must equal last)"
+        )
     return outer_ring

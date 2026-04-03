@@ -1,7 +1,7 @@
 {
   "units": "m",
-  "sourceType": "wifi_rf_v1",
-  "scene_version_id": "scene_v1",
+  "sourceType": "case_valid_door",
+  "scene_version_id": "case_valid_door",
   "floor_id": "floor_01",
   "walls": [
     {
@@ -63,7 +63,7 @@
   "openings": [
     {
       "id": "opening_001",
-      "version_id": "scene_v1",
+      "version_id": "case_valid_door",
       "wall_id": "wall_005",
       "opening_type": "door",
       "line_geom": {
@@ -78,7 +78,7 @@
   "rooms": [
     {
       "id": "room_001",
-      "version_id": "scene_v1",
+      "version_id": "case_valid_door",
       "room_code": "R001",
       "room_name": "Left Room",
       "space_type": "room",
@@ -95,7 +95,7 @@
     },
     {
       "id": "room_002",
-      "version_id": "scene_v1",
+      "version_id": "case_valid_door",
       "room_code": "R002",
       "room_name": "Right Room",
       "space_type": "room",

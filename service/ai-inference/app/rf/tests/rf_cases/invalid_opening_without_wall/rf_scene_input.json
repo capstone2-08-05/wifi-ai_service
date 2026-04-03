@@ -1,7 +1,7 @@
 {
   "units": "m",
-  "sourceType": "wifi_rf_v1",
-  "scene_version_id": "scene_v1",
+  "sourceType": "case_invalid_opening",
+  "scene_version_id": "case_invalid_opening",
   "floor_id": "floor_01",
   "walls": [
     {
@@ -47,28 +47,17 @@
       "height": 2.8,
       "role": "outer",
       "material": "concrete"
-    },
-    {
-      "id": "wall_005",
-      "x1": 4.0,
-      "y1": 0.0,
-      "x2": 4.0,
-      "y2": 4.0,
-      "thickness": 0.12,
-      "height": 2.8,
-      "role": "inner",
-      "material": "drywall"
     }
   ],
   "openings": [
     {
       "id": "opening_001",
-      "version_id": "scene_v1",
-      "wall_id": "wall_005",
+      "version_id": "case_invalid_opening",
+      "wall_id": "wall_no_such_wall",
       "opening_type": "door",
       "line_geom": {
         "type": "LineString",
-        "coordinates": [[4.0, 1.8], [4.0, 2.7]]
+        "coordinates": [[4.0, 1.0], [4.0, 2.0]]
       },
       "width_m": 0.9,
       "sill_height_m": 0.0,
@@ -78,36 +67,19 @@
   "rooms": [
     {
       "id": "room_001",
-      "version_id": "scene_v1",
+      "version_id": "case_invalid_opening",
       "room_code": "R001",
-      "room_name": "Left Room",
+      "room_name": "Open Plan",
       "space_type": "room",
       "polygon_geom": {
         "type": "Polygon",
-        "coordinates": [[[0.0, 0.0], [4.0, 0.0], [4.0, 6.0], [0.0, 6.0], [0.0, 0.0]]]
+        "coordinates": [[[0.0, 0.0], [8.0, 0.0], [8.0, 6.0], [0.0, 6.0], [0.0, 0.0]]]
       },
       "centroid_geom": {
         "type": "Point",
-        "coordinates": [2.0, 3.0]
+        "coordinates": [4.0, 3.0]
       },
-      "area_m2": 24.0,
-      "occupancy": null
-    },
-    {
-      "id": "room_002",
-      "version_id": "scene_v1",
-      "room_code": "R002",
-      "room_name": "Right Room",
-      "space_type": "room",
-      "polygon_geom": {
-        "type": "Polygon",
-        "coordinates": [[[4.0, 0.0], [8.0, 0.0], [8.0, 6.0], [4.0, 6.0], [4.0, 0.0]]]
-      },
-      "centroid_geom": {
-        "type": "Point",
-        "coordinates": [6.0, 3.0]
-      },
-      "area_m2": 24.0,
+      "area_m2": 48.0,
       "occupancy": null
     }
   ],

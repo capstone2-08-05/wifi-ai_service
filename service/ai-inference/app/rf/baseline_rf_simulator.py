@@ -19,6 +19,7 @@ from rf_models import (
     Scene,
     SimulationConfig,
 )
+from rf_persistence import JsonPersistenceStore
 
 EPS = 1e-9
 
@@ -283,7 +284,7 @@ def save_outputs(
     config: SimulationConfig,
     result: SimulationResult,
     output_dir: Path,
-) -> None:
+) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     strongest_rssi_path = output_dir / "strongest_rssi_map.npy"
@@ -332,6 +333,7 @@ def save_outputs(
         "metrics": result.metrics,
     }
     save_json(output_dir / "run_manifest.json", manifest)
+    return manifest
 
 
 def _plot_heatmap(
@@ -401,6 +403,8 @@ def _plot_heatmap(
 
 def print_run_summary(scene: Scene, ap_layout: ApLayout, config: SimulationConfig, result: SimulationResult) -> None:
     print("=== RF Baseline Simulation ===")
+    print(f"units             : {scene.units}")
+    print(f"sourceType        : {scene.source_type}")
     print(f"scene_version_id : {scene.scene_version_id}")
     print(f"floor_id          : {scene.floor_id}")
     print(f"layout_name       : {ap_layout.layout_name}")
@@ -443,12 +447,65 @@ def main() -> None:
     result = simulator.run()
 
     output_dir = args.config.parent / config.output_dir_name
-    save_outputs(scene=scene, ap_layout=layout, config=config,
-                 result=result, output_dir=output_dir)
+    manifest = save_outputs(
+        scene=scene,
+        ap_layout=layout,
+        config=config,
+        result=result,
+        output_dir=output_dir,
+    )
+
+    floor_id = scene.floor_id or "unknown_floor"
+    persistence_root = args.config.parent / "persistence"
+    store = JsonPersistenceStore(persistence_root)
+    rf_run = store.create_rf_run(
+        scene_version_id=scene.scene_version_id,
+        floor_id=floor_id,
+        run_type="preview",
+        engine_name="baseline",
+        sim_config_json={
+            "grid_resolution_m": config.grid_resolution_m,
+            "path_loss_constant_db": config.path_loss_constant_db,
+            "path_loss_exponent": config.path_loss_exponent,
+            "include_exterior_walls": config.include_exterior_walls,
+            "output_dir_name": config.output_dir_name,
+        },
+        output_root=str(output_dir.resolve()),
+    )
+    placements_json = [
+        {
+            "ap_id": ap.ap_id,
+            "ap_name": ap.ap_name,
+            "x_m": ap.position.x,
+            "y_m": ap.position.y,
+            "z_m": ap.z_m,
+            "tx_power_dbm": ap.tx_power_dbm,
+            "frequency_ghz": ap.frequency_ghz,
+        }
+        for ap in layout.aps
+    ]
+    store.save_ap_layout(
+        rf_run_id=rf_run.id,
+        layout_name=layout.layout_name,
+        layout_type=layout.layout_type,
+        placements_json=placements_json,
+    )
+    store.finish_rf_run(
+        rf_run_id=rf_run.id,
+        status="succeeded",
+        metrics_json=manifest["metrics"],
+    )
+    store.save_maps_from_manifest(
+        rf_run_id=rf_run.id,
+        manifest=manifest,
+        output_dir=output_dir,
+    )
+
     print_run_summary(scene=scene, ap_layout=layout,
                       config=config, result=result)
     print()
     print(f"Output directory: {output_dir}")
+    print(f"Persistence directory: {persistence_root.resolve()}")
 
 
 if __name__ == "__main__":
