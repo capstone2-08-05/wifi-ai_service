@@ -73,6 +73,12 @@ def parse_args():
         default="configs/unet_train.yaml",
         help="Path to YAML config (default: configs/unet_train.yaml)",
     )
+    p.add_argument(
+        "--resume",
+        type=str,
+        default=None,
+        help="Path to checkpoint to resume from (e.g., checkpoints/unet_bce/last_unet.pth)",
+    )
     return p.parse_args()
 
 
@@ -137,14 +143,42 @@ def main():
 
     save_dir = ensure_dir(cfg["train"]["save_dir"])
     best_dice = -1.0
+    start_epoch = 1
     metrics_path = save_dir / "metrics.csv"
     if not metrics_path.exists():
         with open(metrics_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["epoch", "train_loss", "val_loss", "val_dice", "val_iou"])
+
+    if args.resume is not None:
+        resume_path = Path(args.resume)
+        if not resume_path.is_file():
+            raise FileNotFoundError(f"Resume checkpoint not found: {resume_path.resolve()}")
+        ckpt = torch.load(str(resume_path), map_location=device)
+        model.load_state_dict(ckpt["model_state_dict"])
+        if "optimizer_state_dict" in ckpt:
+            optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+        if "scaler_state_dict" in ckpt and cfg["train"]["amp"]:
+            scaler.load_state_dict(ckpt["scaler_state_dict"])
+        start_epoch = int(ckpt.get("epoch", 0)) + 1
+        if "best_dice" in ckpt:
+            best_dice = float(ckpt["best_dice"])
+        elif "val_metrics" in ckpt and "dice" in ckpt["val_metrics"]:
+            best_dice = float(ckpt["val_metrics"]["dice"])
+        print(
+            f"Resumed from {resume_path.resolve()} "
+            f"(next_epoch={start_epoch}, best_dice={best_dice:.4f})"
+        )
+
     print(f"Config: {cfg_path.resolve()} | save_dir: {save_dir.resolve()}")
 
-    for epoch in range(1, cfg["train"]["epochs"] + 1):
+    if start_epoch > cfg["train"]["epochs"]:
+        print(
+            f"Nothing to do: start_epoch={start_epoch} exceeds configured epochs={cfg['train']['epochs']}."
+        )
+        return
+
+    for epoch in range(start_epoch, cfg["train"]["epochs"] + 1):
         train_loss = train_one_epoch(
             model=model,
             loader=train_loader,
@@ -179,7 +213,10 @@ def main():
         torch.save(
             {
                 "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "scaler_state_dict": scaler.state_dict(),
                 "epoch": epoch,
+                "best_dice": best_dice,
                 "val_metrics": val_metrics,
                 "config": cfg,
             },
@@ -192,7 +229,10 @@ def main():
             torch.save(
                 {
                     "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "scaler_state_dict": scaler.state_dict(),
                     "epoch": epoch,
+                    "best_dice": best_dice,
                     "val_metrics": val_metrics,
                     "config": cfg,
                 },

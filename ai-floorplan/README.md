@@ -24,6 +24,13 @@ python scripts/run_unet_losses.py train --only bce
 
 학습이 정말 "새로" 시작되는지 확인하려면 콘솔 첫 줄의 `Config:`와 `save_dir:`를 확인하세요.
 
+중단된 학습 이어서 재개:
+
+```powershell
+cd c:\capstone2\rf-service\ai-floorplan
+python -m src.training.train_unet --config configs/unet_bce.yaml --resume checkpoints/unet_bce/last_unet.pth
+```
+
 단일 실험(설정 파일 지정):
 
 ```powershell
