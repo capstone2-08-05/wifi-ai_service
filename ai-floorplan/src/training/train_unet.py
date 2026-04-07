@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 
 import torch
-import torch.nn as nn
 from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -11,6 +11,7 @@ from tqdm import tqdm
 from src.datasets.wall_dataset import FloorplanWallDataset
 from src.models.unet import UNet
 from src.utils.common import ensure_dir, get_device, load_yaml, set_seed
+from src.utils.losses import build_loss
 from src.utils.metrics import dice_score_from_logits, iou_score_from_logits
 
 
@@ -63,22 +64,50 @@ def validate(model, loader, criterion, device):
     }
 
 
+def parse_args():
+    p = argparse.ArgumentParser(description="Train U-Net wall segmentation.")
+    p.add_argument(
+        "--config",
+        type=str,
+        default="configs/unet_train.yaml",
+        help="Path to YAML config (default: configs/unet_train.yaml)",
+    )
+    return p.parse_args()
+
+
 def main():
-    cfg = load_yaml("configs/unet_train.yaml")
+    args = parse_args()
+    cfg_path = Path(args.config)
+    if not cfg_path.is_file():
+        raise FileNotFoundError(f"Config not found: {cfg_path.resolve()}")
+    cfg = load_yaml(str(cfg_path))
     set_seed(cfg["seed"])
     device = get_device()
 
+    aug_cfg = cfg.get("augment") or {}
     train_ds = FloorplanWallDataset(
         image_dir=cfg["data"]["train_image_dir"],
         mask_dir=cfg["data"]["train_mask_dir"],
         image_size=cfg["data"]["image_size"],
         augment=True,
+        resize_mode=cfg["data"].get("resize_mode", "letterbox"),
+        patch_size=cfg["data"].get("train_patch_size"),
+        wall_focus_prob=cfg["data"].get("wall_focus_prob", 0.7),
+        min_wall_ratio=cfg["data"].get("min_wall_ratio", 0.01),
+        patch_max_tries=cfg["data"].get("patch_max_tries", 10),
+        flip_h_prob=float(aug_cfg.get("flip_h_prob", 0.5)),
+        flip_v_prob=float(aug_cfg.get("flip_v_prob", 0.2)),
     )
     val_ds = FloorplanWallDataset(
         image_dir=cfg["data"]["val_image_dir"],
         mask_dir=cfg["data"]["val_mask_dir"],
         image_size=cfg["data"]["image_size"],
         augment=False,
+        resize_mode=cfg["data"].get("resize_mode", "letterbox"),
+        patch_size=cfg["data"].get("val_patch_size"),
+        wall_focus_prob=cfg["data"].get("wall_focus_prob", 0.7),
+        min_wall_ratio=cfg["data"].get("min_wall_ratio", 0.01),
+        patch_max_tries=cfg["data"].get("patch_max_tries", 10),
     )
 
     train_loader = DataLoader(
@@ -101,12 +130,13 @@ def main():
         out_channels=cfg["model"]["out_channels"],
     ).to(device)
 
-    criterion = nn.BCEWithLogitsLoss()
+    criterion = build_loss(cfg.get("loss", {"name": "bce"}))
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg["train"]["lr"])
     scaler = GradScaler(enabled=cfg["train"]["amp"])
 
     save_dir = ensure_dir(cfg["train"]["save_dir"])
     best_dice = -1.0
+    print(f"Config: {cfg_path.resolve()} | save_dir: {save_dir.resolve()}")
 
     for epoch in range(1, cfg["train"]["epochs"] + 1):
         train_loss = train_one_epoch(
