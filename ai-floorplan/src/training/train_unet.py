@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 from pathlib import Path
 
 import torch
@@ -136,6 +137,11 @@ def main():
 
     save_dir = ensure_dir(cfg["train"]["save_dir"])
     best_dice = -1.0
+    metrics_path = save_dir / "metrics.csv"
+    if not metrics_path.exists():
+        with open(metrics_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["epoch", "train_loss", "val_loss", "val_dice", "val_iou"])
     print(f"Config: {cfg_path.resolve()} | save_dir: {save_dir.resolve()}")
 
     for epoch in range(1, cfg["train"]["epochs"] + 1):
@@ -157,6 +163,17 @@ def main():
             f"val_dice={val_metrics['dice']:.4f} "
             f"val_iou={val_metrics['iou']:.4f}"
         )
+        with open(metrics_path, "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(
+                [
+                    epoch,
+                    f"{train_loss:.6f}",
+                    f"{val_metrics['loss']:.6f}",
+                    f"{val_metrics['dice']:.6f}",
+                    f"{val_metrics['iou']:.6f}",
+                ]
+            )
 
         last_ckpt = save_dir / "last_unet.pth"
         torch.save(
