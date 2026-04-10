@@ -1,0 +1,23 @@
+seed: 42
+
+data:
+  train_image_dir: data/unet/images/train
+  train_mask_dir: data/unet/masks/train
+  val_image_dir: data/unet/images/val
+  val_mask_dir: data/unet/masks/val
+  image_size: 512
+
+train:
+  batch_size: 4
+  epochs: 30
+  lr: 0.0001
+  num_workers: 4
+  save_dir: checkpoints/unet
+  amp: true
+
+model:
+  in_channels: 3
+  out_channels: 1
+
+infer:
+  threshold: 0.5
