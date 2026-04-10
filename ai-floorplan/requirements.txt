@@ -5,3 +5,5 @@ opencv-python
 Pillow
 PyYAML
 tqdm
+fastapi
+uvicorn
