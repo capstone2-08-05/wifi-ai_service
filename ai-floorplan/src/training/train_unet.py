@@ -5,7 +5,6 @@ import csv
 from pathlib import Path
 
 import torch
-from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -16,23 +15,44 @@ from src.utils.losses import build_loss
 from src.utils.metrics import dice_score_from_logits, iou_score_from_logits
 
 
+def parse_args():
+    p = argparse.ArgumentParser(description="Train U-Net wall segmentation.")
+    p.add_argument(
+        "--config",
+        type=str,
+        required=True,
+        help="Path to YAML config",
+    )
+    p.add_argument(
+        "--resume",
+        type=str,
+        default=None,
+        help="Path to checkpoint to resume from (e.g., checkpoints/unet_bce/last_unet.pth)",
+    )
+    return p.parse_args()
+
+
 def train_one_epoch(model, loader, optimizer, criterion, device, scaler, use_amp: bool):
     model.train()
     total_loss = 0.0
 
     for images, masks in tqdm(loader, desc="train", leave=False):
-        images = images.to(device)
-        masks = masks.to(device)
+        images = images.to(device, non_blocking=True)
+        masks = masks.to(device, non_blocking=True)
 
         optimizer.zero_grad(set_to_none=True)
 
-        with autocast(enabled=use_amp):
+        with torch.amp.autocast(device_type=device.type, enabled=use_amp):
             logits = model(images)
             loss = criterion(logits, masks)
 
-        scaler.scale(loss).backward()
-        scaler.step(optimizer)
-        scaler.update()
+        if use_amp:
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss.backward()
+            optimizer.step()
 
         total_loss += loss.item()
 
@@ -42,13 +62,14 @@ def train_one_epoch(model, loader, optimizer, criterion, device, scaler, use_amp
 @torch.no_grad()
 def validate(model, loader, criterion, device):
     model.eval()
+
     total_loss = 0.0
     total_dice = 0.0
     total_iou = 0.0
 
     for images, masks in tqdm(loader, desc="val", leave=False):
-        images = images.to(device)
-        masks = masks.to(device)
+        images = images.to(device, non_blocking=True)
+        masks = masks.to(device, non_blocking=True)
 
         logits = model(images)
         loss = criterion(logits, masks)
@@ -65,23 +86,6 @@ def validate(model, loader, criterion, device):
     }
 
 
-def parse_args():
-    p = argparse.ArgumentParser(description="Train U-Net wall segmentation.")
-    p.add_argument(
-        "--config",
-        type=str,
-        default="configs/unet_train.yaml",
-        help="Path to YAML config (default: configs/unet_train.yaml)",
-    )
-    p.add_argument(
-        "--resume",
-        type=str,
-        default=None,
-        help="Path to checkpoint to resume from (e.g., checkpoints/unet_bce/last_unet.pth)",
-    )
-    return p.parse_args()
-
-
 def main():
     args = parse_args()
     cfg_path = Path(args.config)
@@ -90,31 +94,39 @@ def main():
     cfg = load_yaml(str(cfg_path))
     set_seed(cfg["seed"])
     device = get_device()
+    use_amp = bool(cfg["train"].get("amp", True)) and device.type == "cuda"
+
+    print("CONFIG PATH:", str(cfg_path))
+    print("LOSS:", cfg.get("loss", {}).get("name", cfg.get("train", {}).get("loss_name", "bce")))
 
     aug_cfg = cfg.get("augment") or {}
+    data_cfg = cfg["data"]
+    augment_enabled = bool(
+        aug_cfg.get("enabled", data_cfg.get("augment", bool(aug_cfg)))
+    )
     train_ds = FloorplanWallDataset(
-        image_dir=cfg["data"]["train_image_dir"],
-        mask_dir=cfg["data"]["train_mask_dir"],
-        image_size=cfg["data"]["image_size"],
-        augment=True,
-        resize_mode=cfg["data"].get("resize_mode", "letterbox"),
-        patch_size=cfg["data"].get("train_patch_size"),
-        wall_focus_prob=cfg["data"].get("wall_focus_prob", 0.7),
-        min_wall_ratio=cfg["data"].get("min_wall_ratio", 0.01),
-        patch_max_tries=cfg["data"].get("patch_max_tries", 10),
+        image_dir=data_cfg["train_image_dir"],
+        mask_dir=data_cfg["train_mask_dir"],
+        image_size=data_cfg["image_size"],
+        augment=augment_enabled,
+        resize_mode=data_cfg.get("resize_mode", "letterbox"),
+        patch_size=data_cfg.get("train_patch_size"),
+        wall_focus_prob=data_cfg.get("wall_focus_prob", 0.7),
+        min_wall_ratio=data_cfg.get("min_wall_ratio", 0.01),
+        patch_max_tries=data_cfg.get("patch_max_tries", 10),
         flip_h_prob=float(aug_cfg.get("flip_h_prob", 0.5)),
         flip_v_prob=float(aug_cfg.get("flip_v_prob", 0.2)),
     )
     val_ds = FloorplanWallDataset(
-        image_dir=cfg["data"]["val_image_dir"],
-        mask_dir=cfg["data"]["val_mask_dir"],
-        image_size=cfg["data"]["image_size"],
+        image_dir=data_cfg["val_image_dir"],
+        mask_dir=data_cfg["val_mask_dir"],
+        image_size=data_cfg["image_size"],
         augment=False,
-        resize_mode=cfg["data"].get("resize_mode", "letterbox"),
-        patch_size=cfg["data"].get("val_patch_size"),
-        wall_focus_prob=cfg["data"].get("wall_focus_prob", 0.7),
-        min_wall_ratio=cfg["data"].get("min_wall_ratio", 0.01),
-        patch_max_tries=cfg["data"].get("patch_max_tries", 10),
+        resize_mode=data_cfg.get("resize_mode", "letterbox"),
+        patch_size=data_cfg.get("val_patch_size"),
+        wall_focus_prob=data_cfg.get("wall_focus_prob", 0.7),
+        min_wall_ratio=data_cfg.get("min_wall_ratio", 0.01),
+        patch_max_tries=data_cfg.get("patch_max_tries", 10),
     )
 
     train_loader = DataLoader(
@@ -122,14 +134,14 @@ def main():
         batch_size=cfg["train"]["batch_size"],
         shuffle=True,
         num_workers=cfg["train"]["num_workers"],
-        pin_memory=True,
+        pin_memory=(device.type == "cuda"),
     )
     val_loader = DataLoader(
         val_ds,
         batch_size=cfg["train"]["batch_size"],
         shuffle=False,
         num_workers=cfg["train"]["num_workers"],
-        pin_memory=True,
+        pin_memory=(device.type == "cuda"),
     )
 
     model = UNet(
@@ -137,13 +149,35 @@ def main():
         out_channels=cfg["model"]["out_channels"],
     ).to(device)
 
-    criterion = build_loss(cfg.get("loss", {"name": "bce"}))
+    loss_cfg = cfg.get("loss")
+    if loss_cfg is None:
+        # Backward compatibility for legacy config shape.
+        loss_cfg = {"name": cfg.get("train", {}).get("loss_name", "bce")}
+    criterion = build_loss(loss_cfg)
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg["train"]["lr"])
-    scaler = GradScaler(enabled=cfg["train"]["amp"])
+    scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
     save_dir = ensure_dir(cfg["train"]["save_dir"])
-    best_dice = -1.0
+    log_csv_path = save_dir / "train_log.csv"
+    last_ckpt_path = save_dir / "last_unet.pth"
+    best_ckpt_path = save_dir / "best_unet.pth"
+
+    if not log_csv_path.exists():
+        with open(log_csv_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(
+                [
+                    "epoch",
+                    "train_loss",
+                    "val_loss",
+                    "val_dice",
+                    "val_iou",
+                    "best_dice",
+                ]
+            )
+
     start_epoch = 1
+    best_dice = -1.0
     metrics_path = save_dir / "metrics.csv"
     if not metrics_path.exists():
         with open(metrics_path, "w", newline="", encoding="utf-8") as f:
@@ -186,9 +220,58 @@ def main():
             criterion=criterion,
             device=device,
             scaler=scaler,
-            use_amp=cfg["train"]["amp"],
+            use_amp=use_amp,
         )
-        val_metrics = validate(model, val_loader, criterion, device)
+
+        val_metrics = validate(
+            model=model,
+            loader=val_loader,
+            criterion=criterion,
+            device=device,
+        )
+
+        if val_metrics["dice"] > best_dice:
+            best_dice = val_metrics["dice"]
+
+            torch.save(
+                {
+                    "epoch": epoch,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "scaler_state_dict": scaler.state_dict() if use_amp else None,
+                    "best_dice": best_dice,
+                    "val_metrics": val_metrics,
+                    "config": cfg,
+                },
+                best_ckpt_path,
+            )
+            print(f"Saved best checkpoint to {best_ckpt_path}")
+
+        torch.save(
+            {
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "scaler_state_dict": scaler.state_dict() if use_amp else None,
+                "best_dice": best_dice,
+                "val_metrics": val_metrics,
+                "config": cfg,
+            },
+            last_ckpt_path,
+        )
+
+        with open(log_csv_path, "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(
+                [
+                    epoch,
+                    train_loss,
+                    val_metrics["loss"],
+                    val_metrics["dice"],
+                    val_metrics["iou"],
+                    best_dice,
+                ]
+            )
 
         print(
             f"[{epoch:03d}/{cfg['train']['epochs']:03d}] "
@@ -209,36 +292,7 @@ def main():
                 ]
             )
 
-        last_ckpt = save_dir / "last_unet.pth"
-        torch.save(
-            {
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "scaler_state_dict": scaler.state_dict(),
-                "epoch": epoch,
-                "best_dice": best_dice,
-                "val_metrics": val_metrics,
-                "config": cfg,
-            },
-            last_ckpt,
-        )
-
-        if val_metrics["dice"] > best_dice:
-            best_dice = val_metrics["dice"]
-            best_ckpt = save_dir / "best_unet.pth"
-            torch.save(
-                {
-                    "model_state_dict": model.state_dict(),
-                    "optimizer_state_dict": optimizer.state_dict(),
-                    "scaler_state_dict": scaler.state_dict(),
-                    "epoch": epoch,
-                    "best_dice": best_dice,
-                    "val_metrics": val_metrics,
-                    "config": cfg,
-                },
-                best_ckpt,
-            )
-            print(f"Saved best checkpoint to {best_ckpt}")
+    print("Training finished.")
 
 
 if __name__ == "__main__":

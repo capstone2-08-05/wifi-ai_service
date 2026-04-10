@@ -80,6 +80,47 @@ python scripts/run_unet_losses.py train --only focal_tversky
 | `tversky` | `configs/unet_tversky.yaml` | `checkpoints/unet_tversky` |
 | `focal_tversky` | `configs/unet_train.yaml` | `checkpoints/unet_focal_tversky` |
 
+### YAML에 무엇을 명시해야 하나?
+
+`train_unet.py`는 CLI 기본값으로 덮어쓰기하지 않고, YAML 값을 기준으로 동작합니다.
+
+필수:
+- `seed` (랜덤 시드 고정값)
+- `data.train_image_dir` (학습 이미지 폴더)
+- `data.train_mask_dir` (학습 마스크 폴더)
+- `data.val_image_dir` (검증 이미지 폴더)
+- `data.val_mask_dir` (검증 마스크 폴더)
+- `data.image_size` (최종 입력 해상도, 정사각형 한 변)
+- `train.batch_size` (배치 크기)
+- `train.epochs` (총 학습 epoch 수)
+- `train.lr` (학습률)
+- `train.num_workers` (DataLoader 워커 수)
+- `train.save_dir` (체크포인트/로그 저장 경로)
+- `train.amp` (mixed precision 사용 여부, `true/false`)
+- `model.in_channels` (입력 채널 수, 일반 RGB는 3)
+- `model.out_channels` (출력 채널 수, 벽 이진 분할은 보통 1)
+- `loss.name` (손실 함수 이름: `bce`, `bce_dice`, `focal_dice`, `tversky`, `focal_tversky`)
+
+권장(명시 추천):
+- `data.resize_mode` (리사이즈 방식: `letterbox` 또는 `stretch`, 미명시 시 기본값: `letterbox`)
+- `data.train_patch_size` (학습 시 패치 크기, 미명시 시 기본값: `null` = 패치 크롭 미사용)
+- `data.val_patch_size` (검증 시 패치 크기, 미명시 시 기본값: `null` = 패치 크롭 미사용)
+- `data.wall_focus_prob` (벽이 있는 패치를 우선 샘플링할 확률, 미명시 시 기본값: `0.7`)
+- `data.min_wall_ratio` (벽 중심 샘플링으로 인정할 최소 벽 비율, 미명시 시 기본값: `0.01`)
+- `data.patch_max_tries` (조건 맞는 패치 찾기 재시도 횟수, 미명시 시 기본값: `10`)
+- `augment.flip_h_prob` (좌우 뒤집기 확률, 미명시 시 기본값: `0.5`)
+- `augment.flip_v_prob` (상하 뒤집기 확률, 미명시 시 기본값: `0.2`, 증강 미사용이면 `augment` 섹션 생략 가능)
+- `infer.threshold` (시그모이드 출력 이진화 임계값, 미명시 시 각 추론 스크립트 기본값 사용)
+- `infer.sliding_window` (슬라이딩 윈도우 추론 사용 여부, 미명시 시 각 추론 스크립트 기본값 사용)
+- `infer.patch_size` (슬라이딩 윈도우 패치 크기, 미명시 시 각 추론 스크립트 기본값 사용)
+- `infer.stride` (슬라이딩 윈도우 이동 간격, 미명시 시 각 추론 스크립트 기본값 사용)
+
+참고:
+- 과거 형식 `train.loss_name`도 호환은 되지만, 새 설정은 `loss.name` 사용을 권장합니다.
+- 증강 on/off 판단 순서: `augment.enabled` -> `data.augment` -> `augment` 섹션 존재 여부.
+- 학습 재개는 YAML이 아니라 CLI 인자로 지정합니다.  
+  예: `python -m src.training.train_unet --config configs/unet_bce.yaml --resume checkpoints/unet_bce/last_unet.pth`
+
 ## U-Net 추론
 
 단일 이미지(해당 실험과 같은 `--config`를 맞추는 것을 권장):
