@@ -6,5 +6,4 @@ opencv-python==4.13.0.92
 numpy==2.4.4
 requests==2.32.5
 ultralytics==8.3.230
-torch
-torchvision
+PyYAML

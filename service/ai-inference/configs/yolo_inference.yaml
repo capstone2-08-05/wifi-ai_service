@@ -1,0 +1,6 @@
+model:
+  weights_path: c:/capstone2/rf-service/service/ai-inference/models/yolo/best.pt
+
+infer:
+  conf_threshold: 0.25
+  device:

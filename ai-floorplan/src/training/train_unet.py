@@ -10,8 +10,8 @@ from tqdm import tqdm
 
 from src.datasets.wall_dataset import FloorplanWallDataset
 from src.models.unet import UNet
+from src.training.losses import build_loss
 from src.utils.common import ensure_dir, get_device, load_yaml, set_seed
-from src.utils.losses import build_loss
 from src.utils.metrics import dice_score_from_logits, iou_score_from_logits
 
 

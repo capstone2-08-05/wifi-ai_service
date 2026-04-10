@@ -1,5 +1,7 @@
-from pathlib import Path
 import argparse
+from pathlib import Path
+
+import numpy as np
 from ultralytics import YOLO
 
 
@@ -43,6 +45,24 @@ def collect_sources(source: Path):
         return files
 
     raise FileNotFoundError(f"Source not found: {source}")
+
+
+def infer_yolo_array(
+    model: YOLO,
+    image_bgr: np.ndarray,
+    *,
+    conf: float = 0.25,
+    device: str = "cpu",
+):
+    """Run YOLO inference for a single BGR image."""
+    results = model.predict(
+        source=image_bgr,
+        imgsz=max(image_bgr.shape[:2]),
+        conf=conf,
+        device=device,
+        verbose=False,
+    )
+    return results[0]
 
 
 def main():
