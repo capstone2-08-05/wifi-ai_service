@@ -12,5 +12,12 @@ outputs/
 artifacts/
 service/ai-inference/.venv/
 service/ai-inference/data/output/
+ai-floorplan/checkpoints/
+ai-floorplan/runs/
 *.pth
+*.pt
+*.ckpt
+*.png
+*.jpg
+*.jpeg
 *.csv

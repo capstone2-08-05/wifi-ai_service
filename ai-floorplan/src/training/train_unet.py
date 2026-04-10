@@ -10,17 +10,26 @@ from tqdm import tqdm
 
 from src.datasets.wall_dataset import FloorplanWallDataset
 from src.models.unet import UNet
-from src.training.losses import build_loss
 from src.utils.common import ensure_dir, get_device, load_yaml, set_seed
+from src.utils.losses import build_loss
 from src.utils.metrics import dice_score_from_logits, iou_score_from_logits
 
 
 def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, required=True)
-    parser.add_argument("--resume", action="store_true")
-    parser.add_argument("--resume_path", type=str, default=None)
-    return parser.parse_args()
+    p = argparse.ArgumentParser(description="Train U-Net wall segmentation.")
+    p.add_argument(
+        "--config",
+        type=str,
+        required=True,
+        help="Path to YAML config",
+    )
+    p.add_argument(
+        "--resume",
+        type=str,
+        default=None,
+        help="Path to checkpoint to resume from (e.g., checkpoints/unet_bce/last_unet.pth)",
+    )
+    return p.parse_args()
 
 
 def train_one_epoch(model, loader, optimizer, criterion, device, scaler, use_amp: bool):
@@ -79,27 +88,45 @@ def validate(model, loader, criterion, device):
 
 def main():
     args = parse_args()
-    cfg = load_yaml(args.config)
-
+    cfg_path = Path(args.config)
+    if not cfg_path.is_file():
+        raise FileNotFoundError(f"Config not found: {cfg_path.resolve()}")
+    cfg = load_yaml(str(cfg_path))
     set_seed(cfg["seed"])
     device = get_device()
     use_amp = bool(cfg["train"].get("amp", True)) and device.type == "cuda"
 
-    print("CONFIG PATH:", args.config)
-    print("LOSS NAME:", cfg["train"]["loss_name"])
-    print("AUGMENT:", cfg["data"]["augment"])
+    print("CONFIG PATH:", str(cfg_path))
+    print("LOSS:", cfg.get("loss", {}).get("name", cfg.get("train", {}).get("loss_name", "bce")))
 
+    aug_cfg = cfg.get("augment") or {}
+    data_cfg = cfg["data"]
+    augment_enabled = bool(
+        aug_cfg.get("enabled", data_cfg.get("augment", bool(aug_cfg)))
+    )
     train_ds = FloorplanWallDataset(
-        image_dir=cfg["data"]["train_image_dir"],
-        mask_dir=cfg["data"]["train_mask_dir"],
-        image_size=cfg["data"]["image_size"],
-        augment=cfg["data"].get("augment", False),
+        image_dir=data_cfg["train_image_dir"],
+        mask_dir=data_cfg["train_mask_dir"],
+        image_size=data_cfg["image_size"],
+        augment=augment_enabled,
+        resize_mode=data_cfg.get("resize_mode", "letterbox"),
+        patch_size=data_cfg.get("train_patch_size"),
+        wall_focus_prob=data_cfg.get("wall_focus_prob", 0.7),
+        min_wall_ratio=data_cfg.get("min_wall_ratio", 0.01),
+        patch_max_tries=data_cfg.get("patch_max_tries", 10),
+        flip_h_prob=float(aug_cfg.get("flip_h_prob", 0.5)),
+        flip_v_prob=float(aug_cfg.get("flip_v_prob", 0.2)),
     )
     val_ds = FloorplanWallDataset(
-        image_dir=cfg["data"]["val_image_dir"],
-        mask_dir=cfg["data"]["val_mask_dir"],
-        image_size=cfg["data"]["image_size"],
+        image_dir=data_cfg["val_image_dir"],
+        mask_dir=data_cfg["val_mask_dir"],
+        image_size=data_cfg["image_size"],
         augment=False,
+        resize_mode=data_cfg.get("resize_mode", "letterbox"),
+        patch_size=data_cfg.get("val_patch_size"),
+        wall_focus_prob=data_cfg.get("wall_focus_prob", 0.7),
+        min_wall_ratio=data_cfg.get("min_wall_ratio", 0.01),
+        patch_max_tries=data_cfg.get("patch_max_tries", 10),
     )
 
     train_loader = DataLoader(
@@ -122,13 +149,17 @@ def main():
         out_channels=cfg["model"]["out_channels"],
     ).to(device)
 
-    criterion = build_loss(cfg["train"]["loss_name"])
+    loss_cfg = cfg.get("loss")
+    if loss_cfg is None:
+        # Backward compatibility for legacy config shape.
+        loss_cfg = {"name": cfg.get("train", {}).get("loss_name", "bce")}
+    criterion = build_loss(loss_cfg)
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg["train"]["lr"])
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
     save_dir = ensure_dir(cfg["train"]["save_dir"])
     log_csv_path = save_dir / "train_log.csv"
-    last_ckpt_path = Path(args.resume_path) if args.resume_path else save_dir / "last_unet.pth"
+    last_ckpt_path = save_dir / "last_unet.pth"
     best_ckpt_path = save_dir / "best_unet.pth"
 
     if not log_csv_path.exists():
@@ -147,26 +178,39 @@ def main():
 
     start_epoch = 1
     best_dice = -1.0
+    metrics_path = save_dir / "metrics.csv"
+    if not metrics_path.exists():
+        with open(metrics_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["epoch", "train_loss", "val_loss", "val_dice", "val_iou"])
 
-    if args.resume:
-        if not last_ckpt_path.exists():
-            raise FileNotFoundError(f"Resume checkpoint not found: {last_ckpt_path}")
-
-        print(f"Resuming from: {last_ckpt_path}")
-        ckpt = torch.load(last_ckpt_path, map_location=device)
-
+    if args.resume is not None:
+        resume_path = Path(args.resume)
+        if not resume_path.is_file():
+            raise FileNotFoundError(f"Resume checkpoint not found: {resume_path.resolve()}")
+        ckpt = torch.load(str(resume_path), map_location=device)
         model.load_state_dict(ckpt["model_state_dict"])
-        optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+        if "optimizer_state_dict" in ckpt:
+            optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+        if "scaler_state_dict" in ckpt and cfg["train"]["amp"]:
+            scaler.load_state_dict(ckpt["scaler_state_dict"])
+        start_epoch = int(ckpt.get("epoch", 0)) + 1
+        if "best_dice" in ckpt:
+            best_dice = float(ckpt["best_dice"])
+        elif "val_metrics" in ckpt and "dice" in ckpt["val_metrics"]:
+            best_dice = float(ckpt["val_metrics"]["dice"])
+        print(
+            f"Resumed from {resume_path.resolve()} "
+            f"(next_epoch={start_epoch}, best_dice={best_dice:.4f})"
+        )
 
-        scaler_state = ckpt.get("scaler_state_dict")
-        if scaler_state is not None and use_amp:
-            scaler.load_state_dict(scaler_state)
+    print(f"Config: {cfg_path.resolve()} | save_dir: {save_dir.resolve()}")
 
-        start_epoch = ckpt["epoch"] + 1
-        best_dice = ckpt.get("best_dice", -1.0)
-
-        print(f"Resume start epoch: {start_epoch}")
-        print(f"Loaded best_dice: {best_dice:.4f}")
+    if start_epoch > cfg["train"]["epochs"]:
+        print(
+            f"Nothing to do: start_epoch={start_epoch} exceeds configured epochs={cfg['train']['epochs']}."
+        )
+        return
 
     for epoch in range(start_epoch, cfg["train"]["epochs"] + 1):
         train_loss = train_one_epoch(
@@ -236,6 +280,17 @@ def main():
             f"val_dice={val_metrics['dice']:.4f} "
             f"val_iou={val_metrics['iou']:.4f}"
         )
+        with open(metrics_path, "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(
+                [
+                    epoch,
+                    f"{train_loss:.6f}",
+                    f"{val_metrics['loss']:.6f}",
+                    f"{val_metrics['dice']:.6f}",
+                    f"{val_metrics['iou']:.6f}",
+                ]
+            )
 
     print("Training finished.")
 

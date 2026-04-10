@@ -22,7 +22,7 @@ train:
   epochs: 30
   lr: 0.0001
   num_workers: 4
-  save_dir: checkpoints/unet_bce_dice
+  save_dir: checkpoints/unet_tversky
   amp: true
 
 model:
@@ -30,10 +30,10 @@ model:
   out_channels: 1
 
 loss:
-  name: bce_dice
-  bce_weight: 0.5
-  dice_weight: 0.5
-  dice_smooth: 1.0
+  name: tversky
+  tversky_alpha: 0.7
+  tversky_beta: 0.3
+  tversky_smooth: 1.0
 
 infer:
   threshold: 0.5
