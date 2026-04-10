@@ -1,6 +1,6 @@
 # ai-floorplan
 
-U-Net 벽 분할 학습·추론 및 YOLO 관련 스크립트. 아래 명령은 **워킹 디렉터리를 `rf-service/ai-floorplan`으로 둔 것**을 기준으로 합니다.
+U-Net 벽 분할 학습·추론 및 YOLO 관련 스크립트. 아래 명령은 **워킹 디렉터리를 `ai-service/ai-floorplan`으로 둔 것**을 기준으로 합니다.
 
 ## 환경
 
@@ -13,13 +13,13 @@ pip install -r requirements.txt
 
 ## U-Net 학습
 
-### 복붙용: 꼬임 없이 1개 loss만 새로 학습
+### 복붙용: 1개 loss 단일 학습
 
-`run_unet_losses.py`는 `train`/`infer` 서브커맨드를 같이 쓰므로, 아래처럼 `train --only`를 권장합니다.
+한 번에 여러 loss를 돌리는 방식 대신, 아래처럼 `train_unet --config` 단일 실행을 권장합니다.
 
 ```powershell
 cd c:\capstone2\rf-service\ai-floorplan
-python scripts/run_unet_losses.py train --only bce
+python -m src.training.train_unet --config configs/unet_bce.yaml
 ```
 
 학습이 정말 "새로" 시작되는지 확인하려면 콘솔 첫 줄의 `Config:`와 `save_dir:`를 확인하세요.
@@ -44,30 +44,18 @@ python -m src.training.train_unet --config configs/unet_train.yaml
 기본 설정으로 돌리려면(`configs/unet_train.yaml`, loss: `focal_tversky`):
 
 ```powershell
-python -m src.training.train_unet
-```
-
-**loss별로 한 번에 학습**:
-
-```powershell
-python scripts/run_unet_losses.py train
-```
-
-일부만:
-
-```powershell
-python scripts/run_unet_losses.py train --only bce bce_dice
+python -m src.training.train_unet --config configs/unet_train.yaml
 ```
 
 ### 복붙용: loss별 단일 실행 명령
 
 ```powershell
 cd c:\capstone2\rf-service\ai-floorplan
-python scripts/run_unet_losses.py train --only bce
-python scripts/run_unet_losses.py train --only bce_dice
-python scripts/run_unet_losses.py train --only focal_dice
-python scripts/run_unet_losses.py train --only tversky
-python scripts/run_unet_losses.py train --only focal_tversky
+python -m src.training.train_unet --config configs/unet_bce.yaml
+python -m src.training.train_unet --config configs/unet_bce_dice.yaml
+python -m src.training.train_unet --config configs/unet_focal_dice.yaml
+python -m src.training.train_unet --config configs/unet_tversky.yaml
+python -m src.training.train_unet --config configs/unet_train.yaml
 ```
 
 체크포인트는 각 YAML의 `train.save_dir` 아래 `best_unet.pth`, `last_unet.pth`로 저장됩니다.

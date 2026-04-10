@@ -32,3 +32,4 @@ ai-floorplan/runs/
 *.jpg
 *.jpeg
 *.csv
+*.env
