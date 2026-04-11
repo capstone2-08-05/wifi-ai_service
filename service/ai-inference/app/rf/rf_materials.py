@@ -49,6 +49,11 @@ class MaterialProfileRegistry:
         self._profiles = dict(profiles or DEFAULT_MATERIAL_PROFILES)
 
     def get_loss_db(self, material_name: str) -> float:
+        """등록된 프로파일 키의 `attenuation_db`. 미등록 키는 **0 dB** (합산에서 무시).
+
+        Baseline은 `Scene` 파싱 후 `Wall.material` 문자열만 사용한다.
+        규칙 요약: `docs/RF_MATERIAL_AND_OPENING_RULES.md`.
+        """
         profile = self._profiles.get(material_name)
         return 0.0 if profile is None else float(profile.attenuation_db)
 

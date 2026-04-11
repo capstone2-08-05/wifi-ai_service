@@ -1,0 +1,17 @@
+{
+  "scene_version_id": "sv_demo_backend_v1",
+  "layout_name": "backend_demo_single_ap",
+  "layout_type": "demo",
+  "aps": [
+    {
+      "id": "ap_001",
+      "ap_name": "AP-Demo",
+      "point_geom": { "type": "Point", "coordinates": [1.0, 2.0] },
+      "z_m": 2.5,
+      "tx_power_dbm": 20.0,
+      "frequency_ghz": 5.0,
+      "azimuth_deg": 0.0,
+      "tilt_deg": 0.0
+    }
+  ]
+}

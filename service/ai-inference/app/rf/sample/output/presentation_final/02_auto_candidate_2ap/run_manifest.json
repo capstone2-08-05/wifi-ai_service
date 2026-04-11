@@ -1,17 +1,17 @@
 {
-  "scene_version_id": "scene_v1",
-  "layout_name": "layout_single_ap_demo",
+  "scene_version_id": "scene_complex_v1",
+  "layout_name": "presentation_auto_2ap",
   "config": {
-    "grid_resolution_m": 0.5,
-    "path_loss_constant_db": 40.0,
+    "grid_resolution_m": 0.25,
+    "path_loss_constant_db": 63.0,
     "path_loss_exponent": 2.0,
     "include_exterior_walls": false
   },
   "bounds": {
     "min_x": 0.0,
-    "max_x": 8.0,
+    "max_x": 12.0,
     "min_y": 0.0,
-    "max_y": 6.0
+    "max_y": 8.0
   },
   "artifacts": {
     "strongest_rssi_map": "strongest_rssi_map.npy",
@@ -19,23 +19,24 @@
     "strongest_wall_loss_map": "strongest_wall_loss_map.npy",
     "best_server_map": "best_server_map.npy",
     "per_ap_rssi_maps": {
-      "ap_001": "rssi_map_ap_001.npy"
+      "ap_001": "rssi_map_ap_001.npy",
+      "ap_002": "rssi_map_ap_002.npy"
     },
     "heatmap_png": "strongest_rssi_heatmap.png"
   },
   "metrics": {
-    "scene_version_id": "scene_v1",
-    "layout_name": "layout_single_ap_demo",
+    "scene_version_id": "scene_complex_v1",
+    "layout_name": "presentation_auto_2ap",
     "grid": {
-      "resolution_m": 0.5,
-      "x_count": 17,
-      "y_count": 13,
-      "point_count": 221
+      "resolution_m": 0.25,
+      "x_count": 49,
+      "y_count": 33,
+      "point_count": 1617
     },
     "rssi_summary": {
-      "min_dbm": -41.95880017344075,
-      "max_dbm": 0.0,
-      "mean_dbm": -31.579481325758955
+      "min_dbm": -65.28388930050312,
+      "max_dbm": -23.0,
+      "mean_dbm": -52.105892666184424
     },
     "coverage_summary": {
       "fraction_rssi_ge_neg67_dbm": 1.0,
@@ -49,21 +50,23 @@
       "description": "Grid-point fractions of strongest RSSI (baseline path loss + wall loss)."
     },
     "path_loss_summary": {
-      "min_db": 20.0,
-      "max_db": 57.95880017344075,
-      "mean_db": 50.1677166198766
+      "min_db": 43.0,
+      "max_db": 79.28388930050312,
+      "mean_db": 71.23019693334584
     },
     "wall_loss_summary": {
       "min_db": 0.0,
-      "max_db": 4.0,
-      "mean_db": 1.411764705882353
+      "max_db": 10.0,
+      "mean_db": 0.87569573283859
     },
     "serving_ap_distribution": {
       "counts": {
-        "ap_001": 221
+        "ap_001": 836,
+        "ap_002": 781
       },
       "ratios": {
-        "ap_001": 1.0
+        "ap_001": 0.5170068027210885,
+        "ap_002": 0.48299319727891155
       }
     }
   }

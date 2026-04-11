@@ -1,0 +1,38 @@
+[
+  {
+    "id": "d3e07ab2-70a7-4010-89ad-c1e0bd0ff33c",
+    "rf_run_id": "31f38440-a73d-4bbd-9ae6-58dcba0fa773",
+    "layout_name": "layout_single_ap_demo",
+    "layout_type": "manual_single_ap",
+    "total_ap_count": 1,
+    "placements_json": [
+      {
+        "ap_id": "ap_001",
+        "ap_name": "AP-01",
+        "x_m": 1.5,
+        "y_m": 1.5,
+        "z_m": 2.5,
+        "tx_power_dbm": 20.0,
+        "frequency_ghz": 5.0
+      }
+    ]
+  },
+  {
+    "id": "25852830-c15d-4e24-9f24-fc245c790e2b",
+    "rf_run_id": "d3810e2e-5636-4c0c-a450-a799b7a72e5c",
+    "layout_name": "layout_single_ap_demo",
+    "layout_type": "manual_single_ap",
+    "total_ap_count": 1,
+    "placements_json": [
+      {
+        "ap_id": "ap_001",
+        "ap_name": "AP-01",
+        "x_m": 1.5,
+        "y_m": 1.5,
+        "z_m": 2.5,
+        "tx_power_dbm": 20.0,
+        "frequency_ghz": 5.0
+      }
+    ]
+  }
+]

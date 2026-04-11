@@ -1,0 +1,71 @@
+{
+  "generated_at_utc": "2026-04-11T18:07:18.114011+00:00",
+  "baseline": {
+    "status": "ok",
+    "model": "baseline_rf_simulator",
+    "scene_version_id": "golden_tiny_v1",
+    "layout_name": "golden_single_ap",
+    "note": "Golden: 벽 없음, 2D 그리드. Sionna PoC는 3D 메시(바닥+벽) — 물리 모델이 다름.",
+    "grid_shape": [
+      5,
+      5
+    ],
+    "metrics": {
+      "scene_version_id": "golden_tiny_v1",
+      "layout_name": "golden_single_ap",
+      "grid": {
+        "resolution_m": 1.0,
+        "x_count": 5,
+        "y_count": 5,
+        "point_count": 25
+      },
+      "rssi_summary": {
+        "min_dbm": -29.030899869919438,
+        "max_dbm": 0.0,
+        "mean_dbm": -24.32659197224948
+      },
+      "coverage_summary": {
+        "fraction_rssi_ge_neg67_dbm": 1.0,
+        "fraction_rssi_ge_neg70_dbm": 1.0,
+        "dead_zone_fraction_lt_neg75_dbm": 0.0,
+        "thresholds_dbm": {
+          "good_ge": -67.0,
+          "ok_ge": -70.0,
+          "dead_lt": -75.0
+        },
+        "description": "Grid-point fractions of strongest RSSI (baseline path loss + wall loss)."
+      },
+      "path_loss_summary": {
+        "min_db": 20.0,
+        "max_db": 49.03089986991944,
+        "mean_db": 44.32659197224949
+      },
+      "wall_loss_summary": {
+        "min_db": 0.0,
+        "max_db": 0.0,
+        "mean_db": 0.0
+      },
+      "serving_ap_distribution": {
+        "counts": {
+          "ap_001": 25
+        },
+        "ratios": {
+          "ap_001": 1.0
+        }
+      }
+    },
+    "rssi_dbm": {
+      "min": -29.030899869919438,
+      "max": 0.0,
+      "mean": -24.32659197224948
+    },
+    "center_cell_rssi_dbm": 0.0
+  },
+  "sionna": {
+    "status": "error",
+    "phase": "run_sionna_radiomap",
+    "message": "No module named 'sionna'",
+    "hint": "SIONNA_RUNBOOK.md 의 LLVM/CUDA/venv 절차 확인"
+  },
+  "interpretation_one_liner": "Sionna 측이 아직 실행되지 않았거나 오류라 수치 비교는 불가; baseline만으로 RF 파이프라인은 동작함을 시연할 수 있다."
+}

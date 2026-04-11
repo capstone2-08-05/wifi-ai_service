@@ -1,0 +1,8 @@
+# Optional: Sionna RT PoC (`sionna_poc/sionna_rt_poc.py`) 전용.
+# 기본 ai-inference 이미지에는 포함하지 않는다.
+# GPU/CPU Mitsuba 변형은 환경에 따라 자동 선택된다.
+#
+# Windows: venv에 넣으려면 전역 pip 대신 반드시
+#   path\to\venv\Scripts\python.exe -m pip install -r requirements-sionna-poc.txt
+# import 시 LLVM-C.dll / CUDA 오류가 나면: NVIDIA CUDA 설치 또는 DRJIT_LIBLLVM_PATH( DLL 전체 경로 ) 설정.
+sionna-rt>=2.0.1

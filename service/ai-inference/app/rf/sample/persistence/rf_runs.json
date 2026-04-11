@@ -1,0 +1,134 @@
+[
+  {
+    "id": "31f38440-a73d-4bbd-9ae6-58dcba0fa773",
+    "scene_version_id": "scene_v1",
+    "floor_id": "floor_01",
+    "run_type": "preview",
+    "engine_name": "baseline",
+    "engine_version": "baseline-0.1",
+    "status": "succeeded",
+    "sim_config_json": {
+      "grid_resolution_m": 0.5,
+      "path_loss_constant_db": 40.0,
+      "path_loss_exponent": 2.0,
+      "include_exterior_walls": false,
+      "output_dir_name": "output"
+    },
+    "metrics_json": {
+      "scene_version_id": "scene_v1",
+      "layout_name": "layout_single_ap_demo",
+      "grid": {
+        "resolution_m": 0.5,
+        "x_count": 17,
+        "y_count": 13,
+        "point_count": 221
+      },
+      "rssi_summary": {
+        "min_dbm": -41.95880017344075,
+        "max_dbm": 0.0,
+        "mean_dbm": -31.579481325758955
+      },
+      "coverage_summary": {
+        "fraction_rssi_ge_neg67_dbm": 1.0,
+        "fraction_rssi_ge_neg70_dbm": 1.0,
+        "dead_zone_fraction_lt_neg75_dbm": 0.0,
+        "thresholds_dbm": {
+          "good_ge": -67.0,
+          "ok_ge": -70.0,
+          "dead_lt": -75.0
+        },
+        "description": "Grid-point fractions of strongest RSSI (baseline path loss + wall loss)."
+      },
+      "path_loss_summary": {
+        "min_db": 20.0,
+        "max_db": 57.95880017344075,
+        "mean_db": 50.1677166198766
+      },
+      "wall_loss_summary": {
+        "min_db": 0.0,
+        "max_db": 4.0,
+        "mean_db": 1.411764705882353
+      },
+      "serving_ap_distribution": {
+        "counts": {
+          "ap_001": 221
+        },
+        "ratios": {
+          "ap_001": 1.0
+        }
+      }
+    },
+    "output_root": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output",
+    "started_at": "2026-04-11T15:13:19.773407+00:00",
+    "finished_at": "2026-04-11T15:13:19.803796+00:00",
+    "project_id": null,
+    "job_id": null,
+    "ap_candidates_json": null
+  },
+  {
+    "id": "d3810e2e-5636-4c0c-a450-a799b7a72e5c",
+    "scene_version_id": "scene_v1",
+    "floor_id": "floor_01",
+    "run_type": "preview",
+    "engine_name": "baseline",
+    "engine_version": "baseline-0.1",
+    "status": "succeeded",
+    "sim_config_json": {
+      "grid_resolution_m": 0.5,
+      "path_loss_constant_db": 40.0,
+      "path_loss_exponent": 2.0,
+      "include_exterior_walls": false,
+      "output_dir_name": "output"
+    },
+    "metrics_json": {
+      "scene_version_id": "scene_v1",
+      "layout_name": "layout_single_ap_demo",
+      "grid": {
+        "resolution_m": 0.5,
+        "x_count": 17,
+        "y_count": 13,
+        "point_count": 221
+      },
+      "rssi_summary": {
+        "min_dbm": -41.95880017344075,
+        "max_dbm": 0.0,
+        "mean_dbm": -31.579481325758955
+      },
+      "coverage_summary": {
+        "fraction_rssi_ge_neg67_dbm": 1.0,
+        "fraction_rssi_ge_neg70_dbm": 1.0,
+        "dead_zone_fraction_lt_neg75_dbm": 0.0,
+        "thresholds_dbm": {
+          "good_ge": -67.0,
+          "ok_ge": -70.0,
+          "dead_lt": -75.0
+        },
+        "description": "Grid-point fractions of strongest RSSI (baseline path loss + wall loss)."
+      },
+      "path_loss_summary": {
+        "min_db": 20.0,
+        "max_db": 57.95880017344075,
+        "mean_db": 50.1677166198766
+      },
+      "wall_loss_summary": {
+        "min_db": 0.0,
+        "max_db": 4.0,
+        "mean_db": 1.411764705882353
+      },
+      "serving_ap_distribution": {
+        "counts": {
+          "ap_001": 221
+        },
+        "ratios": {
+          "ap_001": 1.0
+        }
+      }
+    },
+    "output_root": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output",
+    "started_at": "2026-04-11T15:18:01.900773+00:00",
+    "finished_at": "2026-04-11T15:18:01.920429+00:00",
+    "project_id": null,
+    "job_id": null,
+    "ap_candidates_json": null
+  }
+]

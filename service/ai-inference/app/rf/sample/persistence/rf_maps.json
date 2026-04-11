@@ -1,0 +1,174 @@
+[
+  {
+    "id": "40b9d1bd-1795-4458-ba87-062097543329",
+    "rf_run_id": "31f38440-a73d-4bbd-9ae6-58dcba0fa773",
+    "map_type": "rssi_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\strongest_rssi_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "96480fcf-b4ad-4e57-b5e3-03108eb42ba5",
+    "rf_run_id": "31f38440-a73d-4bbd-9ae6-58dcba0fa773",
+    "map_type": "path_loss_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\strongest_path_loss_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "79ca11c7-c896-4a2e-83b9-1869b0022dfb",
+    "rf_run_id": "31f38440-a73d-4bbd-9ae6-58dcba0fa773",
+    "map_type": "wall_loss_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\strongest_wall_loss_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "b1f96d6a-172b-44f3-b404-59c9ff8fb674",
+    "rf_run_id": "31f38440-a73d-4bbd-9ae6-58dcba0fa773",
+    "map_type": "best_server",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\best_server_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "b818c4cf-d411-4118-9168-d677d98e7dd6",
+    "rf_run_id": "31f38440-a73d-4bbd-9ae6-58dcba0fa773",
+    "map_type": "heatmap_png",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\strongest_rssi_heatmap.png",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "3fa216e4-e439-4fce-bacd-9b707178610f",
+    "rf_run_id": "31f38440-a73d-4bbd-9ae6-58dcba0fa773",
+    "map_type": "rssi_per_ap",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\rssi_map_ap_001.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": {
+      "ap_id": "ap_001"
+    }
+  },
+  {
+    "id": "4934f014-3fa4-4edf-83b7-bc4795cd03b4",
+    "rf_run_id": "d3810e2e-5636-4c0c-a450-a799b7a72e5c",
+    "map_type": "rssi_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\strongest_rssi_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "7a57405d-7d85-4b0c-b9ff-df580cd2d3fa",
+    "rf_run_id": "d3810e2e-5636-4c0c-a450-a799b7a72e5c",
+    "map_type": "path_loss_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\strongest_path_loss_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "e3debd72-f97b-467a-bfc4-8b1c8e1ebb17",
+    "rf_run_id": "d3810e2e-5636-4c0c-a450-a799b7a72e5c",
+    "map_type": "wall_loss_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\strongest_wall_loss_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "0af3c706-632a-4a90-b5f2-cc87b5cbade9",
+    "rf_run_id": "d3810e2e-5636-4c0c-a450-a799b7a72e5c",
+    "map_type": "best_server",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\best_server_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "490bb1b7-035c-4a46-a580-d13dba58fa8c",
+    "rf_run_id": "d3810e2e-5636-4c0c-a450-a799b7a72e5c",
+    "map_type": "heatmap_png",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\strongest_rssi_heatmap.png",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "121b01f9-7d32-426d-a97e-d2dcf7fe6498",
+    "rf_run_id": "d3810e2e-5636-4c0c-a450-a799b7a72e5c",
+    "map_type": "rssi_per_ap",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\rssi_map_ap_001.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": {
+      "ap_id": "ap_001"
+    }
+  }
+]

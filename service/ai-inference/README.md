@@ -48,3 +48,13 @@ AI_SERVICE_URL=http://<ai-host>:9000
 ```
 
 backend는 업로드된 파일을 AI 서버로 직접 전송합니다.
+
+## 5) RF baseline 데모 (캡스톤)
+
+- **발표 산출물 고정(히트맵·비교표):** `app/rf/PRESENTATION_LOCKED.md`
+- **실행 명령·해석:** `app/rf/DEMO_RUNBOOK.md`
+- **가정·한계 1장:** `app/rf/ASSUMPTIONS_AND_LIMITS.md`
+- **백엔드 ↔ RF 입력 handoff 합의안:** `app/rf/docs/RF_SCENE_HANDOFF_SPEC.md`
+- **Scene graph DTO → RF 매핑:** `app/rf/docs/SCENE_GRAPH_ADAPTER_MAPPING.md` · 샘플 `app/rf/sample/backend_scene_graph_example.json` → `export_rf_from_backend_sample.py`
+- **재질·개구부(baseline) 규칙:** `app/rf/docs/RF_MATERIAL_AND_OPENING_RULES.md`
+- **Sionna RT PoC:** `app/rf/SIONNA_RUNBOOK.md` · 비교 산출물 `python app/rf/compare_baseline_vs_sionna.py`

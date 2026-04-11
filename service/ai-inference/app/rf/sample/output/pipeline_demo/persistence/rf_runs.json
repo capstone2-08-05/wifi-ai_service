@@ -1,6 +1,6 @@
 [
   {
-    "id": "02ce8d44-ede3-4109-aabe-57d9b2dbce94",
+    "id": "4cc078c2-60c1-4f56-8a1e-5ea09905b733",
     "scene_version_id": "scene_v1",
     "floor_id": "floor_01",
     "run_type": "pipeline_demo",
@@ -61,8 +61,8 @@
       }
     },
     "output_root": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo",
-    "started_at": "2026-04-11T14:48:29.183438+00:00",
-    "finished_at": "2026-04-11T14:48:29.205162+00:00",
+    "started_at": "2026-04-11T15:15:25.704710+00:00",
+    "finished_at": "2026-04-11T15:15:25.725327+00:00",
     "project_id": null,
     "job_id": null,
     "ap_candidates_json": [
@@ -95,7 +95,7 @@
     ]
   },
   {
-    "id": "9ff61f21-403f-435d-84d8-99e18aaa1fc8",
+    "id": "6e3cdc00-7fbe-4d23-a6c9-2f4dd6d8aa3c",
     "scene_version_id": "scene_v1",
     "floor_id": "floor_01",
     "run_type": "pipeline_demo",
@@ -156,8 +156,8 @@
       }
     },
     "output_root": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo",
-    "started_at": "2026-04-11T15:00:17.494341+00:00",
-    "finished_at": "2026-04-11T15:00:17.519187+00:00",
+    "started_at": "2026-04-11T15:18:08.921059+00:00",
+    "finished_at": "2026-04-11T15:18:08.945939+00:00",
     "project_id": null,
     "job_id": null,
     "ap_candidates_json": [

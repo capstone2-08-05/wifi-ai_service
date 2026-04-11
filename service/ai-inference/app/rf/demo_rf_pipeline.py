@@ -44,12 +44,13 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--scene",
         type=Path,
-        default=_ROOT / "sample" / "rf_scene_input.json",
+        default=_ROOT / "sample" / "rf_scene_input_complex.json",
+        help="기본값: 발표용 복잡 씬 (단순 씬은 sample/rf_scene_input.json)",
     )
     p.add_argument(
         "--config",
         type=Path,
-        default=_ROOT / "sample" / "sim_config.json",
+        default=_ROOT / "sample" / "sim_config_complex.json",
     )
     p.add_argument(
         "--top-k",
@@ -60,7 +61,7 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--output-dir",
         type=Path,
-        default=_ROOT / "sample" / "output" / "pipeline_demo",
+        default=_ROOT / "sample" / "output" / "pipeline_complex_demo",
         help="heatmap, npy, run_manifest.json 저장 폴더",
     )
     p.add_argument(
