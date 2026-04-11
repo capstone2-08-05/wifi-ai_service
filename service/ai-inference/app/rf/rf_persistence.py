@@ -1,5 +1,19 @@
 from __future__ import annotations
 
+"""JSON 파일 3종에 RF 실행 이력을 쌓는 프로토타입 저장소.
+
+`baseline_rf_simulator.py`가 만드는 `run_manifest.json`과의 대응 관계:
+
+- **rf_runs.json** 한 행 ≈ 시뮬 1회. `metrics_json`은 manifest의 `metrics`와 동일.
+  `sim_config_json`은 manifest의 `config` + `output_dir_name` 등 실행에 쓴 설정.
+  `output_root`는 결과 디렉터리(`.npy`, `run_manifest.json`이 들어 있는 폴더).
+- **ap_layouts.json** 한 행 ≈ 그 실행에 사용한 AP 배치. `placements_json`은 AP 좌표·전력 요약
+  (CLI에서 `save_ap_layout`에 넘기는 dict 리스트).
+- **rf_maps.json** 여러 행 ≈ manifest `artifacts`에 나열된 파일 각각.
+  `map_type`은 내부 라벨(`rssi_strongest`, `heatmap_png` 등),
+  `storage_url`은 로컬 절대 경로 문자열(데모용).
+"""
+
 import json
 import uuid
 from dataclasses import asdict, dataclass
@@ -19,12 +33,16 @@ class RfRunRecord:
     floor_id: str
     run_type: str
     engine_name: str
+    engine_version: str
     status: str
     sim_config_json: dict[str, Any]
     metrics_json: dict[str, Any] | None
     output_root: str
     started_at: str
     finished_at: str | None = None
+    project_id: str | None = None
+    job_id: str | None = None
+    ap_candidates_json: list[dict[str, Any]] | None = None
 
 
 @dataclass
@@ -80,6 +98,10 @@ class JsonPersistenceStore:
         engine_name: str,
         sim_config_json: dict[str, Any],
         output_root: str,
+        engine_version: str = "baseline-0.1",
+        project_id: str | None = None,
+        job_id: str | None = None,
+        ap_candidates_json: list[dict[str, Any]] | None = None,
     ) -> RfRunRecord:
         record = RfRunRecord(
             id=str(uuid.uuid4()),
@@ -87,11 +109,15 @@ class JsonPersistenceStore:
             floor_id=floor_id,
             run_type=run_type,
             engine_name=engine_name,
+            engine_version=engine_version,
             status="running",
             sim_config_json=sim_config_json,
             metrics_json=None,
             output_root=output_root,
             started_at=utc_now_iso(),
+            project_id=project_id,
+            job_id=job_id,
+            ap_candidates_json=ap_candidates_json,
         )
         items = self._read_list(self.rf_runs_path)
         items.append(asdict(record))

@@ -5,9 +5,8 @@ import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from rf_materials import MaterialProfileRegistry
@@ -22,6 +21,27 @@ from rf_models import (
 from rf_persistence import JsonPersistenceStore
 
 EPS = 1e-9
+
+# Baseline coverage: 격자점별 strongest RSSI에 대한 단순 비율 (802.11 추천 임계값 근사)
+_RSSI_GOOD_DB = -67.0
+_RSSI_OK_DB = -70.0
+_RSSI_DEAD_DB = -75.0
+
+
+def compute_rssi_coverage_summary(strongest_rssi_flat: np.ndarray) -> dict[str, float]:
+    """Strongest RSSI 샘플(1D)에 대한 커버리지·데드존 비율."""
+    if strongest_rssi_flat.size == 0:
+        return {
+            "fraction_rssi_ge_neg67_dbm": 0.0,
+            "fraction_rssi_ge_neg70_dbm": 0.0,
+            "dead_zone_fraction_lt_neg75_dbm": 0.0,
+        }
+    r = strongest_rssi_flat.astype(float)
+    return {
+        "fraction_rssi_ge_neg67_dbm": float(np.mean(r >= _RSSI_GOOD_DB)),
+        "fraction_rssi_ge_neg70_dbm": float(np.mean(r >= _RSSI_OK_DB)),
+        "dead_zone_fraction_lt_neg75_dbm": float(np.mean(r < _RSSI_DEAD_DB)),
+    }
 
 
 @dataclass(frozen=True)
@@ -237,6 +257,7 @@ class BaselineRfSimulator:
             ap_id: count / float(len(best_server_indices))
             for ap_id, count in serving_counts.items()
         }
+        coverage_summary = compute_rssi_coverage_summary(strongest_rssi)
         return {
             "scene_version_id": self.scene.scene_version_id,
             "layout_name": self.ap_layout.layout_name,
@@ -250,6 +271,17 @@ class BaselineRfSimulator:
                 "min_dbm": float(np.min(strongest_rssi)),
                 "max_dbm": float(np.max(strongest_rssi)),
                 "mean_dbm": float(np.mean(strongest_rssi)),
+            },
+            "coverage_summary": {
+                **coverage_summary,
+                "thresholds_dbm": {
+                    "good_ge": _RSSI_GOOD_DB,
+                    "ok_ge": _RSSI_OK_DB,
+                    "dead_lt": _RSSI_DEAD_DB,
+                },
+                "description": (
+                    "Grid-point fractions of strongest RSSI (baseline path loss + wall loss)."
+                ),
             },
             "path_loss_summary": {
                 "min_db": float(np.min(strongest_path_loss)),
@@ -284,6 +316,8 @@ def save_outputs(
     config: SimulationConfig,
     result: SimulationResult,
     output_dir: Path,
+    *,
+    skip_heatmap: bool = False,
 ) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -304,8 +338,19 @@ def save_outputs(
         per_ap_files[ap_id] = ap_path.name
 
     heatmap_path = output_dir / "strongest_rssi_heatmap.png"
-    _plot_heatmap(scene=scene, ap_layout=ap_layout,
-                  result=result, save_path=heatmap_path)
+    if not skip_heatmap:
+        _plot_heatmap(scene=scene, ap_layout=ap_layout,
+                      result=result, save_path=heatmap_path)
+
+    artifacts: dict[str, Any] = {
+        "strongest_rssi_map": strongest_rssi_path.name,
+        "strongest_path_loss_map": strongest_path_loss_path.name,
+        "strongest_wall_loss_map": strongest_wall_loss_path.name,
+        "best_server_map": best_server_path.name,
+        "per_ap_rssi_maps": per_ap_files,
+    }
+    if not skip_heatmap:
+        artifacts["heatmap_png"] = heatmap_path.name
 
     manifest = {
         "scene_version_id": scene.scene_version_id,
@@ -322,14 +367,7 @@ def save_outputs(
             "min_y": result.bounds[2],
             "max_y": result.bounds[3],
         },
-        "artifacts": {
-            "strongest_rssi_map": strongest_rssi_path.name,
-            "strongest_path_loss_map": strongest_path_loss_path.name,
-            "strongest_wall_loss_map": strongest_wall_loss_path.name,
-            "best_server_map": best_server_path.name,
-            "per_ap_rssi_maps": per_ap_files,
-            "heatmap_png": heatmap_path.name,
-        },
+        "artifacts": artifacts,
         "metrics": result.metrics,
     }
     save_json(output_dir / "run_manifest.json", manifest)
@@ -342,6 +380,8 @@ def _plot_heatmap(
     result: SimulationResult,
     save_path: Path,
 ) -> None:
+    import matplotlib.pyplot as plt
+
     fig, ax = plt.subplots(figsize=(11, 7))
     min_x, max_x, min_y, max_y = result.bounds
     extent = [min_x, max_x, min_y, max_y]
@@ -463,6 +503,10 @@ def main() -> None:
         floor_id=floor_id,
         run_type="preview",
         engine_name="baseline",
+        engine_version="baseline-0.1",
+        project_id=None,
+        job_id=None,
+        ap_candidates_json=None,
         sim_config_json={
             "grid_resolution_m": config.grid_resolution_m,
             "path_loss_constant_db": config.path_loss_constant_db,

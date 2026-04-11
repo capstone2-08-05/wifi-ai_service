@@ -1,0 +1,183 @@
+{
+  "scene_version_id": "scene_v1",
+  "scene_path": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\rf_scene_input.json",
+  "config_path": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\sim_config.json",
+  "grid_resolution_m": 0.5,
+  "comparison_rows": [
+    {
+      "layout_label": "manual",
+      "mean_dbm": -31.579481325758955,
+      "min_dbm": -41.95880017344075,
+      "coverage_ratio_ge_neg67_dbm": 1.0,
+      "coverage_ratio_ge_neg70_dbm": 1.0,
+      "dead_zone_ratio_lt_neg75_dbm": 0.0
+    },
+    {
+      "layout_label": "candidate_top1",
+      "mean_dbm": -30.26660651018673,
+      "min_dbm": -40.53212513775344,
+      "coverage_ratio_ge_neg67_dbm": 1.0,
+      "coverage_ratio_ge_neg70_dbm": 1.0,
+      "dead_zone_ratio_lt_neg75_dbm": 0.0
+    },
+    {
+      "layout_label": "candidate_top2",
+      "mean_dbm": -25.529453818946976,
+      "min_dbm": -35.13943352306837,
+      "coverage_ratio_ge_neg67_dbm": 1.0,
+      "coverage_ratio_ge_neg70_dbm": 1.0,
+      "dead_zone_ratio_lt_neg75_dbm": 0.0
+    }
+  ],
+  "per_layout": [
+    {
+      "layout_label": "manual",
+      "layout_name": "layout_single_ap_demo",
+      "ap_count": 1,
+      "metrics": {
+        "scene_version_id": "scene_v1",
+        "layout_name": "layout_single_ap_demo",
+        "grid": {
+          "resolution_m": 0.5,
+          "x_count": 17,
+          "y_count": 13,
+          "point_count": 221
+        },
+        "rssi_summary": {
+          "min_dbm": -41.95880017344075,
+          "max_dbm": 0.0,
+          "mean_dbm": -31.579481325758955
+        },
+        "coverage_summary": {
+          "fraction_rssi_ge_neg67_dbm": 1.0,
+          "fraction_rssi_ge_neg70_dbm": 1.0,
+          "dead_zone_fraction_lt_neg75_dbm": 0.0,
+          "thresholds_dbm": {
+            "good_ge": -67.0,
+            "ok_ge": -70.0,
+            "dead_lt": -75.0
+          },
+          "description": "Grid-point fractions of strongest RSSI (baseline path loss + wall loss)."
+        },
+        "path_loss_summary": {
+          "min_db": 20.0,
+          "max_db": 57.95880017344075,
+          "mean_db": 50.1677166198766
+        },
+        "wall_loss_summary": {
+          "min_db": 0.0,
+          "max_db": 4.0,
+          "mean_db": 1.411764705882353
+        },
+        "serving_ap_distribution": {
+          "counts": {
+            "ap_001": 221
+          },
+          "ratios": {
+            "ap_001": 1.0
+          }
+        }
+      }
+    },
+    {
+      "layout_label": "candidate_top1",
+      "layout_name": "compare_candidate_top1",
+      "ap_count": 1,
+      "metrics": {
+        "scene_version_id": "scene_v1",
+        "layout_name": "compare_candidate_top1",
+        "grid": {
+          "resolution_m": 0.5,
+          "x_count": 17,
+          "y_count": 13,
+          "point_count": 221
+        },
+        "rssi_summary": {
+          "min_dbm": -40.53212513775344,
+          "max_dbm": 0.0,
+          "mean_dbm": -30.26660651018673
+        },
+        "coverage_summary": {
+          "fraction_rssi_ge_neg67_dbm": 1.0,
+          "fraction_rssi_ge_neg70_dbm": 1.0,
+          "dead_zone_fraction_lt_neg75_dbm": 0.0,
+          "thresholds_dbm": {
+            "good_ge": -67.0,
+            "ok_ge": -70.0,
+            "dead_lt": -75.0
+          },
+          "description": "Grid-point fractions of strongest RSSI (baseline path loss + wall loss)."
+        },
+        "path_loss_summary": {
+          "min_db": 20.0,
+          "max_db": 56.53212513775344,
+          "mean_db": 49.108235469462755
+        },
+        "wall_loss_summary": {
+          "min_db": 0.0,
+          "max_db": 4.0,
+          "mean_db": 1.158371040723982
+        },
+        "serving_ap_distribution": {
+          "counts": {
+            "ap_001": 221
+          },
+          "ratios": {
+            "ap_001": 1.0
+          }
+        }
+      }
+    },
+    {
+      "layout_label": "candidate_top2",
+      "layout_name": "compare_candidate_top2",
+      "ap_count": 2,
+      "metrics": {
+        "scene_version_id": "scene_v1",
+        "layout_name": "compare_candidate_top2",
+        "grid": {
+          "resolution_m": 0.5,
+          "x_count": 17,
+          "y_count": 13,
+          "point_count": 221
+        },
+        "rssi_summary": {
+          "min_dbm": -35.13943352306837,
+          "max_dbm": 0.0,
+          "mean_dbm": -25.529453818946976
+        },
+        "coverage_summary": {
+          "fraction_rssi_ge_neg67_dbm": 1.0,
+          "fraction_rssi_ge_neg70_dbm": 1.0,
+          "dead_zone_fraction_lt_neg75_dbm": 0.0,
+          "thresholds_dbm": {
+            "good_ge": -67.0,
+            "ok_ge": -70.0,
+            "dead_lt": -75.0
+          },
+          "description": "Grid-point fractions of strongest RSSI (baseline path loss + wall loss)."
+        },
+        "path_loss_summary": {
+          "min_db": 20.0,
+          "max_db": 51.13943352306837,
+          "mean_db": 45.4027569863678
+        },
+        "wall_loss_summary": {
+          "min_db": 0.0,
+          "max_db": 4.0,
+          "mean_db": 0.12669683257918551
+        },
+        "serving_ap_distribution": {
+          "counts": {
+            "ap_001": 117,
+            "ap_002": 104
+          },
+          "ratios": {
+            "ap_001": 0.5294117647058824,
+            "ap_002": 0.47058823529411764
+          }
+        }
+      }
+    }
+  ]
+}

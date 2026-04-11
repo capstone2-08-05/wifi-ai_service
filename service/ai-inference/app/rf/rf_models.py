@@ -255,6 +255,21 @@ class AccessPoint:
     azimuth_deg: float
     tilt_deg: float
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.ap_id,
+            "ap_name": self.ap_name,
+            "point_geom": {
+                "type": "Point",
+                "coordinates": [self.position.x, self.position.y],
+            },
+            "z_m": self.z_m,
+            "tx_power_dbm": self.tx_power_dbm,
+            "frequency_ghz": self.frequency_ghz,
+            "azimuth_deg": self.azimuth_deg,
+            "tilt_deg": self.tilt_deg,
+        }
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "AccessPoint":
         point = data.get("point_geom")
@@ -278,6 +293,14 @@ class ApLayout:
     layout_name: str
     layout_type: str
     aps: tuple[AccessPoint, ...]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "scene_version_id": self.scene_version_id,
+            "layout_name": self.layout_name,
+            "layout_type": self.layout_type,
+            "aps": [ap.to_dict() for ap in self.aps],
+        }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "ApLayout":

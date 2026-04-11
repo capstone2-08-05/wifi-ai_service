@@ -1,0 +1,39 @@
+{
+  "scene_version_id": "scene_v1",
+  "layout_name": "heuristic_top3",
+  "layout_type": "from_candidates",
+  "aps": [
+    {
+      "id": "ap_001",
+      "ap_name": "AP-01",
+      "point_geom": {
+        "type": "Point",
+        "coordinates": [
+          2.0,
+          3.0
+        ]
+      },
+      "z_m": 2.5,
+      "tx_power_dbm": 20.0,
+      "frequency_ghz": 5.0,
+      "azimuth_deg": 0.0,
+      "tilt_deg": 0.0
+    },
+    {
+      "id": "ap_002",
+      "ap_name": "AP-02",
+      "point_geom": {
+        "type": "Point",
+        "coordinates": [
+          6.0,
+          3.0
+        ]
+      },
+      "z_m": 2.5,
+      "tx_power_dbm": 20.0,
+      "frequency_ghz": 5.0,
+      "azimuth_deg": 0.0,
+      "tilt_deg": 0.0
+    }
+  ]
+}

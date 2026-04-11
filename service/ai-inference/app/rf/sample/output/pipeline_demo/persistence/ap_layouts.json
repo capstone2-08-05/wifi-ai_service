@@ -1,0 +1,56 @@
+[
+  {
+    "id": "02d56420-870f-404a-bdcb-588a365a110d",
+    "rf_run_id": "02ce8d44-ede3-4109-aabe-57d9b2dbce94",
+    "layout_name": "pipeline_topk",
+    "layout_type": "heuristic_top2",
+    "total_ap_count": 2,
+    "placements_json": [
+      {
+        "ap_id": "ap_001",
+        "ap_name": "AP-01",
+        "x_m": 2.0,
+        "y_m": 3.0,
+        "z_m": 2.5,
+        "tx_power_dbm": 20.0,
+        "frequency_ghz": 5.0
+      },
+      {
+        "ap_id": "ap_002",
+        "ap_name": "AP-02",
+        "x_m": 6.0,
+        "y_m": 3.0,
+        "z_m": 2.5,
+        "tx_power_dbm": 20.0,
+        "frequency_ghz": 5.0
+      }
+    ]
+  },
+  {
+    "id": "25b9c2bf-b3fb-4fb0-a3bc-8fdb21a1092c",
+    "rf_run_id": "9ff61f21-403f-435d-84d8-99e18aaa1fc8",
+    "layout_name": "pipeline_topk",
+    "layout_type": "heuristic_top2",
+    "total_ap_count": 2,
+    "placements_json": [
+      {
+        "ap_id": "ap_001",
+        "ap_name": "AP-01",
+        "x_m": 2.0,
+        "y_m": 3.0,
+        "z_m": 2.5,
+        "tx_power_dbm": 20.0,
+        "frequency_ghz": 5.0
+      },
+      {
+        "ap_id": "ap_002",
+        "ap_name": "AP-02",
+        "x_m": 6.0,
+        "y_m": 3.0,
+        "z_m": 2.5,
+        "tx_power_dbm": 20.0,
+        "frequency_ghz": 5.0
+      }
+    ]
+  }
+]

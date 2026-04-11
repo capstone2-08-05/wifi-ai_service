@@ -1,0 +1,192 @@
+[
+  {
+    "id": "818443f2-cd09-46a8-89fd-4d2c5f7133c2",
+    "rf_run_id": "02ce8d44-ede3-4109-aabe-57d9b2dbce94",
+    "map_type": "rssi_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\strongest_rssi_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "fc50fab3-8541-4969-9c08-2544af038e37",
+    "rf_run_id": "02ce8d44-ede3-4109-aabe-57d9b2dbce94",
+    "map_type": "path_loss_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\strongest_path_loss_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "826e5ed7-fd10-4449-962b-f81fa293fa56",
+    "rf_run_id": "02ce8d44-ede3-4109-aabe-57d9b2dbce94",
+    "map_type": "wall_loss_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\strongest_wall_loss_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "e37dbb77-3ce6-4d6e-a5a5-26c4965faad8",
+    "rf_run_id": "02ce8d44-ede3-4109-aabe-57d9b2dbce94",
+    "map_type": "best_server",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\best_server_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "2e6afd1c-fc41-49e4-af86-9057f379af7a",
+    "rf_run_id": "02ce8d44-ede3-4109-aabe-57d9b2dbce94",
+    "map_type": "rssi_per_ap",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\rssi_map_ap_001.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": {
+      "ap_id": "ap_001"
+    }
+  },
+  {
+    "id": "4f59a2c2-2ec5-45df-bf30-f19eb76897ed",
+    "rf_run_id": "02ce8d44-ede3-4109-aabe-57d9b2dbce94",
+    "map_type": "rssi_per_ap",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\rssi_map_ap_002.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": {
+      "ap_id": "ap_002"
+    }
+  },
+  {
+    "id": "e89a2423-47ac-41d3-ae04-5784724f844f",
+    "rf_run_id": "9ff61f21-403f-435d-84d8-99e18aaa1fc8",
+    "map_type": "rssi_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\strongest_rssi_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "ba5daaf0-c922-45f4-9cc0-8bd4063e43ca",
+    "rf_run_id": "9ff61f21-403f-435d-84d8-99e18aaa1fc8",
+    "map_type": "path_loss_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\strongest_path_loss_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "5826911a-d7d3-4670-bee1-b8f908374c3b",
+    "rf_run_id": "9ff61f21-403f-435d-84d8-99e18aaa1fc8",
+    "map_type": "wall_loss_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\strongest_wall_loss_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "1f15fc32-7866-4d8a-b4f7-c721304cd244",
+    "rf_run_id": "9ff61f21-403f-435d-84d8-99e18aaa1fc8",
+    "map_type": "best_server",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\best_server_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "dca479c0-d789-44a4-b60d-7d0c06ccf6ef",
+    "rf_run_id": "9ff61f21-403f-435d-84d8-99e18aaa1fc8",
+    "map_type": "heatmap_png",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\strongest_rssi_heatmap.png",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": null
+  },
+  {
+    "id": "69307d5f-7622-45fe-8aa1-ffff7b148a4a",
+    "rf_run_id": "9ff61f21-403f-435d-84d8-99e18aaa1fc8",
+    "map_type": "rssi_per_ap",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\rssi_map_ap_001.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": {
+      "ap_id": "ap_001"
+    }
+  },
+  {
+    "id": "df9e9dc5-f1f7-4eb6-89f8-9d3238154428",
+    "rf_run_id": "9ff61f21-403f-435d-84d8-99e18aaa1fc8",
+    "map_type": "rssi_per_ap",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_demo\\rssi_map_ap_002.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 8.0,
+      "min_y": 0.0,
+      "max_y": 6.0
+    },
+    "resolution_m": 0.5,
+    "metadata_json": {
+      "ap_id": "ap_002"
+    }
+  }
+]
