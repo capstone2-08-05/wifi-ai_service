@@ -1,0 +1,76 @@
+{
+  "scene_version_id": "scene_complex_v1",
+  "layout_name": "pipeline_topk",
+  "config": {
+    "grid_resolution_m": 0.25,
+    "path_loss_constant_db": 63.0,
+    "path_loss_exponent": 2.0,
+    "include_exterior_walls": false
+  },
+  "bounds": {
+    "min_x": 0.0,
+    "max_x": 12.0,
+    "min_y": 0.0,
+    "max_y": 8.0
+  },
+  "artifacts": {
+    "strongest_rssi_map": "strongest_rssi_map.npy",
+    "strongest_path_loss_map": "strongest_path_loss_map.npy",
+    "strongest_wall_loss_map": "strongest_wall_loss_map.npy",
+    "best_server_map": "best_server_map.npy",
+    "per_ap_rssi_maps": {
+      "ap_001": "rssi_map_ap_001.npy",
+      "ap_002": "rssi_map_ap_002.npy",
+      "ap_003": "rssi_map_ap_003.npy"
+    },
+    "heatmap_png": "strongest_rssi_heatmap.png"
+  },
+  "metrics": {
+    "scene_version_id": "scene_complex_v1",
+    "layout_name": "pipeline_topk",
+    "grid": {
+      "resolution_m": 0.25,
+      "x_count": 49,
+      "y_count": 33,
+      "point_count": 1617
+    },
+    "rssi_summary": {
+      "min_dbm": -61.60338006570994,
+      "max_dbm": -23.0,
+      "mean_dbm": -49.65223542403814
+    },
+    "coverage_summary": {
+      "fraction_rssi_ge_neg67_dbm": 1.0,
+      "fraction_rssi_ge_neg70_dbm": 1.0,
+      "dead_zone_fraction_lt_neg75_dbm": 0.0,
+      "thresholds_dbm": {
+        "good_ge": -67.0,
+        "ok_ge": -70.0,
+        "dead_lt": -75.0
+      },
+      "description": "Grid-point fractions of strongest RSSI (baseline path loss + wall loss)."
+    },
+    "path_loss_summary": {
+      "min_db": 43.0,
+      "max_db": 76.4733001531695,
+      "mean_db": 69.5062861352317
+    },
+    "wall_loss_summary": {
+      "min_db": 0.0,
+      "max_db": 10.0,
+      "mean_db": 0.14594928880643165
+    },
+    "serving_ap_distribution": {
+      "counts": {
+        "ap_001": 558,
+        "ap_002": 683,
+        "ap_003": 376
+      },
+      "ratios": {
+        "ap_001": 0.3450834879406308,
+        "ap_002": 0.42238713667285094,
+        "ap_003": 0.23252937538651824
+      }
+    }
+  }
+}

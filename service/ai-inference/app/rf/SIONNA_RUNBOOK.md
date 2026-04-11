@@ -22,6 +22,42 @@ D:\venvs\wifi-ai-service\Scripts\python.exe compare_baseline_vs_sionna.py
 
 `pip`는 반드시 **`...\Scripts\python.exe -m pip`** 로 venv에 설치한다 (전역 Python에 깔리는 실수 방지).
 
+## LLVM-C.dll · `DRJIT_LIBLLVM_PATH` (CPU / Dr.Jit)
+
+**원인 정리:** `sionna-rt`·`mitsuba`·`drjit` wheel은 설치돼 있어도, **GPU(CUDA)를 쓰지 않고 CPU LLVM 백엔드**로 가면 Dr.Jit이 **`LLVM-C.dll`** 을 로드해야 한다. 이 DLL 경로를 못 찾으면 `import sionna.rt` 단계에서
+
+`LLVM backend is inactive because the LLVM shared library ("LLVM-C.dll") could not be found`
+
+같은 메시지로 막힌다. 이건 **pip 설치 실패가 아니라 런타임 공유 라이브러리 경로** 문제다. Sionna RT를 CPU에서 돌릴 때 LLVM이 필요하다는 점은 Sionna 쪽 안내와 맞는다.
+
+### 1) Windows용 LLVM 바이너리 받기
+
+- [LLVM 공식 릴리스](https://github.com/llvm/llvm-project/releases)에서 Windows용 아카이브(예: `LLVM-xx.x.x-win64.exe` 설치 프로그램 또는 `clang+llvm-*-win64-*.tar.xz`)를 받는다.
+- 설치형이면 보통 **`...\LLVM\bin\LLVM-C.dll`** 이 생긴다. 압축 해제형이면 압축 안의 **`bin\LLVM-C.dll`** 을 찾는다.
+
+### 2) 환경 변수 설정 (값은 **DLL 파일의 전체 경로**)
+
+Dr.Jit 쪽 안내에 따라 **`DRJIT_LIBLLVM_PATH`** 에 **`LLVM-C.dll` 한 파일의 절대 경로**를 넣는다 (폴더만 넣지 말 것).
+
+**현재 PowerShell 세션만:**
+
+```powershell
+$env:DRJIT_LIBLLVM_PATH = "C:\Path\To\LLVM\bin\LLVM-C.dll"
+D:\venvs\wifi-ai-service\Scripts\python.exe -c "import sionna.rt; print('OK')"
+```
+
+**사용자 환경에 영구 반영 (시스템 속성 → 환경 변수, 또는):**
+
+```powershell
+[System.Environment]::SetEnvironmentVariable("DRJIT_LIBLLVM_PATH", "C:\Path\To\LLVM\bin\LLVM-C.dll", "User")
+```
+
+새 터미널을 연 뒤 다시 `import sionna.rt` 를 시도한다.
+
+### 3) CUDA GPU만 쓰는 경우
+
+NVIDIA 드라이버·CUDA가 맞고 Mitsuba가 **CUDA 변형**을 잡으면 LLVM 없이도 동작할 수 있다. 그런데도 CPU 폴백 시 같은 오류가 나면 위와 같이 LLVM 경로를 잡는다.
+
 ## 성공 시 생성물
 
 | 파일 | 내용 |
@@ -46,7 +82,7 @@ D:\venvs\wifi-ai-service\Scripts\python.exe compare_baseline_vs_sionna.py
 | 증상 | 조치 |
 |------|------|
 | `No module named 'sionna'` | `requirements-sionna-poc.txt` 설치, venv 활성화 여부 확인 |
-| `LLVM-C.dll` / `LLVM backend is inactive` | LLVM 설치 후 `DRJIT_LIBLLVM_PATH`에 **DLL 파일 전체 경로** 지정, 또는 NVIDIA **CUDA** 환경 구축 |
+| `LLVM-C.dll` / `LLVM backend is inactive` | **설치 누락이 아님** → [위 절](#llvm-cdll-drjit_libllvm_path-cpu--drjit)대로 `LLVM-C.dll` 절대 경로를 `DRJIT_LIBLLVM_PATH`에 설정. 또는 CUDA 백엔드가 잡히도록 GPU 환경 정리 |
 | `cuda` 관련 로드 실패 | GPU 드라이버·CUDA Toolkit 정합성 확인 |
 | `pip`가 `python313\Lib\site-packages`에 설치 | `python -m pip`가 **venv의 python**인지 확인 (`where python`) |
 | C: 디스크 부족 | pip 캐시를 D:로 (`pip config set global.cache-dir D:\pip-cache`), venv를 D:에 생성 |

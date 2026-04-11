@@ -24,6 +24,7 @@ if str(_RF) not in sys.path:
 from baseline_rf_simulator import BaselineRfSimulator  # noqa: E402
 from golden_fixtures import GOLDEN_CONFIG, GOLDEN_LAYOUT, GOLDEN_SCENE  # noqa: E402
 from rf_models import ApLayout, Scene, SimulationConfig  # noqa: E402
+from sionna_poc.sionna_rt_poc import to_jsonable  # noqa: E402
 
 
 def _baseline_block() -> dict:
@@ -178,9 +179,11 @@ def main() -> None:
         "sionna": sionna,
         "interpretation_one_liner": _interpretation_one_liner(baseline, sionna),
     }
+    safe_report = to_jsonable(report)
     args.out_json.parent.mkdir(parents=True, exist_ok=True)
-    args.out_json.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    _write_md(args.out_md, report)
+    with args.out_json.open("w", encoding="utf-8") as f:
+        json.dump(safe_report, f, ensure_ascii=False, indent=2)
+    _write_md(args.out_md, safe_report)
     print(f"Wrote {args.out_json}")
     print(f"Wrote {args.out_md}")
 

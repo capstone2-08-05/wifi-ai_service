@@ -1,0 +1,120 @@
+[
+  {
+    "id": "204ff421-7e59-4c44-b91c-bc7c9415a752",
+    "rf_run_id": "ad7384a8-e3bd-4965-9377-d5b8573db850",
+    "map_type": "rssi_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_complex_demo\\strongest_rssi_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 12.0,
+      "min_y": 0.0,
+      "max_y": 8.0
+    },
+    "resolution_m": 0.25,
+    "metadata_json": null
+  },
+  {
+    "id": "8fbd0654-3424-4808-8c2a-cae2dd5728b1",
+    "rf_run_id": "ad7384a8-e3bd-4965-9377-d5b8573db850",
+    "map_type": "path_loss_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_complex_demo\\strongest_path_loss_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 12.0,
+      "min_y": 0.0,
+      "max_y": 8.0
+    },
+    "resolution_m": 0.25,
+    "metadata_json": null
+  },
+  {
+    "id": "08c31fca-0af9-4c8f-af27-a6c4547ed17d",
+    "rf_run_id": "ad7384a8-e3bd-4965-9377-d5b8573db850",
+    "map_type": "wall_loss_strongest",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_complex_demo\\strongest_wall_loss_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 12.0,
+      "min_y": 0.0,
+      "max_y": 8.0
+    },
+    "resolution_m": 0.25,
+    "metadata_json": null
+  },
+  {
+    "id": "fc3a6641-5ce1-42ba-9fa0-0055451e5b27",
+    "rf_run_id": "ad7384a8-e3bd-4965-9377-d5b8573db850",
+    "map_type": "best_server",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_complex_demo\\best_server_map.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 12.0,
+      "min_y": 0.0,
+      "max_y": 8.0
+    },
+    "resolution_m": 0.25,
+    "metadata_json": null
+  },
+  {
+    "id": "46c6b5dd-2d0b-47e5-bbe9-1c4f31275315",
+    "rf_run_id": "ad7384a8-e3bd-4965-9377-d5b8573db850",
+    "map_type": "heatmap_png",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_complex_demo\\strongest_rssi_heatmap.png",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 12.0,
+      "min_y": 0.0,
+      "max_y": 8.0
+    },
+    "resolution_m": 0.25,
+    "metadata_json": null
+  },
+  {
+    "id": "7c00c01a-fcdb-40fc-9fde-7f1604afe9ec",
+    "rf_run_id": "ad7384a8-e3bd-4965-9377-d5b8573db850",
+    "map_type": "rssi_per_ap",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_complex_demo\\rssi_map_ap_001.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 12.0,
+      "min_y": 0.0,
+      "max_y": 8.0
+    },
+    "resolution_m": 0.25,
+    "metadata_json": {
+      "ap_id": "ap_001"
+    }
+  },
+  {
+    "id": "bae22465-f4e3-42f5-9f4a-f30137b43eb7",
+    "rf_run_id": "ad7384a8-e3bd-4965-9377-d5b8573db850",
+    "map_type": "rssi_per_ap",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_complex_demo\\rssi_map_ap_002.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 12.0,
+      "min_y": 0.0,
+      "max_y": 8.0
+    },
+    "resolution_m": 0.25,
+    "metadata_json": {
+      "ap_id": "ap_002"
+    }
+  },
+  {
+    "id": "0840c0e9-495e-4f10-bec9-dfe3149b54bf",
+    "rf_run_id": "ad7384a8-e3bd-4965-9377-d5b8573db850",
+    "map_type": "rssi_per_ap",
+    "storage_url": "C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\pipeline_complex_demo\\rssi_map_ap_003.npy",
+    "bounds_json": {
+      "min_x": 0.0,
+      "max_x": 12.0,
+      "min_y": 0.0,
+      "max_y": 8.0
+    },
+    "resolution_m": 0.25,
+    "metadata_json": {
+      "ap_id": "ap_003"
+    }
+  }
+]

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -25,6 +26,56 @@ if str(_RF_ROOT) not in sys.path:
 from golden_fixtures import GOLDEN_CONFIG, GOLDEN_LAYOUT, GOLDEN_SCENE  # noqa: E402
 
 DEFAULT_MESH_DIR = Path(__file__).resolve().parent / "meshes"
+
+
+def to_jsonable(obj: object) -> object:
+    """Dr.Jit Float, numpy scalar 등 JSON이 직렬화 못 하는 타입을 파이썬 기본값으로 변환."""
+    if isinstance(obj, dict):
+        return {str(k): to_jsonable(v) for k, v in obj.items()}
+
+    if isinstance(obj, (list, tuple)):
+        return [to_jsonable(v) for v in obj]
+
+    if isinstance(obj, (str, int, bool)) or obj is None:
+        return obj
+
+    if isinstance(obj, float):
+        return obj if math.isfinite(obj) else None
+
+    try:
+        if isinstance(obj, np.generic):
+            value = obj.item()
+            if isinstance(value, float) and not math.isfinite(value):
+                return None
+            return value
+
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+    except Exception:
+        pass
+
+    if hasattr(obj, "numpy"):
+        try:
+            return to_jsonable(obj.numpy())
+        except Exception:
+            pass
+
+    if hasattr(obj, "item"):
+        try:
+            value = obj.item()
+            if isinstance(value, float) and not math.isfinite(value):
+                return None
+            return value
+        except Exception:
+            pass
+
+    try:
+        value = float(obj)
+        return value if math.isfinite(value) else None
+    except Exception:
+        pass
+
+    return str(obj)
 
 
 def _try_import_sionna():
@@ -249,11 +300,13 @@ def main() -> None:
         "sionna_radiomap": sionna,
     }
 
-    text = json.dumps(report, ensure_ascii=False, indent=2)
+    safe_report = to_jsonable(report)
+    text = json.dumps(safe_report, ensure_ascii=False, indent=2)
     print(text)
     if args.out_json is not None:
         args.out_json.parent.mkdir(parents=True, exist_ok=True)
-        args.out_json.write_text(text, encoding="utf-8")
+        with args.out_json.open("w", encoding="utf-8") as f:
+            json.dump(safe_report, f, ensure_ascii=False, indent=2)
 
 
 if __name__ == "__main__":
