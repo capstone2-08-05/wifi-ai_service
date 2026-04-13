@@ -68,7 +68,7 @@ HTTP 경로의 `project_id` / `floor_id` / `scene_version_id`와 별개로, **RF
 
 | 방식 | 설명 | RF baseline (현재) |
 |------|------|---------------------|
-| **A. 문자열 키** | 예: `"concrete"`, `"drywall"`, `"glass"` | **지원.** `rf_materials.DEFAULT_MATERIAL_PROFILES` 키와 일치해야 감쇠가 적용됨. 알 수 없는 이름은 0 dB 처리될 수 있음 → **허용 키 목록을 팀 문서로 고정** 권장. |
+| **A. 문자열 키** | 백엔드 스키마 enum: `concrete`, `glass`, `wood`, `metal`, `unknown` (`schemas/backend_scene_schema.json`) | **지원.** `rf_materials.DEFAULT_MATERIAL_PROFILES` 키와 일치하면 `attenuation_db` 적용. 미등록 키는 **`unknown`과 동일 손실로 폴백**. 레거시 `drywall` 키는 호환용으로 등록 유지. |
 | **B. `material_id` (UUID 등)** | DB FK | **직접 파싱 안 함.** 백엔드 또는 BFF에서 **`material_id` → 위 문자열 키**로 해석한 뒤 RF JSON에는 **해석된 문자열**을 `material`에 넣거나, 별도 `material_profile_key` 필드를 **합의 후** 추가해 확장한다. |
 
 **합의 권장 (단기):** RF JSON에는 **`material` 문자열**만 넣고, 값은 팀이 정한 **닫힌 집합**으로 제한. `material_id`는 백엔드 내부 저장용으로 두고, **handoff 직전에 resolve**.

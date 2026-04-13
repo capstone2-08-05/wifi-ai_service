@@ -15,7 +15,7 @@ def _wall_material_from_payload(data: dict[str, Any], *, schema_role: str) -> st
         if not isinstance(override, str) or not override.strip():
             raise SchemaValidationError("material must be a non-empty string when provided")
         return override.strip()
-    return "concrete" if schema_role == "outer" else "drywall"
+    return "concrete" if schema_role == "outer" else "unknown"
 
 
 @dataclass(frozen=True)

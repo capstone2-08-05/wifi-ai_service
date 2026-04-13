@@ -8,14 +8,15 @@
 
 | 단계 | 입력 | Baseline 해석 |
 |------|------|----------------|
-| Scene 파싱 | `Wall`에 `material` 문자열 | `rf_models`가 비어 있으면 역할별 기본값 (`outer`→concrete, `inner`→drywall) |
+| Scene 파싱 | `Wall`에 `material` 문자열 | `rf_models`가 비어 있으면 역할별 기본값 (`outer`→concrete, `inner`→**unknown**) |
 | Scene 파싱 | `material` 비어 있음 | 위 기본값 |
-| 시뮬 합산 | `wall.material` (문자열) | `MaterialProfileRegistry.get_loss_db(name)` → 등록 키면 `attenuation_db`, **미등록 키는 0 dB** |
+| 시뮬 합산 | `wall.material` (문자열) | `MaterialProfileRegistry.get_loss_db(name)` → 등록 키면 `attenuation_db`, **미등록 키는 `unknown`과 동일 손실로 폴백** |
 | DTO `material_id`만 있는 경우 | adapter 밖에서 해석 | `scene_to_rf_adapter`가 `material_id_to_profile_key`로 **`material` 문자열**을 채운 뒤 RF로 전달 |
 
 **정리:** Baseline 엔진은 **`material_id`를 모른다.** 항상 RF JSON의 **`material` 프로파일 키**만 본다. ID→키 변환은 adapter(또는 백엔드 사전 처리) 책임.
 
-등록 프로파일 키 예: `concrete`, `drywall`, `glass`, `wood` (`rf_materials.DEFAULT_MATERIAL_PROFILES`).
+백엔드 합의 스키마(`schemas/backend_scene_schema.json`): 벽 `material` enum은 **`concrete` \| `glass` \| `wood` \| `metal` \| `unknown`**.  
+등록 프로파일·dB 예: `rf_materials.DEFAULT_MATERIAL_PROFILES` (레거시 `drywall` 키 호환 유지).
 
 ## 규칙 표 — 외벽 스킵
 

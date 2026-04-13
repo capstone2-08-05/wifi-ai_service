@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, FrozenSet
+
+# 백엔드 Scene JSON 스키마(`schemas/backend_scene_schema.json`)와 동일 enum
+BACKEND_SCHEMA_WALL_MATERIALS: FrozenSet[str] = frozenset(
+    ("concrete", "glass", "wood", "metal", "unknown")
+)
 
 
 @dataclass(frozen=True)
@@ -19,25 +24,38 @@ DEFAULT_MATERIAL_PROFILES: Dict[str, MaterialProfile] = {
         name="concrete",
         freq_ghz=5.0,
         attenuation_db=12.0,
-        description="High attenuation exterior or structural wall",
+        description="Structural / heavy wall (schema default high loss)",
     ),
     "glass": MaterialProfile(
         name="glass",
         freq_ghz=5.0,
         attenuation_db=6.0,
-        description="Medium attenuation transparent surface",
-    ),
-    "drywall": MaterialProfile(
-        name="drywall",
-        freq_ghz=5.0,
-        attenuation_db=4.0,
-        description="Low attenuation lightweight partition",
+        description="Glazing / transparent surface",
     ),
     "wood": MaterialProfile(
         name="wood",
         freq_ghz=5.0,
         attenuation_db=5.0,
-        description="Medium attenuation wooden partition",
+        description="Wooden partition",
+    ),
+    "metal": MaterialProfile(
+        name="metal",
+        freq_ghz=5.0,
+        attenuation_db=18.0,
+        description="High attenuation metal structure",
+    ),
+    "unknown": MaterialProfile(
+        name="unknown",
+        freq_ghz=5.0,
+        attenuation_db=4.0,
+        description="Fallback when material is unspecified or low confidence",
+    ),
+    # 레거시 RF JSON·material_id 해석 호환 (스키마 enum에는 없음)
+    "drywall": MaterialProfile(
+        name="drywall",
+        freq_ghz=5.0,
+        attenuation_db=4.0,
+        description="Deprecated alias; prefer `unknown` for new payloads",
     ),
 }
 
@@ -49,13 +67,16 @@ class MaterialProfileRegistry:
         self._profiles = dict(profiles or DEFAULT_MATERIAL_PROFILES)
 
     def get_loss_db(self, material_name: str) -> float:
-        """등록된 프로파일 키의 `attenuation_db`. 미등록 키는 **0 dB** (합산에서 무시).
+        """등록된 프로파일 키의 `attenuation_db`. 미등록 키는 ``unknown`` 과 동일 손실로 폴백.
 
         Baseline은 `Scene` 파싱 후 `Wall.material` 문자열만 사용한다.
         규칙 요약: `docs/RF_MATERIAL_AND_OPENING_RULES.md`.
         """
         profile = self._profiles.get(material_name)
-        return 0.0 if profile is None else float(profile.attenuation_db)
+        if profile is not None:
+            return float(profile.attenuation_db)
+        fallback = self._profiles.get("unknown")
+        return float(fallback.attenuation_db) if fallback is not None else 4.0
 
     def as_serializable(self) -> dict:
         return {

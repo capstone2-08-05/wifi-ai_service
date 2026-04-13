@@ -57,7 +57,7 @@
       "thickness": 0.12,
       "height": 2.8,
       "role": "inner",
-      "material": "drywall"
+      "material": "unknown"
     }
   ],
   "openings": [
