@@ -191,6 +191,8 @@ def test_sionna_input_dict_validate() -> None:
 
 def test_opening_missing_wall_ref_errors() -> None:
     bad = SceneSchema(
+        scene_version="sv_bad",
+        sourceType="test",
         walls=[BackendWall(id="w1", x1=0, y1=0, x2=1, y2=0)],
         openings=[BackendOpening(id="o1", type="door", x1=0.2, y1=0, x2=0.3, y2=0, wall_ref=None)],
         rooms=[],

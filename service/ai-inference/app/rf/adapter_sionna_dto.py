@@ -17,33 +17,10 @@ from typing import Any, Mapping
 from backend_scene_dto import SceneSchema as BackendSceneSchema
 from backend_scene_dto import SionnaInputDTO
 
-# Baseline `rf_materials` / DTO material enum → Sionna ITURadioMaterial 에 넘길 이름
-DEFAULT_BASELINE_MATERIAL_TO_SIONNA_ITU: dict[str, str] = {
-    "concrete": "concrete",
-    "glass": "glass",
-    "wood": "wood",
-    "metal": "metal",
-    "unknown": "plasterboard",
-    # 레거시·추가 키
-    "drywall": "plasterboard",
-    "plasterboard": "plasterboard",
-    "brick": "brick",
-    "marble": "marble",
-    "chipboard": "chipboard",
-    "floorboard": "floorboard",
-    "ceiling_board": "ceiling_board",
-}
-
-
-def map_baseline_material_to_sionna_itur(
-    baseline_key: str,
-    *,
-    table: dict[str, str] | None = None,
-) -> str:
-    """알 수 없는 키는 ``plasterboard`` 로 폴백 (내벽 상정)."""
-    t = table if table is not None else DEFAULT_BASELINE_MATERIAL_TO_SIONNA_ITU
-    k = baseline_key.strip() if isinstance(baseline_key, str) else str(baseline_key)
-    return t.get(k, "plasterboard")
+from material_mapping import (  # noqa: E402
+    DEFAULT_BASELINE_MATERIAL_TO_SIONNA_ITU,
+    map_baseline_material_to_sionna_itur,
+)
 
 
 def scene_schema_to_sionna_scene_plan(

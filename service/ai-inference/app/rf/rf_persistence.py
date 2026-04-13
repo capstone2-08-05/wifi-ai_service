@@ -102,9 +102,10 @@ class JsonPersistenceStore:
         project_id: str | None = None,
         job_id: str | None = None,
         ap_candidates_json: list[dict[str, Any]] | None = None,
+        rf_run_id: str | None = None,
     ) -> RfRunRecord:
         record = RfRunRecord(
-            id=str(uuid.uuid4()),
+            id=rf_run_id if rf_run_id else str(uuid.uuid4()),
             scene_version_id=scene_version_id,
             floor_id=floor_id,
             run_type=run_type,

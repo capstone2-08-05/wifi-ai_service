@@ -1,111 +1,98 @@
 {
-  "schema": "scene_graph_dto_v0",
-  "sceneVersionId": "sv_demo_backend_v1",
-  "floorId": "floor_01",
-  "sourceType": "backend_scene_graph_demo",
+  "scene_version": "sv_demo_backend_v1",
+  "units": "m",
+  "sourceType": "floorplan",
+  "scale_ratio": 1.0,
   "walls": [
     {
-      "wallId": "w_outer_s",
-      "role": "outer",
+      "id": "w_outer_s",
       "x1": 0.0,
       "y1": 0.0,
       "x2": 4.0,
       "y2": 0.0,
       "thickness": 0.2,
       "height": 2.8,
-      "material_id": "MAT_CONCRETE_01"
+      "role": "outer",
+      "material": "concrete"
     },
     {
-      "wallId": "w_outer_e",
-      "role": "outer",
+      "id": "w_outer_e",
       "x1": 4.0,
       "y1": 0.0,
       "x2": 4.0,
       "y2": 4.0,
       "thickness": 0.2,
       "height": 2.8,
-      "material_id": "MAT_CONCRETE_01"
+      "role": "outer",
+      "material": "concrete"
     },
     {
-      "wallId": "w_outer_n",
-      "role": "outer",
+      "id": "w_outer_n",
       "x1": 4.0,
       "y1": 4.0,
       "x2": 0.0,
       "y2": 4.0,
       "thickness": 0.2,
       "height": 2.8,
-      "material_id": "MAT_CONCRETE_01"
+      "role": "outer",
+      "material": "concrete"
     },
     {
-      "wallId": "w_outer_w",
-      "role": "outer",
+      "id": "w_outer_w",
       "x1": 0.0,
       "y1": 4.0,
       "x2": 0.0,
       "y2": 0.0,
       "thickness": 0.2,
       "height": 2.8,
-      "material_id": "MAT_CONCRETE_01"
+      "role": "outer",
+      "material": "concrete"
     },
     {
-      "wallId": "w_inner_split",
-      "role": "inner",
+      "id": "w_inner_split",
       "x1": 2.0,
       "y1": 0.0,
       "x2": 2.0,
       "y2": 4.0,
       "thickness": 0.12,
       "height": 2.8,
-      "material_id": "MAT_DRYWALL_01"
+      "role": "inner",
+      "material": "wood"
     }
   ],
   "openings": [
     {
       "id": "op_door_01",
-      "wall_id": "w_inner_split",
-      "opening_type": "door",
-      "line_geom": {
-        "type": "LineString",
-        "coordinates": [[2.0, 1.0], [2.0, 2.0]]
-      },
-      "width_m": 0.9,
-      "sill_height_m": 0.0,
-      "head_height_m": 2.1
+      "type": "door",
+      "x1": 2.0,
+      "y1": 1.0,
+      "x2": 2.0,
+      "y2": 2.0,
+      "wall_ref": "w_inner_split"
     }
   ],
   "rooms": [
     {
-      "roomId": "room_west",
-      "roomName": "West cell",
-      "spaceType": "room",
-      "polygon_geom": {
-        "type": "Polygon",
-        "coordinates": [
-          [[0.0, 0.0], [2.0, 0.0], [2.0, 4.0], [0.0, 4.0], [0.0, 0.0]]
-        ]
-      },
-      "centroid_geom": {
-        "type": "Point",
-        "coordinates": [1.0, 2.0]
-      },
-      "area_m2": 8.0
+      "id": "room_west",
+      "points": [
+        [0.0, 0.0],
+        [2.0, 0.0],
+        [2.0, 4.0],
+        [0.0, 4.0]
+      ],
+      "center": [1.0, 2.0],
+      "area": 8.0
     },
     {
-      "roomId": "room_east",
-      "roomName": "East cell",
-      "spaceType": "room",
-      "polygon_geom": {
-        "type": "Polygon",
-        "coordinates": [
-          [[2.0, 0.0], [4.0, 0.0], [4.0, 4.0], [2.0, 4.0], [2.0, 0.0]]
-        ]
-      },
-      "centroid_geom": {
-        "type": "Point",
-        "coordinates": [3.0, 2.0]
-      },
-      "area_m2": 8.0
+      "id": "room_east",
+      "points": [
+        [2.0, 0.0],
+        [4.0, 0.0],
+        [4.0, 4.0],
+        [2.0, 4.0]
+      ],
+      "center": [3.0, 2.0],
+      "area": 8.0
     }
   ],
   "objects": []

@@ -1,5 +1,7 @@
 {
-  "generated_at_utc": "2026-04-13T07:59:08.929102+00:00",
+  "generated_at_utc": "2026-04-13T10:59:43.203213+00:00",
+  "document_version": "presentation_final_1",
+  "sionna_resolved_from": "frozen_snapshot",
   "baseline": {
     "status": "ok",
     "model": "baseline_rf_simulator",
@@ -63,6 +65,7 @@
   },
   "sionna": {
     "status": "ok",
+    "snapshot_version": "golden_poc_1",
     "model": "sionna_rt_radiomap",
     "frequency_ghz": [
       5.0
@@ -83,7 +86,62 @@
       "samples_per_tx": 300000,
       "max_depth": 3,
       "seed": 42
+    },
+    "source": "frozen_file:C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\sionna_poc_frozen.json"
+  },
+  "complex_baseline_preview": {
+    "status": "ok",
+    "role": "baseline_preview_only",
+    "scene_version_id": "scene_complex_v1",
+    "layout_name": "manual_single_ap_corner",
+    "note": "PoC Sionna는 golden 4×4 m 단순 메시 고정. 이 씬은 벽·개구·방이 많은 Baseline heatmap 데모용이며 Sionna와의 1:1 수치 비교는 하지 않는다.",
+    "grid_shape": [
+      33,
+      49
+    ],
+    "rssi_dbm": {
+      "min": -75.30448921378274,
+      "max": -23.0,
+      "mean": -60.43949029181726
+    },
+    "metrics_summary": {
+      "mean_dbm": -60.43949029181726,
+      "min_dbm": -75.30448921378274,
+      "max_dbm": -23.0
     }
   },
-  "interpretation_one_liner": "사용자에게 보이는 것은 2D floorplan heatmap 중심이다. Baseline은 재질·개구·(선택)가구 clutter를 반영한 빠른 preview이고, Sionna는 내부 정밀 검증용 precise 엔진으로 같은 축에서 RSS를 비교한다. 수치 1:1 일치는 목표가 아니다."
+  "presentation": {
+    "title": "Preview vs Precise (발표 고정 문구)",
+    "tagline": "Baseline = 빠른 미리보기 · Sionna = 정밀 검증 · 같은 입력 축에서 둘 다 동작",
+    "not_a_contest": "수치 우열이 아니라 역할 차이: 제품 UX는 preview, 내부/연구는 precise로 같은 DTO·씬 축을 공유한다.",
+    "role_comparison_rows": [
+      {
+        "axis": "사용자에게 보이는 주 화면",
+        "baseline_preview": "2D floorplan + heatmap 중심, 빠른 반복",
+        "sionna_precise": "동일 제품 축에서 내부 검증(레이트레이싱·3D 기하)"
+      },
+      {
+        "axis": "목적",
+        "baseline_preview": "배치·재질·개구·가구 배치 변화를 즉시 시각화",
+        "sionna_precise": "동일 입력 축에서 정밀 RSS/경로 특성 참고"
+      },
+      {
+        "axis": "수치 일치",
+        "baseline_preview": "preview용 단순 모델",
+        "sionna_precise": "1:1 일치는 목표 아님 (역할이 다름)"
+      }
+    ],
+    "golden_comparison_rounded_dbm": {
+      "scene": "golden_fixtures (5×5 m 그리드, 벽 없음)",
+      "baseline_mean_dbm_rounded": -24.33,
+      "baseline_min_dbm_rounded": -29.03,
+      "baseline_max_dbm_rounded": 0.0,
+      "sionna_mean_dbm_rounded": -32.44,
+      "sionna_min_dbm_rounded": -33.93,
+      "sionna_max_dbm_rounded": -30.6
+    },
+    "complex_scene_decision": "복잡 씬(`rf_scene_input_complex.json`)은 Baseline preview 데모용. Sionna PoC 메시는 단순 방 고정이라 **이 씬과의 동시 비교는 하지 않음**.",
+    "slide_table_markdown": "| 구분 | Baseline (preview) | Sionna (precise) |\n|------|-------------------|------------------|\n| 역할 | 빠른 2D heatmap | 레이트레이싱 RadioMap |\n| RSSI mean (dBm) | -24.33 | -32.44 |\n| RSSI min (dBm) | -29.03 | -33.93 |\n| RSSI max (dBm) | 0.0 | -30.6 |\n"
+  },
+  "interpretation_one_liner": "같은 입력 축(golden)에서 Baseline은 빠른 preview, Sionna는 precise 검증이다. 수치 1:1 일치는 목표가 아니며, 제품은 2D heatmap 중심이다."
 }

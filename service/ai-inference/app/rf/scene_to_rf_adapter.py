@@ -3,7 +3,7 @@ Scene graph DTO → RF canonical scene dict (JSON-serializable).
 
 백엔드 API와 분리된 **순수 변환 레이어**만 담당한다.
 출력 형식은 `rf_models.Scene.from_dict` 및 `RF_SCENE_HANDOFF_SPEC.md`와 맞춘다.
-필드 매핑·TBD: `docs/SCENE_GRAPH_ADAPTER_MAPPING.md`.
+Floorplan DTO 매핑: `docs/FLOORPLAN_DTO_MAPPING.md` (레거시 dict: `docs/SCENE_GRAPH_ADAPTER_MAPPING.md` 등).
 서비스는 **2D floorplan** 기준 설명(heatmap·재질·창문·가구)이 전면: `docs/SCENE_GRAPH_ADAPTER_MAPPING.md` 서문.
 
 **권장 입력:** `backend_scene_dto.SionnaInputDTO` / `SceneSchema` (합의 DTO).
@@ -27,15 +27,10 @@ from backend_scene_dto import SionnaInputDTO  # noqa: E402
 
 
 def _coerce_material_key_for_baseline(material: str) -> str:
-    """백엔드 스키마 enum·레거시 프로파일 키는 유지, 그 외는 ``unknown``."""
-    from rf_materials import BACKEND_SCHEMA_WALL_MATERIALS, DEFAULT_MATERIAL_PROFILES  # noqa: PLC0415
+    """스키마 enum·레거시 별칭은 `material_mapping.normalize_wall_material_key` 와 동일."""
+    from material_mapping import normalize_wall_material_key  # noqa: PLC0415
 
-    s = material.strip()
-    if s in DEFAULT_MATERIAL_PROFILES:
-        return s
-    if s in BACKEND_SCHEMA_WALL_MATERIALS:
-        return s
-    return "unknown"
+    return normalize_wall_material_key(material)
 
 
 def _first_str(d: Mapping[str, Any], *keys: str) -> str | None:

@@ -1,0 +1,60 @@
+{
+  "config": {
+    "frequency_ghz": 5.0,
+    "tx_power_dbm": 20.0,
+    "reflection_order": 2
+  },
+  "antenna": {
+    "tx_id": "ap_smoke",
+    "position_m": [0.5, 2.0, 2.5]
+  },
+  "scene": {
+    "scene_version": "material_opening_smoke_v1",
+    "units": "m",
+    "sourceType": "floorplan",
+    "walls": [
+      {
+        "id": "w_split",
+        "x1": 2.0,
+        "y1": 0.0,
+        "x2": 2.0,
+        "y2": 4.0,
+        "thickness": 0.12,
+        "height": 2.5,
+        "role": "inner",
+        "material": "wood"
+      },
+      {
+        "id": "w_outer_s",
+        "x1": 0.0,
+        "y1": 0.0,
+        "x2": 4.0,
+        "y2": 0.0,
+        "thickness": 0.2,
+        "height": 2.5,
+        "role": "outer",
+        "material": "concrete"
+      }
+    ],
+    "openings": [
+      {
+        "id": "door_1",
+        "type": "door",
+        "x1": 2.0,
+        "y1": 1.0,
+        "x2": 2.0,
+        "y2": 2.0,
+        "wall_ref": "w_split"
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r1",
+        "points": [[0.0, 0.0], [2.0, 0.0], [2.0, 4.0], [0.0, 4.0]],
+        "center": [1.0, 2.0],
+        "area": 8.0
+      }
+    ],
+    "objects": []
+  }
+}

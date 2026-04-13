@@ -1,46 +1,26 @@
 """
-백엔드에서 내려주는 RF 연동용 Pydantic DTO (합의 스키마).
+백엔드에서 내려주는 RF 연동용 DTO.
 
-`scene_to_rf_adapter`가 이 구조를 RF canonical dict(`RF_SCENE_HANDOFF_SPEC.md`)로 변환한다.
+씬 그래프(`SceneSchema`, `Wall`, `Opening`, `Room`)는 ``app.schemas.floorplan`` 에서 import 한다
+(혜승 백엔드 `backend/app/schemas/floorplan.py` 와 동일 계약).
+
+`scene_to_rf_adapter` 출력은 `rf_models.Scene` canonical dict (`docs/RF_SCENE_HANDOFF_SPEC.md`).
 """
 
 from __future__ import annotations
 
-from typing import Any, List, Literal, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, Field
 
-WallMaterial = Literal["concrete", "glass", "wood", "metal", "unknown"]
-WallRole = Literal["outer", "inner"]
-
-
-class Wall(BaseModel):
-    id: str
-    x1: float
-    y1: float
-    x2: float
-    y2: float
-    thickness: float = 0.2
-    height: float = 2.5
-    role: WallRole = "inner"
-    material: WallMaterial = "unknown"
-
-
-class Opening(BaseModel):
-    id: str
-    type: str
-    x1: float
-    y1: float
-    x2: float
-    y2: float
-    wall_ref: Optional[str] = None
-
-
-class Room(BaseModel):
-    id: str
-    points: List[List[float]]
-    center: List[float]
-    area: float
+from app.schemas.floorplan import (  # noqa: E402
+    Opening,
+    Room,
+    SceneSchema,
+    Wall,
+    WallMaterial,
+    WallRole,
+)
 
 
 class Topology(BaseModel):
@@ -57,18 +37,6 @@ class SimConfigDTO(BaseModel):
 class AntennaDTO(BaseModel):
     tx_id: str = "router_1"
     position_m: List[float] = Field(..., description="[x, y, z] 실제 미터 좌표")
-
-
-class SceneSchema(BaseModel):
-    scene_version: str = "1.0.0"
-    units: str = "m"
-    sourceType: str = "ai_vision"
-    scale_ratio: float = 1.0
-    walls: List[Wall]
-    openings: List[Opening]
-    rooms: List[Room] = Field(default_factory=list)
-    topology: Optional[Topology] = None
-    objects: List[Any] = Field(default_factory=list)
 
 
 class SionnaInputDTO(BaseModel):

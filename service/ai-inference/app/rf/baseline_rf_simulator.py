@@ -9,6 +9,7 @@ from typing import Any, Iterable
 
 import numpy as np
 
+from object_obstacle_rules import los_intersects_object_footprint, resolve_object_loss_db
 from rf_materials import MaterialProfileRegistry
 from rf_models import (
     AccessPoint,
@@ -22,8 +23,8 @@ from rf_persistence import JsonPersistenceStore
 
 EPS = 1e-9
 
-# objects[] footprint 기반 가구 clutter 합산 상한 [dB] (preview 전용, docs/RF_MATERIAL_AND_OPENING_RULES.md)
-_MAX_FURNITURE_CLUTTER_DB = 25.0
+# objects[] LOS·footprint 기반 장애물 추가 손실 합산 상한 [dB] (preview, docs/BASELINE_OBJECTS_OBSTACLE_RULES.md)
+_MAX_OBJECT_OBSTACLE_DB = 25.0
 
 # Baseline coverage: 격자점별 strongest RSSI에 대한 단순 비율 (802.11 추천 임계값 근사)
 _RSSI_GOOD_DB = -67.0
@@ -69,6 +70,7 @@ class BaselineRfSimulator:
     - additive wall attenuation by material
     - strongest-AP serving model
     - openings remove wall loss when the line of sight crosses the opening segment
+    - objects[] 2D footprint: extra loss when AP–Rx LOS intersects footprint (see object_obstacle_rules)
     """
 
     def __init__(
@@ -166,36 +168,22 @@ class BaselineRfSimulator:
         distance = max(self._euclidean_distance(ap.position, rx_point), 0.1)
         path_loss = self._compute_path_loss(distance)
         wall_loss = self._compute_wall_loss(ap.position, rx_point)
-        furniture_loss = self._compute_furniture_clutter_db(rx_point)
-        rssi = ap.tx_power_dbm - path_loss - wall_loss - furniture_loss
+        obstacle_loss = self._compute_obstacle_loss_on_los(ap.position, rx_point)
+        rssi = ap.tx_power_dbm - path_loss - wall_loss - obstacle_loss
         return rssi, path_loss, wall_loss
 
-    def _compute_furniture_clutter_db(self, rx_point: Point2D) -> float:
-        """수신점이 가구 footprint 안에 있을 때 추가 감쇠(합산, 상한). docs/RF_MATERIAL_AND_OPENING_RULES.md."""
+    def _compute_obstacle_loss_on_los(self, ap_point: Point2D, rx_point: Point2D) -> float:
+        """AP–수신 직선이 object 2D footprint 와 겹칠 때 추가 감쇠(객체당 1회, 합산 상한)."""
         total = 0.0
         for obj in self.scene.objects:
-            fp = obj.get("footprint_m")
-            if not isinstance(fp, dict):
+            if not isinstance(obj, dict):
                 continue
-            try:
-                mn_x = float(fp["min_x"])
-                mx_x = float(fp["max_x"])
-                mn_y = float(fp["min_y"])
-                mx_y = float(fp["max_y"])
-            except (KeyError, TypeError, ValueError):
+            if not los_intersects_object_footprint(
+                ap_point.x, ap_point.y, rx_point.x, rx_point.y, obj
+            ):
                 continue
-            raw_adb = obj.get("attenuation_db")
-            if raw_adb is None:
-                continue
-            try:
-                loss = float(raw_adb)
-            except (TypeError, ValueError):
-                continue
-            if loss <= 0.0:
-                continue
-            if mn_x <= rx_point.x <= mx_x and mn_y <= rx_point.y <= mx_y:
-                total += loss
-        return min(total, _MAX_FURNITURE_CLUTTER_DB)
+            total += resolve_object_loss_db(obj)
+        return min(total, _MAX_OBJECT_OBSTACLE_DB)
 
     def _compute_path_loss(self, distance_m: float) -> float:
         return (
