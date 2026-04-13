@@ -1,11 +1,11 @@
 {
-  "generated_at_utc": "2026-04-11T19:36:28.188061+00:00",
+  "generated_at_utc": "2026-04-13T07:59:08.929102+00:00",
   "baseline": {
     "status": "ok",
     "model": "baseline_rf_simulator",
     "scene_version_id": "golden_tiny_v1",
     "layout_name": "golden_single_ap",
-    "note": "Golden: 벽 없음, 2D 그리드. Sionna PoC는 3D 메시(바닥+벽) — 물리 모델이 다름.",
+    "note": "Baseline: 2D floorplan preview(빠른 반복). Sionna: 동일 입력 축의 내부 precise 검증(레이트레이싱; 서비스 UI 전면의 3D가 아님).",
     "grid_shape": [
       5,
       5
@@ -76,7 +76,7 @@
     "rss_dbm": {
       "min": -33.92560450370227,
       "max": -30.604882062204794,
-      "mean": -32.43714564682152
+      "mean": -32.4371455905851
     },
     "center_cell_rss_dbm": -30.60494136865905,
     "solver": {
@@ -85,5 +85,5 @@
       "seed": 42
     }
   },
-  "interpretation_one_liner": "Baseline은 경로손실+벽손실(2D) 추정이고 Sionna는 3D 레이트레이싱 RSS로 같은 AP 위치라도 맵 값이 다르다; PoC 목적은 ‘동일 입력 축에서 두 엔진이 모두 산출된다’는 점이다."
+  "interpretation_one_liner": "사용자에게 보이는 것은 2D floorplan heatmap 중심이다. Baseline은 재질·개구·(선택)가구 clutter를 반영한 빠른 preview이고, Sionna는 내부 정밀 검증용 precise 엔진으로 같은 축에서 RSS를 비교한다. 수치 1:1 일치는 목표가 아니다."
 }
