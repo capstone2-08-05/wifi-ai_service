@@ -83,7 +83,7 @@ def _sionna_block(
             "status": "error",
             "phase": "run_sionna_radiomap",
             "message": str(e),
-            "hint": "SIONNA_RUNBOOK.md 의 LLVM/CUDA/venv 절차 확인",
+            "hint": "RUNBOOK.md 의 Sionna/LLVM 절차 확인",
         }
 
 
@@ -120,7 +120,7 @@ def _write_md(path: Path, report: dict) -> None:
 | min | {b['rssi_dbm']['min']:.3f} | — |
 | max | {b['rssi_dbm']['max']:.3f} | — |
 
-Sionna 열은 `sionna.status != ok` 이면 비움. `SIONNA_RUNBOOK.md` 참고.
+Sionna 열은 `sionna.status != ok` 이면 비움. `RUNBOOK.md` 참고.
 """
 
     body = f"""# Baseline vs Sionna (golden)

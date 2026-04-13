@@ -6,5 +6,5 @@
 #   path\to\venv\Scripts\python.exe -m pip install -r requirements-sionna-poc.txt
 # import 시 LLVM-C.dll 오류 → pip 문제가 아니라 Dr.Jit이 LLVM-C.dll 경로를 못 찾은 것.
 #   LLVM 공식 Windows 빌드로 bin\LLVM-C.dll 확보 후 DRJIT_LIBLLVM_PATH=해당 DLL 전체 경로.
-#   상세: SIONNA_RUNBOOK.md § LLVM-C.dll
+#   상세: RUNBOOK.md § Sionna / LLVM-C.dll
 sionna-rt>=2.0.1

@@ -58,3 +58,12 @@ python baseline_rf_simulator.py \
 - calibration
 - detailed furniture loss
 - full 3D ray tracing
+
+## 문서 (핵심만)
+
+| 파일 | 내용 |
+|------|------|
+| `RUNBOOK.md` | 데모·발표 산출물·Sionna 실행 |
+| `docs/RF_SCENE_HANDOFF_SPEC.md` | RF JSON 합의 |
+| `docs/SCENE_GRAPH_ADAPTER_MAPPING.md` | DTO·어댑터·제품 방향 |
+| `docs/RF_MATERIAL_AND_OPENING_RULES.md` | 재질·개구·가구 preview |

@@ -4,7 +4,7 @@ Scene graph DTO → RF canonical scene dict (JSON-serializable).
 백엔드 API와 분리된 **순수 변환 레이어**만 담당한다.
 출력 형식은 `rf_models.Scene.from_dict` 및 `RF_SCENE_HANDOFF_SPEC.md`와 맞춘다.
 필드 매핑·TBD: `docs/SCENE_GRAPH_ADAPTER_MAPPING.md`.
-서비스는 **2D floorplan** 기준 설명(heatmap·재질·창문·가구)이 전면: `docs/SERVICE_RF_ARCHITECTURE.md`.
+서비스는 **2D floorplan** 기준 설명(heatmap·재질·창문·가구)이 전면: `docs/SCENE_GRAPH_ADAPTER_MAPPING.md` 서문.
 
 **권장 입력:** `backend_scene_dto.SionnaInputDTO` / `SceneSchema` (합의 DTO).
 

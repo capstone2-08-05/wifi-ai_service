@@ -22,7 +22,7 @@ from rf_persistence import JsonPersistenceStore
 
 EPS = 1e-9
 
-# objects[] footprint 기반 가구 clutter 합산 상한 [dB] (preview 전용, RF_FURNITURE_PREVIEW.md)
+# objects[] footprint 기반 가구 clutter 합산 상한 [dB] (preview 전용, docs/RF_MATERIAL_AND_OPENING_RULES.md)
 _MAX_FURNITURE_CLUTTER_DB = 25.0
 
 # Baseline coverage: 격자점별 strongest RSSI에 대한 단순 비율 (802.11 추천 임계값 근사)
@@ -171,7 +171,7 @@ class BaselineRfSimulator:
         return rssi, path_loss, wall_loss
 
     def _compute_furniture_clutter_db(self, rx_point: Point2D) -> float:
-        """수신점이 가구 footprint 안에 있을 때 추가 감쇠(합산, 상한). docs/RF_FURNITURE_PREVIEW.md."""
+        """수신점이 가구 footprint 안에 있을 때 추가 감쇠(합산, 상한). docs/RF_MATERIAL_AND_OPENING_RULES.md."""
         total = 0.0
         for obj in self.scene.objects:
             fp = obj.get("footprint_m")

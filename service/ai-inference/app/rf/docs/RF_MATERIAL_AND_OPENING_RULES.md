@@ -2,7 +2,7 @@
 
 대상: `BaselineRfSimulator`, `rf_models.Wall` / `Opening`, `MaterialProfileRegistry`.
 
-**서비스 메시지:** 사용자에게 보이는 설명은 **2D floorplan** 위에서 **재질·창문(개구)·가구 영역**이 수신 품질에 어떻게 반영되는지로 가져간다. (3D 뷰가 아니라 **도면·heatmap 중심**, `docs/SERVICE_RF_ARCHITECTURE.md` 참고.)
+**서비스 메시지:** 사용자에게 보이는 설명은 **2D floorplan** 위에서 **재질·창문(개구)·가구 영역**이 수신 품질에 어떻게 반영되는지로 가져간다. (3D 뷰가 아니라 **도면·heatmap 중심**; 제품 역할 요약은 `docs/SCENE_GRAPH_ADAPTER_MAPPING.md` 서문.)
 
 ## 규칙 표 — 재질
 
@@ -38,7 +38,19 @@
 
 ## 가구·장애물 (preview, 최소)
 
-- `Scene.objects[]` 중 `footprint_m` 직사각형 + `attenuation_db` → 수신 격자점이 영역 안이면 RSSI에 **추가 감쇠** (`_compute_furniture_clutter_db`). 상세·스키마: **`RF_FURNITURE_PREVIEW.md`**.
+`Scene.objects[]`에서 아래 형태만 baseline이 **추가 감쇠**로 해석한다 (`_compute_furniture_clutter_db`, 합산 상한 약 25 dB).
+
+```json
+{
+  "id": "desk_01",
+  "kind": "furniture_preview",
+  "footprint_m": { "min_x": 1.0, "max_x": 2.2, "min_y": 0.5, "max_y": 1.0 },
+  "attenuation_db": 3.0
+}
+```
+
+- 수신 격자점 \((x,y)\)가 `footprint_m` 안이면 `attenuation_db`를 합산해 RSSI에서 감산.
+- Sionna에 3D 가구 메시를 넣는 것은 별도; preview는 2D clutter, precise는 내부 엔진에서 확장.
 
 ## 코드 위치 (참고)
 
