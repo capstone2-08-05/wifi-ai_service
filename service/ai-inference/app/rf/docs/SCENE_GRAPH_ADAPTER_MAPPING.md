@@ -2,6 +2,8 @@
 
 `scene_to_rf_adapter.scene_graph_to_rf_scene_dict()` 기준. 백엔드(혜승) canonical DTO와 필드명이 다르면 **adapter 안의 `_first_str` 별칭 목록**만 조정하면 된다.
 
+**제품 방향:** 변환 결과는 **단일 층 2D floorplan** 기준 RF 입력으로 쓴다. 사용자 UI는 **heatmap·AP·재질/창문/가구** 설명이 중심이며, 3D 전파 뷰가 전면이 아니다 (`docs/SERVICE_RF_ARCHITECTURE.md`).
+
 ## 입력 DTO 예시
 
 - 파일: `sample/backend_scene_graph_example.json`

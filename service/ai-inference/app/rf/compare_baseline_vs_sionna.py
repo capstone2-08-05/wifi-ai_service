@@ -39,7 +39,10 @@ def _baseline_block() -> dict:
         "model": "baseline_rf_simulator",
         "scene_version_id": scene.scene_version_id,
         "layout_name": layout.layout_name,
-        "note": "Golden: 벽 없음, 2D 그리드. Sionna PoC는 3D 메시(바닥+벽) — 물리 모델이 다름.",
+        "note": (
+            "Baseline: 2D floorplan preview(빠른 반복). "
+            "Sionna: 동일 입력 축의 내부 precise 검증(레이트레이싱; 서비스 UI 전면의 3D가 아님)."
+        ),
         "grid_shape": list(rssi.shape),
         "metrics": result.metrics,
         "rssi_dbm": {
@@ -91,8 +94,10 @@ def _interpretation_one_liner(baseline: dict, sionna: dict) -> str:
             "baseline만으로 RF 파이프라인은 동작함을 시연할 수 있다."
         )
     return (
-        "Baseline은 경로손실+벽손실(2D) 추정이고 Sionna는 3D 레이트레이싱 RSS로 "
-        "같은 AP 위치라도 맵 값이 다르다; PoC 목적은 ‘동일 입력 축에서 두 엔진이 모두 산출된다’는 점이다."
+        "사용자에게 보이는 것은 2D floorplan heatmap 중심이다. "
+        "Baseline은 재질·개구·(선택)가구 clutter를 반영한 빠른 preview이고, "
+        "Sionna는 내부 정밀 검증용 precise 엔진으로 같은 축에서 RSS를 비교한다. "
+        "수치 1:1 일치는 목표가 아니다."
     )
 
 
@@ -121,7 +126,8 @@ Sionna 열은 `sionna.status != ok` 이면 비움. `SIONNA_RUNBOOK.md` 참고.
     body = f"""# Baseline vs Sionna (golden)
 
 - 생성 시각: {report.get("generated_at_utc", "")}
-- 조건: 동일 `golden_fixtures` AP (2,2) m, z=2.5 m, 5 GHz (baseline은 벽 없음 / Sionna는 메시 방)
+- 조건: 동일 `golden_fixtures` AP (2,2) m, z=2.5 m, 5 GHz
+- 역할: **Baseline** = 2D floorplan **preview** / **Sionna** = **내부 precise** 검증 (UI는 2D heatmap 중심, 3D는 전면 아님)
 
 ## 한 줄 해석
 

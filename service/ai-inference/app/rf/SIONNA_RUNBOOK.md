@@ -2,6 +2,8 @@
 
 대상: `sionna_poc/sionna_rt_poc.py`, `compare_baseline_vs_sionna.py`
 
+**역할:** Sionna는 **내부 precise 검증 엔진**이다. 사용자 서비스의 전면은 **2D floorplan**이며, 본 런북은 개발·검증용 (`docs/SERVICE_RF_ARCHITECTURE.md`).
+
 ## 사전 조건
 
 - Python 3.11+ 권장 (레포는 3.13 예시 있음)

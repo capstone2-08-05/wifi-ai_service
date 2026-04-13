@@ -2,6 +2,8 @@
 
 대상: `BaselineRfSimulator`, `rf_models.Wall` / `Opening`, `MaterialProfileRegistry`.
 
+**서비스 메시지:** 사용자에게 보이는 설명은 **2D floorplan** 위에서 **재질·창문(개구)·가구 영역**이 수신 품질에 어떻게 반영되는지로 가져간다. (3D 뷰가 아니라 **도면·heatmap 중심**, `docs/SERVICE_RF_ARCHITECTURE.md` 참고.)
+
 ## 규칙 표 — 재질
 
 | 단계 | 입력 | Baseline 해석 |
@@ -33,8 +35,13 @@
 - 개구부 기하는 **벽 ID에 매달려야** 하며, `line_geom`은 그 벽 위의 **선분**이어야 한다.
 - Baseline은 **주파수/창 유리 두께 등 미세 모델링 없음**; 개구부면 구간 전체를 링크당 한 번만 “통과” 처리한다.
 
+## 가구·장애물 (preview, 최소)
+
+- `Scene.objects[]` 중 `footprint_m` 직사각형 + `attenuation_db` → 수신 격자점이 영역 안이면 RSSI에 **추가 감쇠** (`_compute_furniture_clutter_db`). 상세·스키마: **`RF_FURNITURE_PREVIEW.md`**.
+
 ## 코드 위치 (참고)
 
 - 벽 손실 합산: `baseline_rf_simulator.BaselineRfSimulator._compute_wall_loss`
 - 개구부 예외: `_line_of_sight_uses_opening`
+- 가구 clutter: `_compute_furniture_clutter_db`
 - 재질 dB: `MaterialProfileRegistry.get_loss_db` (`rf_materials.py`)

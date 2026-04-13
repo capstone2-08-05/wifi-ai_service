@@ -1,5 +1,7 @@
 # RF baseline 데모 실행 절차 (발표·교수님 시연용)
 
+**서비스 메시지:** 사용자에게 보이는 것은 **2D floorplan** 위 heatmap·AP·재질·창문·가구 영향 설명이 전면이다. **Baseline**은 빠른 preview·반복 시뮬, **Sionna RT**는 필요 시 **내부 precise 검증** (`docs/SERVICE_RF_ARCHITECTURE.md`).
+
 **발표용 히트맵·비교표를 한 폴더에 고정하려면 `PRESENTATION_LOCKED.md`와 `finalize_presentation.py`를 먼저 참고하세요.**
 
 아래는 **코드 없이** 재현할 수 있는 최소 절차입니다. 터미널에서 `service/ai-inference/app/rf` 기준으로 실행합니다.
@@ -34,10 +36,10 @@ python demo_rf_pipeline.py
 
 **생성되는 것 (기본 경로):**
 
-| 구분 | 경로 |
-|------|------|
-| 시뮬 산출물 | `sample/output/pipeline_complex_demo/` — `run_manifest.json`, `strongest_rssi_heatmap.png`(matplotlib 있을 때), 각종 `.npy` |
-| 영속(프로토타입) | `sample/output/pipeline_complex_demo/persistence/` — `rf_runs.json`, `ap_layouts.json`, `rf_maps.json` |
+| 구분             | 경로                                                                                                                        |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| 시뮬 산출물      | `sample/output/pipeline_complex_demo/` — `run_manifest.json`, `strongest_rssi_heatmap.png`(matplotlib 있을 때), 각종 `.npy` |
+| 영속(프로토타입) | `sample/output/pipeline_complex_demo/persistence/` — `rf_runs.json`, `ap_layouts.json`, `rf_maps.json`                      |
 
 **해석:** `run_manifest.json`의 `metrics`에서 **mean/min RSSI**, `coverage_summary`(≥-67 / ≥-70 / &lt;-75 비율), `serving_ap_distribution`으로 “2AP가 공간을 나눠 서빙하는지”를 봅니다. 히트맵에서는 AP 위치와 방·벽·opening 오버레이를 함께 확인합니다.
 
@@ -53,10 +55,10 @@ python layout_comparator.py
 
 **생성되는 것:**
 
-| 구분 | 경로 |
-|------|------|
-| 비교 결과 | `sample/output/layout_comparison_summary.json` |
-| 발표용 요약 문장 포함 | `sample/output/layout_comparison_summary.md` |
+| 구분                  | 경로                                           |
+| --------------------- | ---------------------------------------------- |
+| 비교 결과             | `sample/output/layout_comparison_summary.json` |
+| 발표용 요약 문장 포함 | `sample/output/layout_comparison_summary.md`   |
 
 **해석:** 표·JSON의 **mean / min RSSI**, **coverage 비율**, **dead zone 비율**, **wall_loss mean**, **serving counts**를 보며 “단일 AP 대비 후보 기반 2AP가 개선되는지”를 숫자로 설명합니다. `interpretation_ko`(JSON·MD)는 같은 입력에 대한 자동 요약 문장입니다.
 

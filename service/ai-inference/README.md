@@ -49,12 +49,14 @@ AI_SERVICE_URL=http://<ai-host>:9000
 
 backend는 업로드된 파일을 AI 서버로 직접 전송합니다.
 
-## 5) RF baseline 데모 (캡스톤)
+## 5) RF (캡스톤) — 2D floorplan 중심
 
-- **발표 산출물 고정(히트맵·비교표):** `app/rf/PRESENTATION_LOCKED.md`
-- **실행 명령·해석:** `app/rf/DEMO_RUNBOOK.md`
-- **가정·한계 1장:** `app/rf/ASSUMPTIONS_AND_LIMITS.md`
-- **백엔드 ↔ RF 입력 handoff 합의안:** `app/rf/docs/RF_SCENE_HANDOFF_SPEC.md`
-- **Scene graph DTO → RF 매핑:** `app/rf/docs/SCENE_GRAPH_ADAPTER_MAPPING.md` · 샘플 `app/rf/sample/backend_scene_graph_example.json` → `export_rf_from_backend_sample.py`
-- **재질·개구부(baseline) 규칙:** `app/rf/docs/RF_MATERIAL_AND_OPENING_RULES.md`
-- **Sionna RT PoC:** `app/rf/SIONNA_RUNBOOK.md` · 비교 산출물 `python app/rf/compare_baseline_vs_sionna.py`
+- **서비스 방향:** 사용자 UI는 **2D 도면·heatmap·AP·재질·창문·가구** 설명이 전면. **Sionna RT**는 3D 전파 계산을 없애는 것이 아니라 **내부 precise 검증 엔진**으로 둔다 (`app/rf/docs/SERVICE_RF_ARCHITECTURE.md`).
+- **엔진:** **Baseline** = 빠른 preview·후보 비교 / **Sionna** = 최종 정밀 검증(필요 시).
+- **발표 산출물 고정:** `app/rf/PRESENTATION_LOCKED.md`
+- **실행:** `app/rf/DEMO_RUNBOOK.md`
+- **가정·한계:** `app/rf/ASSUMPTIONS_AND_LIMITS.md`
+- **RF 입력 handoff:** `app/rf/docs/RF_SCENE_HANDOFF_SPEC.md`
+- **DTO → RF:** `app/rf/docs/SCENE_GRAPH_ADAPTER_MAPPING.md` · `export_rf_from_backend_sample.py`
+- **재질·개구·가구(preview):** `app/rf/docs/RF_MATERIAL_AND_OPENING_RULES.md` · `app/rf/docs/RF_FURNITURE_PREVIEW.md`
+- **Sionna 실행(내부):** `app/rf/SIONNA_RUNBOOK.md` · `python app/rf/compare_baseline_vs_sionna.py`

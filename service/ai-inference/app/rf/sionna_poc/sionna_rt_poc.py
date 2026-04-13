@@ -1,12 +1,14 @@
 """
 최소 Sionna RT PoC: golden 4×4 m 방(바닥 + 벽 4) + AP 1대 + RadioMap RSS.
 
-- 좌표계: XY 평면이 바닥, Z 상향 (baseline `point_geom` (x,y) + `z_m` 과 동일 매핑).
-- 재질 2종: ITU `concrete`(바닥), `plasterboard`(벽, baseline drywall 대응).
-- Baseline과의 수치 일치는 목표가 아님(물리 RT vs 경로손실+벽 dB). 동일 레이아웃·AP에서
-  RSS/radiomap이 산출되는지와 baseline 요약을 나란히 적어 비교 가능하게 함.
+**제품 구조:** 사용자 서비스는 **2D floorplan**(heatmap·AP·재질/창문/가구 설명)이 전면이다.
+Sionna의 3D 기하·레이트레이싱은 **제거하지 않고**, **내부 precise 검증 엔진**으로 둔다.
 
-의존성: `requirements-sionna-poc.txt` 참고. 미설치 시 import 단계에서 안내 후 종료.
+- 좌표계: XY 바닥, Z 상향 (baseline AP `point_geom` + `z_m` 와 동일 매핑).
+- ITU 재질: 바닥 `concrete`, 벽 `plasterboard`(baseline drywall 대응).
+- Baseline과 수치 1:1 일치는 목표가 아님. 동일 입력 축에서 preview vs precise를 비교한다.
+
+의존성: `requirements-sionna-poc.txt`. 미설치 시 import 단계에서 안내 후 종료.
 """
 
 from __future__ import annotations
@@ -290,7 +292,10 @@ def main() -> None:
     )
 
     report = {
-        "purpose": "wifi-ai RF 입력 구조가 Sionna RT RadioMap으로 이어지는지 최소 검증",
+        "purpose": (
+            "동일 RF 입력 축에서 내부 precise 엔진(Sionna RT)이 RadioMap을 산출하는지 검증. "
+            "사용자 UI는 2D heatmap 중심이며 3D 뷰가 전면이 아님."
+        ),
         "layout": {
             "room_m": [4.0, 4.0],
             "ap_position_m": [2.0, 2.0, 2.5],

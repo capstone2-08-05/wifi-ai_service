@@ -22,6 +22,9 @@ from rf_persistence import JsonPersistenceStore
 
 EPS = 1e-9
 
+# objects[] footprint 기반 가구 clutter 합산 상한 [dB] (preview 전용, RF_FURNITURE_PREVIEW.md)
+_MAX_FURNITURE_CLUTTER_DB = 25.0
+
 # Baseline coverage: 격자점별 strongest RSSI에 대한 단순 비율 (802.11 추천 임계값 근사)
 _RSSI_GOOD_DB = -67.0
 _RSSI_OK_DB = -70.0
@@ -163,8 +166,36 @@ class BaselineRfSimulator:
         distance = max(self._euclidean_distance(ap.position, rx_point), 0.1)
         path_loss = self._compute_path_loss(distance)
         wall_loss = self._compute_wall_loss(ap.position, rx_point)
-        rssi = ap.tx_power_dbm - path_loss - wall_loss
+        furniture_loss = self._compute_furniture_clutter_db(rx_point)
+        rssi = ap.tx_power_dbm - path_loss - wall_loss - furniture_loss
         return rssi, path_loss, wall_loss
+
+    def _compute_furniture_clutter_db(self, rx_point: Point2D) -> float:
+        """수신점이 가구 footprint 안에 있을 때 추가 감쇠(합산, 상한). docs/RF_FURNITURE_PREVIEW.md."""
+        total = 0.0
+        for obj in self.scene.objects:
+            fp = obj.get("footprint_m")
+            if not isinstance(fp, dict):
+                continue
+            try:
+                mn_x = float(fp["min_x"])
+                mx_x = float(fp["max_x"])
+                mn_y = float(fp["min_y"])
+                mx_y = float(fp["max_y"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            raw_adb = obj.get("attenuation_db")
+            if raw_adb is None:
+                continue
+            try:
+                loss = float(raw_adb)
+            except (TypeError, ValueError):
+                continue
+            if loss <= 0.0:
+                continue
+            if mn_x <= rx_point.x <= mx_x and mn_y <= rx_point.y <= mx_y:
+                total += loss
+        return min(total, _MAX_FURNITURE_CLUTTER_DB)
 
     def _compute_path_loss(self, distance_m: float) -> float:
         return (
