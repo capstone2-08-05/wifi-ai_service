@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-04-13T11:52:54.701263+00:00",
+  "generated_at_utc": "2026-04-13T12:18:09.459325+00:00",
   "document_version": "presentation_final_1",
   "sionna_resolved_from": "live_run",
   "baseline": {
@@ -77,10 +77,10 @@
     ],
     "rss_dbm": {
       "min": -33.92560480848823,
-      "max": -30.604881494682825,
-      "mean": -32.43714568627236
+      "max": -30.6048823459658,
+      "mean": -32.43714575712947
     },
-    "center_cell_rss_dbm": -30.604941084894183,
+    "center_cell_rss_dbm": -30.60494136865905,
     "solver": {
       "samples_per_tx": 300000,
       "max_depth": 3,
