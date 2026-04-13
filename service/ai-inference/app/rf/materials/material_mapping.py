@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from rf_materials import BACKEND_SCHEMA_WALL_MATERIALS, MaterialProfileRegistry
+from app.rf.materials.rf_materials import BACKEND_SCHEMA_WALL_MATERIALS, MaterialProfileRegistry
 
 # Baseline enum 키 → Sionna/ITU RadioMaterial 이름 (물리 모델은 엔진 측; 티어는 문서 표 참고)
 BASELINE_TO_SIONNA_ITU: Final[dict[str, str]] = {
@@ -85,7 +85,7 @@ def map_baseline_material_to_sionna_itur(
     return BASELINE_TO_SIONNA_ITU.get(kn, "plasterboard")
 
 
-# 하위 호환: 예전 `adapter_sionna_dto` 전체 테이블 (drywall → wood 정규화 전제로 ITU는 wood 쪽과 맞춤)
+# 하위 호환: 예전 `app.rf.adapters.sionna` 전체 테이블 (drywall → wood 정규화 전제로 ITU는 wood 쪽과 맞춤)
 DEFAULT_BASELINE_MATERIAL_TO_SIONNA_ITU: Final[dict[str, str]] = {
     **BASELINE_TO_SIONNA_ITU,
     **LEGACY_EXTRA_TO_SIONNA_ITU,

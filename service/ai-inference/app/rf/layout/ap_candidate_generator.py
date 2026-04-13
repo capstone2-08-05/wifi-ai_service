@@ -4,7 +4,7 @@ import math
 from dataclasses import dataclass
 from typing import Iterable
 
-from rf_models import Point2D, Room, Scene
+from app.rf.models.rf_models import Point2D, Room, Scene
 
 
 @dataclass

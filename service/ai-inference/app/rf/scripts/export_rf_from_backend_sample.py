@@ -1,13 +1,13 @@
 """
 백엔드 floorplan DTO 샘플 → RF canonical JSON 생성 및 Scene 검증.
 
-  python export_rf_from_backend_sample.py
+  python app/rf/scripts/export_rf_from_backend_sample.py
 
 입력: sample/backend_scene_graph_example.json (`backend/app/schemas/floorplan.py` 계약)
 출력: sample/rf_scene_from_backend.json
 
-변환: ``SceneSchema.model_validate`` → ``scene_to_rf_adapter.scene_schema_to_rf_scene_dict``
-(내부적으로 ``adapter_baseline_dto.scene_schema_to_baseline_rf_scene_dict``).
+변환: ``SceneSchema.model_validate`` → ``app.rf.conversion.scene_to_rf_adapter.scene_schema_to_rf_scene_dict``
+(내부적으로 ``app.rf.adapters.baseline.scene_schema_to_baseline_rf_scene_dict``).
 """
 
 from __future__ import annotations
@@ -16,15 +16,15 @@ import json
 import sys
 from pathlib import Path
 
-_AI = Path(__file__).resolve().parents[2]
-_RF = Path(__file__).resolve().parent
+_AI = Path(__file__).resolve().parents[3]
+_RF = Path(__file__).resolve().parents[1]
 for _p in (_AI, _RF):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-from backend_scene_dto import SceneSchema  # noqa: E402
-from rf_models import Scene  # noqa: E402
-from scene_to_rf_adapter import scene_schema_to_rf_scene_dict  # noqa: E402
+from app.rf.conversion.scene_to_rf_adapter import scene_schema_to_rf_scene_dict  # noqa: E402
+from app.rf.dto.backend_scene import SceneSchema  # noqa: E402
+from app.rf.models.rf_models import Scene  # noqa: E402
 
 
 def main() -> None:

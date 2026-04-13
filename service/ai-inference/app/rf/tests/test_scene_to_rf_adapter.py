@@ -12,8 +12,8 @@ _RF_ROOT = Path(__file__).resolve().parent.parent
 if str(_RF_ROOT) not in sys.path:
     sys.path.insert(0, str(_RF_ROOT))
 
-from rf_models import Scene  # noqa: E402
-from scene_to_rf_adapter import scene_graph_to_rf_scene_dict  # noqa: E402
+from app.rf.conversion.scene_to_rf_adapter import scene_graph_to_rf_scene_dict  # noqa: E402
+from app.rf.models.rf_models import Scene  # noqa: E402
 
 
 def test_complex_sample_roundtrips_through_adapter() -> None:

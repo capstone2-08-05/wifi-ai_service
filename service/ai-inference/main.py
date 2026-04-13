@@ -1,8 +1,7 @@
 import sys
 from pathlib import Path
 
-# `app/rf` 모듈들이 `backend_scene_dto`, `adapter_baseline_dto` 등 flat 이름으로 import 하므로
-# 서비스 루트와 `app/rf` 를 path 에 넣는다.
+# `app.*` 패키지 로딩(ai-inference 루트)과, 일부 레거시 스크립트용 `app/rf` flat 경로를 함께 넣는다.
 _AI_ROOT = Path(__file__).resolve().parent
 _RF_ROOT = _AI_ROOT / "app" / "rf"
 for _p in (_AI_ROOT, _RF_ROOT):

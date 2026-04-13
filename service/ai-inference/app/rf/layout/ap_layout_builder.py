@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 from typing import Sequence
 
-from ap_candidate_generator import ApCandidate
-from rf_models import AccessPoint, ApLayout, Point2D
+from app.rf.layout.ap_candidate_generator import ApCandidate
+from app.rf.models.rf_models import AccessPoint, ApLayout, Point2D
 
 
 def candidates_to_ap_layout(

@@ -1,7 +1,7 @@
 # RF 씬 입력 Handoff Spec (백엔드 ↔ AI/RF)
 
 **목적:** canonical scene graph에서 확정된 씬을 RF baseline 시뮬레이터로 넘길 때 **필드·형식·식별자 규칙**을 팀 합의로 고정한다.  
-**구현 기준:** `app/rf/rf_models.py`의 `Scene.from_dict` / `Wall` / `Opening` / `Room` 파서 (2025 캡스톤 baseline).
+**구현 기준:** `app/rf/models/rf_models.py`의 `Scene.from_dict` / `Wall` / `Opening` / `Room` 파서 (2025 캡스톤 baseline).
 
 **좌표:** 단일 층 **floor-local**, 단위 **미터(m)**. 원점·축 방향은 프로젝트 전역 규칙과 일치해야 한다.
 
@@ -119,7 +119,7 @@ HTTP 경로의 `project_id` / `floor_id` / `scene_version_id`와 별개로, **RF
 
 ## 8. 참고: 구현 파일
 
-- 파서: `app/rf/rf_models.py` (`Scene`, `Wall`, `Opening`, `Room`)
+- 파서: `app/rf/models/rf_models.py` (`Scene`, `Wall`, `Opening`, `Room`)
 - 재질 프로파일: `app/rf/rf_materials.py`
 - 샘플: `app/rf/sample/rf_scene_input_complex.json`
 

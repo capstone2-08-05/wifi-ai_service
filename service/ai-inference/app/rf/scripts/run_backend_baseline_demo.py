@@ -1,7 +1,7 @@
 """
 RF canonical 샘플(sample/rf_scene_from_backend.json)로 baseline 시뮬레이션 1회 실행.
 
-  python run_backend_baseline_demo.py
+  python app/rf/scripts/run_backend_baseline_demo.py
 
 출력: stdout에 metrics JSON (발표/로그용)
 """
@@ -12,12 +12,14 @@ import json
 import sys
 from pathlib import Path
 
-_RF = Path(__file__).resolve().parent
-if str(_RF) not in sys.path:
-    sys.path.insert(0, str(_RF))
+_AI = Path(__file__).resolve().parents[3]
+_RF = Path(__file__).resolve().parents[1]
+for _p in (_AI, _RF):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
-from baseline_rf_simulator import BaselineRfSimulator  # noqa: E402
-from rf_models import ApLayout, Scene, SimulationConfig  # noqa: E402
+from app.rf.models.rf_models import ApLayout, Scene, SimulationConfig  # noqa: E402
+from app.rf.simulation.baseline_rf_simulator import BaselineRfSimulator  # noqa: E402
 
 
 def main() -> None:

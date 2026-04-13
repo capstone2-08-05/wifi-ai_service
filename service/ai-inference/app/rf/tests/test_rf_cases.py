@@ -8,7 +8,7 @@ _RF_ROOT = Path(__file__).resolve().parent.parent
 if str(_RF_ROOT) not in sys.path:
     sys.path.insert(0, str(_RF_ROOT))
 
-from rf_models import ApLayout, Scene, SchemaValidationError, SimulationConfig
+from app.rf.models.rf_models import ApLayout, Scene, SchemaValidationError, SimulationConfig
 
 BASE_DIR = Path(__file__).resolve().parent
 CASES_DIR = BASE_DIR / "rf_cases"

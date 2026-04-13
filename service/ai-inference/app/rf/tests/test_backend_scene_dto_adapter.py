@@ -1,27 +1,20 @@
-"""backend_scene_dto → scene_to_rf_adapter → Scene / ApLayout."""
+"""app.rf.dto → conversion.scene_to_rf_adapter → Scene / ApLayout."""
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
 import pytest
 
-_RF_ROOT = Path(__file__).resolve().parent.parent
-if str(_RF_ROOT) not in sys.path:
-    sys.path.insert(0, str(_RF_ROOT))
-
-from backend_scene_dto import AntennaDTO  # noqa: E402
-from backend_scene_dto import Opening as BackendOpening  # noqa: E402
-from backend_scene_dto import Room as BackendRoom  # noqa: E402
-from backend_scene_dto import SceneSchema  # noqa: E402
-from backend_scene_dto import SimConfigDTO  # noqa: E402
-from backend_scene_dto import SionnaInputDTO  # noqa: E402
-from backend_scene_dto import Wall as BackendWall  # noqa: E402
-from rf_models import ApLayout, Scene  # noqa: E402
-from adapter_baseline_dto import scene_schema_to_baseline_rf_scene_dict  # noqa: E402
-from adapter_sionna_dto import sionna_input_dto_to_engine_plan  # noqa: E402
-from scene_to_rf_adapter import (  # noqa: E402
+from app.rf.adapters.baseline import scene_schema_to_baseline_rf_scene_dict
+from app.rf.adapters.sionna import sionna_input_dto_to_engine_plan
+from app.rf.dto.backend_scene import AntennaDTO
+from app.rf.dto.backend_scene import Opening as BackendOpening
+from app.rf.dto.backend_scene import Room as BackendRoom
+from app.rf.dto.backend_scene import SceneSchema
+from app.rf.dto.backend_scene import SimConfigDTO
+from app.rf.dto.backend_scene import SionnaInputDTO
+from app.rf.dto.backend_scene import Wall as BackendWall
+from app.rf.models.rf_models import ApLayout, Scene
+from app.rf.conversion.scene_to_rf_adapter import (
     antenna_dto_to_ap_layout_dict,
     sionna_input_dto_to_rf_scene_and_manual_layout,
     sionna_input_dto_to_rf_scene_dict,

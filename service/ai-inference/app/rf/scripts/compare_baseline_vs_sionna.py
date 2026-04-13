@@ -1,9 +1,9 @@
 """
 동일 golden 씬·AP 기준으로 baseline 요약과 Sionna RadioMap 요약을 한 JSON/MD로 낸다.
 
-  python compare_baseline_vs_sionna.py
-  python compare_baseline_vs_sionna.py --skip-sionna
-  python compare_baseline_vs_sionna.py --frozen-sionna sample/output/sionna_poc_frozen.json
+  python app/rf/scripts/compare_baseline_vs_sionna.py
+  python app/rf/scripts/compare_baseline_vs_sionna.py --skip-sionna
+  python app/rf/scripts/compare_baseline_vs_sionna.py --frozen-sionna sample/output/sionna_poc_frozen.json
 
 발표 고정본: preview(Baseline) vs precise(Sionna) 역할 차이 중심. 수치 우열이 아님.
 """
@@ -18,17 +18,20 @@ from pathlib import Path
 
 import numpy as np
 
-_RF = Path(__file__).resolve().parent
-_AI = _RF.parents[2]
-if str(_AI) not in sys.path:
-    sys.path.insert(0, str(_AI))
-if str(_RF) not in sys.path:
-    sys.path.insert(0, str(_RF))
+_AI = Path(__file__).resolve().parents[3]
+_RF = Path(__file__).resolve().parents[1]
+for _p in (_AI, _RF):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
-from baseline_rf_simulator import BaselineRfSimulator  # noqa: E402
-from golden_fixtures import GOLDEN_CONFIG, GOLDEN_LAYOUT, GOLDEN_SCENE  # noqa: E402
-from rf_models import ApLayout, Scene, SimulationConfig  # noqa: E402
-from sionna_poc.sionna_rt_poc import to_jsonable  # noqa: E402
+from app.rf.fixtures.golden_fixtures import (  # noqa: E402
+    GOLDEN_CONFIG,
+    GOLDEN_LAYOUT,
+    GOLDEN_SCENE,
+)
+from app.rf.models.rf_models import ApLayout, Scene, SimulationConfig  # noqa: E402
+from app.rf.simulation.baseline_rf_simulator import BaselineRfSimulator  # noqa: E402
+from app.rf.sionna_poc.sionna_rt_poc import to_jsonable  # noqa: E402
 
 _SAMPLE = _RF / "sample"
 _FROZEN_SIONNA_DEFAULT = _SAMPLE / "output" / "sionna_poc_frozen.json"

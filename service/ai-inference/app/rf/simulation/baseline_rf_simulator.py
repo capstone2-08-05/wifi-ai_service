@@ -9,9 +9,8 @@ from typing import Any, Iterable
 
 import numpy as np
 
-from object_obstacle_rules import los_intersects_object_footprint, resolve_object_loss_db
-from rf_materials import MaterialProfileRegistry
-from rf_models import (
+from app.rf.materials.rf_materials import MaterialProfileRegistry
+from app.rf.models.rf_models import (
     AccessPoint,
     ApLayout,
     Opening,
@@ -19,7 +18,11 @@ from rf_models import (
     Scene,
     SimulationConfig,
 )
-from rf_persistence import JsonPersistenceStore
+from app.rf.persistence.rf_persistence import JsonPersistenceStore
+from app.rf.rules.object_obstacle_rules import (
+    los_intersects_object_footprint,
+    resolve_object_loss_db,
+)
 
 EPS = 1e-9
 

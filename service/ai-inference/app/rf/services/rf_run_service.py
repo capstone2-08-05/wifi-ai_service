@@ -12,19 +12,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Mapping
 
-from adapter_baseline_dto import sionna_input_dto_to_baseline_scene_and_layout
-from backend_scene_dto import SionnaInputDTO
-from baseline_rf_simulator import BaselineRfSimulator, save_outputs
-from rf_models import ApLayout, Scene, SimulationConfig
-from rf_persistence import JsonPersistenceStore
+from app.rf.adapters.baseline import sionna_input_dto_to_baseline_scene_and_layout
+from app.rf.dto.backend_scene import SionnaInputDTO
+from app.rf.models.rf_models import ApLayout, Scene, SimulationConfig
+from app.rf.persistence.rf_persistence import JsonPersistenceStore
+from app.rf.simulation.baseline_rf_simulator import BaselineRfSimulator, save_outputs
 
 
 def _default_storage_root() -> Path:
     env = os.environ.get("RF_STORAGE_ROOT")
     if env:
         return Path(env).expanduser().resolve()
-    # app/rf/rf_run_service.py → parents[2] = ai-inference 서비스 루트
-    return Path(__file__).resolve().parents[2] / "data" / "rf"
+    # app/rf/services/rf_run_service.py → parents[3] = ai-inference 서비스 루트
+    return Path(__file__).resolve().parents[3] / "data" / "rf"
 
 
 @dataclass(frozen=True)

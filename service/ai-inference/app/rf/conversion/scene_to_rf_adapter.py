@@ -2,14 +2,14 @@
 Scene graph DTO → RF canonical scene dict (JSON-serializable).
 
 백엔드 API와 분리된 **순수 변환 레이어**만 담당한다.
-출력 형식은 `rf_models.Scene.from_dict` 및 `RF_SCENE_HANDOFF_SPEC.md`와 맞춘다.
+출력 형식은 `app.rf.models.rf_models.Scene.from_dict` 및 `RF_SCENE_HANDOFF_SPEC.md`와 맞춘다.
 Floorplan DTO 매핑: `docs/FLOORPLAN_DTO_MAPPING.md` (레거시 dict: `docs/SCENE_GRAPH_ADAPTER_MAPPING.md` 등).
 서비스는 **2D floorplan** 기준 설명(heatmap·재질·창문·가구)이 전면: `docs/SCENE_GRAPH_ADAPTER_MAPPING.md` 서문.
 
-**권장 입력:** `backend_scene_dto.SionnaInputDTO` / `SceneSchema` (합의 DTO).
+**권장 입력:** `app.rf.dto.SionnaInputDTO` / `SceneSchema` (합의 DTO).
 
-- **Baseline 변환:** `adapter_baseline_dto` (2D 씬 + baseline 규칙, 안테나 z 정책).
-- **Sionna 변환:** `adapter_sionna_dto` (3D·ITU 재질·솔버 파라미터 스냅샷).
+- **Baseline 변환:** `app.rf.adapters.baseline` (2D 씬 + baseline 규칙, 안테나 z 정책).
+- **Sionna 변환:** `app.rf.adapters.sionna` (3D·ITU 재질·솔버 파라미터 스냅샷).
 
 레거시 dict(JSON)는 `scene_graph_to_rf_scene_dict()` 유지.
 """
@@ -20,15 +20,15 @@ import copy
 import math
 from typing import Any, Literal, Mapping
 
-from backend_scene_dto import AntennaDTO  # noqa: E402
-from backend_scene_dto import SceneSchema as BackendSceneSchema  # noqa: E402
-from backend_scene_dto import SimConfigDTO  # noqa: E402
-from backend_scene_dto import SionnaInputDTO  # noqa: E402
+from app.rf.dto.backend_scene import AntennaDTO
+from app.rf.dto.backend_scene import SceneSchema as BackendSceneSchema
+from app.rf.dto.backend_scene import SimConfigDTO
+from app.rf.dto.backend_scene import SionnaInputDTO
 
 
 def _coerce_material_key_for_baseline(material: str) -> str:
     """스키마 enum·레거시 별칭은 `material_mapping.normalize_wall_material_key` 와 동일."""
-    from material_mapping import normalize_wall_material_key  # noqa: PLC0415
+    from app.rf.materials.material_mapping import normalize_wall_material_key  # noqa: PLC0415
 
     return normalize_wall_material_key(material)
 
@@ -245,9 +245,9 @@ def scene_schema_to_rf_scene_dict(
     """
     백엔드 ``SceneSchema`` → **Baseline** RF 루트 scene dict.
 
-    (별칭) 내부적으로 ``adapter_baseline_dto.scene_schema_to_baseline_rf_scene_dict`` 와 동일.
+    (별칭) 내부적으로 ``app.rf.adapters.baseline.scene_schema_to_baseline_rf_scene_dict`` 와 동일.
     """
-    from adapter_baseline_dto import scene_schema_to_baseline_rf_scene_dict  # noqa: PLC0415
+    from app.rf.adapters.baseline import scene_schema_to_baseline_rf_scene_dict  # noqa: PLC0415
 
     return scene_schema_to_baseline_rf_scene_dict(
         scene,
@@ -268,9 +268,9 @@ def antenna_dto_to_ap_layout_dict(
     ``AntennaDTO`` → 단일 AP `ApLayout` JSON (**하위 호환**).
 
     기존 동작: ``position_m[2]`` 를 ``z_m`` 에 반영. Baseline 전용 옵션은
-    ``adapter_baseline_dto.antenna_dto_to_baseline_ap_layout_dict(..., z_policy=...)`` 사용.
+    ``app.rf.adapters.baseline.antenna_dto_to_baseline_ap_layout_dict(..., z_policy=...)`` 사용.
     """
-    from adapter_baseline_dto import antenna_dto_to_baseline_ap_layout_dict  # noqa: PLC0415
+    from app.rf.adapters.baseline import antenna_dto_to_baseline_ap_layout_dict  # noqa: PLC0415
 
     return antenna_dto_to_baseline_ap_layout_dict(
         antenna,
@@ -313,7 +313,7 @@ def sionna_input_dto_to_rf_scene_and_manual_layout(
     기본은 안테나 **z 무시**·``default_antenna_z_m`` (2D preview). ``antenna_z_policy=\"use_position_z`` 로 바꿀 수 있다.
     후보 AP 파이프라인은 동일 scene dict에 ``ap_candidate_generator`` 등을 쓰면 된다.
     """
-    from adapter_baseline_dto import sionna_input_dto_to_baseline_scene_and_layout  # noqa: PLC0415
+    from app.rf.adapters.baseline import sionna_input_dto_to_baseline_scene_and_layout  # noqa: PLC0415
 
     return sionna_input_dto_to_baseline_scene_and_layout(
         payload,
@@ -332,8 +332,8 @@ def sionna_input_dto_to_sionna_engine_plan(
     material_map: dict[str, str] | None = None,
     measurement_plane_z_m: float = 1.0,
 ) -> dict[str, Any]:
-    """동일 DTO → Sionna 엔진용 스냅샷 (`adapter_sionna_dto`)."""
-    from adapter_sionna_dto import sionna_input_dto_to_engine_plan  # noqa: PLC0415
+    """동일 DTO → Sionna 엔진용 스냅샷 (`app.rf.adapters.sionna`)."""
+    from app.rf.adapters.sionna import sionna_input_dto_to_engine_plan  # noqa: PLC0415
 
     return sionna_input_dto_to_engine_plan(
         payload,

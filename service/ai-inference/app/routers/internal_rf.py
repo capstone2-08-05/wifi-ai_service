@@ -7,7 +7,7 @@ from typing import Annotated, Any, Literal, Union
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from app.rf.rf_run_service import RfRunResult, run_rf
+from app.rf.services.rf_run_service import RfRunResult, run_rf
 
 router = APIRouter()
 

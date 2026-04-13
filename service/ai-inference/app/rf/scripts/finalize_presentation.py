@@ -5,7 +5,7 @@
   - 02_auto_candidate_2ap/run_manifest.json, strongest_rssi_heatmap.png, *.npy
   - layout_comparison_summary.json / .md
 
-재현: python finalize_presentation.py
+재현: ``python app/rf/scripts/finalize_presentation.py`` (ai-inference 루트에서 PYTHONPATH 설정 후)
 """
 
 from __future__ import annotations
@@ -15,22 +15,24 @@ import json
 import sys
 from pathlib import Path
 
-_ROOT = Path(__file__).resolve().parent
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
+_AI = Path(__file__).resolve().parents[3]
+_RF = Path(__file__).resolve().parents[1]
+for _p in (_AI, _RF):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
-from ap_candidate_generator import generate_candidates
-from ap_layout_builder import candidates_to_ap_layout
-from baseline_rf_simulator import BaselineRfSimulator, load_json, save_outputs
-from layout_comparator import run_layout_comparison
-from rf_models import ApLayout, Scene, SimulationConfig
+from app.rf.layout.ap_candidate_generator import generate_candidates
+from app.rf.layout.ap_layout_builder import candidates_to_ap_layout
+from app.rf.models.rf_models import ApLayout, Scene, SimulationConfig
+from app.rf.scripts.layout_comparator import run_layout_comparison
+from app.rf.simulation.baseline_rf_simulator import BaselineRfSimulator, load_json, save_outputs
 
 # 발표 확정본: 복잡 씬 + 동일 sim_config (path loss 등 동일해야 비교가 의미 있음)
-SCENE = _ROOT / "sample" / "rf_scene_input_complex.json"
-CONFIG = _ROOT / "sample" / "sim_config_complex.json"
-MANUAL_LAYOUT = _ROOT / "sample" / "ap_layout_input_complex.json"
+SCENE = _RF / "sample" / "rf_scene_input_complex.json"
+CONFIG = _RF / "sample" / "sim_config_complex.json"
+MANUAL_LAYOUT = _RF / "sample" / "ap_layout_input_complex.json"
 
-OUT = _ROOT / "sample" / "output" / "presentation_final"
+OUT = _RF / "sample" / "output" / "presentation_final"
 DIR_MANUAL = OUT / "01_manual_single_ap"
 DIR_2AP = OUT / "02_auto_candidate_2ap"
 
@@ -100,7 +102,7 @@ def main() -> None:
     save_outputs(
         scene, layout_manual, config, r1, DIR_MANUAL, skip_heatmap=skip_h
     )
-    print(f"[ok] {DIR_MANUAL.relative_to(_ROOT)}  layout={layout_manual.layout_name}")
+    print(f"[ok] {DIR_MANUAL.relative_to(_RF)}  layout={layout_manual.layout_name}")
 
     # --- 2) 자동 후보 상위 2개 → 2AP ---
     cands = generate_candidates(scene)
@@ -115,7 +117,7 @@ def main() -> None:
     sim2 = BaselineRfSimulator(scene, layout_2ap, config)
     r2 = sim2.run()
     save_outputs(scene, layout_2ap, config, r2, DIR_2AP, skip_heatmap=skip_h)
-    print(f"[ok] {DIR_2AP.relative_to(_ROOT)}  layout={layout_2ap.layout_name}")
+    print(f"[ok] {DIR_2AP.relative_to(_RF)}  layout={layout_2ap.layout_name}")
 
     # --- 3) 비교표 (동일 씬·config·manual layout 파일) ---
     summary = run_layout_comparison(
@@ -125,7 +127,7 @@ def main() -> None:
         summary_json_path=OUT / "layout_comparison_summary.json",
         summary_md_path=OUT / "layout_comparison_summary.md",
     )
-    print(f"[ok] {OUT.relative_to(_ROOT)}/layout_comparison_summary.*")
+    print(f"[ok] {OUT.relative_to(_RF)}/layout_comparison_summary.*")
     interp = summary.get("interpretation_ko", "")
     print("interpretation:", (interp[:200] + "…") if len(interp) > 200 else interp)
 
@@ -153,7 +155,7 @@ def main() -> None:
         json.dumps(meta, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
-    print(f"[ok] {OUT.relative_to(_ROOT)}/README.md, snapshot_meta.json")
+    print(f"[ok] {OUT.relative_to(_RF)}/README.md, snapshot_meta.json")
     print("\n발표용 폴더:", OUT.resolve())
 
 

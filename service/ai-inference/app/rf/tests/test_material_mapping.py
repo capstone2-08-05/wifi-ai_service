@@ -2,19 +2,16 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
-_RF_ROOT = Path(__file__).resolve().parent.parent
-if str(_RF_ROOT) not in sys.path:
-    sys.path.insert(0, str(_RF_ROOT))
-
-from material_mapping import (  # noqa: E402
+from app.rf.materials.material_mapping import (
     get_baseline_wall_loss_db,
     map_baseline_material_to_sionna_itur,
     normalize_wall_material_key,
 )
-from rf_materials import MaterialProfileRegistry  # noqa: E402
+from app.rf.materials.rf_materials import MaterialProfileRegistry
+
+_RF_ROOT = Path(__file__).resolve().parent.parent
 
 
 def test_normalize_drywall_to_wood() -> None:
@@ -51,9 +48,9 @@ def test_sionna_drywall_maps_via_normalize_to_wood_itu() -> None:
 def test_material_opening_smoke_json_sionna_dto() -> None:
     import json
 
-    from adapter_baseline_dto import scene_schema_to_baseline_rf_scene_dict  # noqa: E402
-    from backend_scene_dto import SionnaInputDTO  # noqa: E402
-    from rf_models import Scene  # noqa: E402
+    from app.rf.adapters.baseline import scene_schema_to_baseline_rf_scene_dict
+    from app.rf.dto.backend_scene import SionnaInputDTO
+    from app.rf.models.rf_models import Scene
 
     path = _RF_ROOT / "sample" / "material_opening_smoke.json"
     raw = json.loads(path.read_text(encoding="utf-8"))

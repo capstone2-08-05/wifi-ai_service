@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import pytest
 
-_RF_ROOT = Path(__file__).resolve().parent.parent
-if str(_RF_ROOT) not in sys.path:
-    sys.path.insert(0, str(_RF_ROOT))
+from app.rf.conversion.scene_to_rf_adapter import scene_schema_to_rf_scene_dict
+from app.rf.dto.backend_scene import SceneSchema
+from app.rf.models.rf_models import Scene
 
-from backend_scene_dto import SceneSchema  # noqa: E402
-from rf_models import Scene  # noqa: E402
-from scene_to_rf_adapter import scene_schema_to_rf_scene_dict  # noqa: E402
+_RF_ROOT = Path(__file__).resolve().parent.parent
 
 
 def test_backend_sample_roundtrip_to_scene() -> None:

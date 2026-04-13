@@ -7,27 +7,36 @@
 - `opening`이 있으면 해당 wall 교차 시 감쇠를 제거
 - 출력은 `.npy` 행렬, `.png` heatmap, `run_manifest.json` 메타데이터로 저장
 
-## 파일 구조
+## 디렉터리 구조 (요약)
 
 ```text
-rf_baseline_v2/
-├─ baseline_rf_simulator.py
-├─ rf_models.py
-├─ rf_materials.py
-├─ README.md
-└─ sample/
-   ├─ rf_scene_input.json
-   ├─ ap_layout_input.json
-   └─ sim_config.json
+app/rf/
+├─ models/           # rf_models (Scene, ApLayout, …)
+├─ materials/        # 재질 매핑·프로파일
+├─ rules/            # objects[] 장애물 규칙
+├─ simulation/       # baseline_rf_simulator
+├─ persistence/      # JSON 프로토타입 저장
+├─ layout/           # AP 후보·레이아웃 빌드
+├─ conversion/       # scene_to_rf_adapter
+├─ dto/              # 백엔드 합의 DTO
+├─ adapters/         # Baseline / Sionna 변환
+├─ services/         # run_rf (API 진입)
+├─ fixtures/         # golden 씬 등
+├─ scripts/          # CLI 데모·샘플 export
+├─ sionna_poc/       # Sionna RT PoC
+├─ tests/ · sample/ · docs/
+└─ README.md
 ```
 
-## 실행 방법
+## 실행 방법 (Baseline CLI)
+
+`ai-inference` 서비스 루트에서, `PYTHONPATH`에 현재 디렉터리가 잡혀 있다고 가정:
 
 ```bash
-python baseline_rf_simulator.py \
-  --scene sample/rf_scene_input.json \
-  --layout sample/ap_layout_input.json \
-  --config sample/sim_config.json
+python -m app.rf.simulation.baseline_rf_simulator \
+  --scene app/rf/sample/rf_scene_input.json \
+  --layout app/rf/sample/ap_layout_input.json \
+  --config app/rf/sample/sim_config.json
 ```
 
 ## 출력 파일

@@ -66,7 +66,9 @@ class MaterialProfileRegistry:
         조회 전 `material_mapping.normalize_wall_material_key` 로 enum 키로 맞춘다.
         규칙 요약: `docs/RF_MATERIAL_AND_OPENING_RULES.md`.
         """
-        from material_mapping import normalize_wall_material_key  # noqa: PLC0415
+        from app.rf.materials.material_mapping import (  # noqa: PLC0415
+            normalize_wall_material_key,
+        )
 
         key = normalize_wall_material_key(material_name)
         profile = self._profiles.get(key)

@@ -1,6 +1,6 @@
 # Baseline 재질(material) · 개구(opening) 규칙 (최종)
 
-대상 코드: `BaselineRfSimulator`, `rf_models.Wall` / `Opening`, `MaterialProfileRegistry`, `material_mapping.py`, Sionna 어댑터(`adapter_sionna_dto`).
+대상 코드: `BaselineRfSimulator`, `app.rf.models.rf_models`의 `Wall` / `Opening`, `MaterialProfileRegistry`, `app.rf.materials.material_mapping`, Sionna 어댑터(`app.rf.adapters.sionna`).
 
 제품 메시지: **2D floorplan** 위에서 재질·창문·가구가 수신 품질(heatmap)에 어떻게 반영되는지 설명한다.
 
@@ -92,6 +92,6 @@
 |------|------|
 | enum 정규화·Sionna 매핑 | `material_mapping.py` |
 | dB 프로파일 | `rf_materials.py` |
-| 벽 손실 / 개구 예외 | `baseline_rf_simulator.py` |
+| 벽 손실 / 개구 예외 | `app/rf/simulation/baseline_rf_simulator.py` |
 | objects LOS 장애물 | `object_obstacle_rules.py`, `BaselineRfSimulator._compute_obstacle_loss_on_los` |
-| DTO → Sionna 스냅샷 | `adapter_sionna_dto.py` |
+| DTO → Sionna 스냅샷 | `app/rf/adapters/sionna.py` |

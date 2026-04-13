@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """JSON 파일 3종에 RF 실행 이력을 쌓는 프로토타입 저장소.
 
-`baseline_rf_simulator.py`가 만드는 `run_manifest.json`과의 대응 관계:
+`app.rf.simulation.baseline_rf_simulator`가 만드는 `run_manifest.json`과의 대응 관계:
 
 - **rf_runs.json** 한 행 ≈ 시뮬 1회. `metrics_json`은 manifest의 `metrics`와 동일.
   `sim_config_json`은 manifest의 `config` + `output_dir_name` 등 실행에 쓴 설정.

@@ -7,15 +7,15 @@
 
 ## 0) 합의 백엔드 DTO (권장)
 
-Pydantic 모델: `app/rf/backend_scene_dto.py`  
+Pydantic 모델: `app/rf/dto/backend_scene.py`  
 **동일 DTO**를 쓰되, 엔진별로 **어댑터를 둘로 나눈다.**
 
 | 모듈 | 용도 |
 |------|------|
-| `adapter_baseline_dto.py` | **Baseline RF** — 2D floorplan, 벽/개구/재질은 `RF_MATERIAL_AND_OPENING_RULES`·`baseline_rf_simulator` 규칙. 안테나는 기본적으로 **x,y만** 쓰고 `z`는 `ignore` 또는 `default_z_m` (또는 `use_position_z`로 참고). |
-| `adapter_sionna_dto.py` | **Sionna RT** — 벽 **높이·두께**, 안테나 **(x,y,z)**, `frequency_ghz`·`tx_power_dbm`·`reflection_order`→솔버, `material`→**ITU 재질명** 매핑 스냅샷. |
+| `app/rf/adapters/baseline.py` | **Baseline RF** — 2D floorplan, 벽/개구/재질은 `RF_MATERIAL_AND_OPENING_RULES`·`app.rf.simulation.baseline_rf_simulator` 규칙. 안테나는 기본적으로 **x,y만** 쓰고 `z`는 `ignore` 또는 `default_z_m` (또는 `use_position_z`로 참고). |
+| `app/rf/adapters/sionna.py` | **Sionna RT** — 벽 **높이·두께**, 안테나 **(x,y,z)**, `frequency_ghz`·`tx_power_dbm`·`reflection_order`→솔버, `material`→**ITU 재질명** 매핑 스냅샷. |
 
-### Baseline (`adapter_baseline_dto`)
+### Baseline (`app.rf.adapters.baseline`)
 
 | 진입점 | 설명 |
 |--------|------|
@@ -23,17 +23,17 @@ Pydantic 모델: `app/rf/backend_scene_dto.py`
 | `sionna_input_dto_to_baseline_scene_and_layout(SionnaInputDTO, antenna_z_policy=…)` | (scene, 수동 AP layout); 기본 `antenna_z_policy="ignore"` |
 | `antenna_dto_to_baseline_ap_layout_dict(..., z_policy="ignore"\|"use_position_z")` | 단일 AP |
 
-`scene_to_rf_adapter.scene_schema_to_rf_scene_dict` = 위 baseline 씬 변환과 동일(별칭).  
+`app.rf.conversion.scene_to_rf_adapter.scene_schema_to_rf_scene_dict` = 위 baseline 씬 변환과 동일(별칭).  
 `antenna_dto_to_ap_layout_dict` = **하위 호환**으로 `z_policy="use_position_z"` (기존 동작).
 
-### Sionna (`adapter_sionna_dto`)
+### Sionna (`app.rf.adapters.sionna`)
 
 | 진입점 | 설명 |
 |--------|------|
 | `scene_schema_to_sionna_scene_plan(SceneSchema)` | 벽·개구·방 + `itu_radio_material` |
 | `sionna_input_dto_to_engine_plan(SionnaInputDTO)` | 씬 계획 + 안테나 3D + `solver.max_depth` 등 JSON 스냅샷 |
 
-`scene_to_rf_adapter.sionna_input_dto_to_sionna_engine_plan` = 래퍼.
+`app.rf.conversion.scene_to_rf_adapter.sionna_input_dto_to_sionna_engine_plan` = 래퍼.
 
 | 백엔드 필드 | Baseline RF | Sionna 계획 |
 |-------------|------------|-------------|
@@ -47,7 +47,7 @@ Pydantic 모델: `app/rf/backend_scene_dto.py`
 
 ---
 
-`scene_to_rf_adapter.scene_graph_to_rf_scene_dict()` 기준(레거시). 백엔드 canonical DTO와 필드명이 다르면 **adapter 안의 `_first_str` 별칭 목록**만 조정하면 된다.
+`app.rf.conversion.scene_to_rf_adapter.scene_graph_to_rf_scene_dict()` 기준(레거시). 백엔드 canonical DTO와 필드명이 다르면 **adapter 안의 `_first_str` 별칭 목록**만 조정하면 된다.
 
 ## 입력 DTO 예시 (레거시 dict)
 

@@ -11,14 +11,14 @@ _RF_ROOT = Path(__file__).resolve().parent.parent
 if str(_RF_ROOT) not in sys.path:
     sys.path.insert(0, str(_RF_ROOT))
 
-from baseline_rf_simulator import BaselineRfSimulator  # noqa: E402
-from golden_fixtures import GOLDEN_CONFIG, GOLDEN_LAYOUT  # noqa: E402
-from object_obstacle_rules import (  # noqa: E402
+from app.rf.fixtures.golden_fixtures import GOLDEN_CONFIG, GOLDEN_LAYOUT  # noqa: E402
+from app.rf.models.rf_models import ApLayout, Scene, SimulationConfig  # noqa: E402
+from app.rf.rules.object_obstacle_rules import (  # noqa: E402
     los_intersects_object_footprint,
     resolve_object_loss_db,
     segment_intersects_aabb,
 )
-from rf_models import ApLayout, Scene, SimulationConfig  # noqa: E402
+from app.rf.simulation.baseline_rf_simulator import BaselineRfSimulator  # noqa: E402
 
 np = pytest.importorskip("numpy")
 

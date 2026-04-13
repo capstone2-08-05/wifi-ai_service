@@ -8,14 +8,16 @@ import sys
 from pathlib import Path
 from typing import Any
 
-_ROOT = Path(__file__).resolve().parent
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
+_AI = Path(__file__).resolve().parents[3]
+_RF = Path(__file__).resolve().parents[1]
+for _p in (_AI, _RF):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
-from ap_candidate_generator import generate_candidates
-from ap_layout_builder import candidates_to_ap_layout
-from baseline_rf_simulator import BaselineRfSimulator, load_json
-from rf_models import ApLayout, Scene, SimulationConfig
+from app.rf.layout.ap_candidate_generator import generate_candidates
+from app.rf.layout.ap_layout_builder import candidates_to_ap_layout
+from app.rf.models.rf_models import ApLayout, Scene, SimulationConfig
+from app.rf.simulation.baseline_rf_simulator import BaselineRfSimulator, load_json
 
 EXPERIMENT_PURPOSE_KO = (
     "동일한 실내 씬에서 AP 배치 전략만 바꿔 baseline RF 모델로 strongest RSSI를 비교한다. "
@@ -276,30 +278,30 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--scene",
         type=Path,
-        default=_ROOT / "sample" / "rf_scene_input_complex.json",
+        default=_RF / "sample" / "rf_scene_input_complex.json",
         help="RF scene JSON (기본: 발표용 복잡 씬)",
     )
     p.add_argument(
         "--config",
         type=Path,
-        default=_ROOT / "sample" / "sim_config_complex.json",
+        default=_RF / "sample" / "sim_config_complex.json",
         help="sim_config.json",
     )
     p.add_argument(
         "--manual-layout",
         type=Path,
-        default=_ROOT / "sample" / "ap_layout_input_complex.json",
+        default=_RF / "sample" / "ap_layout_input_complex.json",
         help="수동 단일 AP 레이아웃",
     )
     p.add_argument(
         "--output-json",
         type=Path,
-        default=_ROOT / "sample" / "output" / "layout_comparison_summary.json",
+        default=_RF / "sample" / "output" / "layout_comparison_summary.json",
     )
     p.add_argument(
         "--output-md",
         type=Path,
-        default=_ROOT / "sample" / "output" / "layout_comparison_summary.md",
+        default=_RF / "sample" / "output" / "layout_comparison_summary.md",
     )
     return p.parse_args()
 

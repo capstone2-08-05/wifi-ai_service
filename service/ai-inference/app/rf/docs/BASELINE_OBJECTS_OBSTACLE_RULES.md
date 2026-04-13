@@ -24,7 +24,7 @@
 3. 아니면 `material`(가구) → `DEFAULT_OBSTACLE_MATERIAL_DB`.
 4. 없으면 `unknown` 클래스 기본값.
 
-여러 object와 겹치면 **손실을 합산**하고, 전체 **합산 상한**은 `baseline_rf_simulator._MAX_OBJECT_OBSTACLE_DB` (현재 25 dB).
+여러 object와 겹치면 **손실을 합산**하고, 전체 **합산 상한**은 `app.rf.simulation.baseline_rf_simulator`의 `_MAX_OBJECT_OBSTACLE_DB` (현재 25 dB).
 
 ## 4. 한계 (preview)
 

@@ -1,4 +1,4 @@
-"""RF 테스트: ai-inference 루트 + `app/rf` 를 path 에 넣어 기존 flat import 를 유지한다."""
+"""RF 테스트: ai-inference 루트 + `app/rf` 를 path 에 넣는다 (`app.*` 패키지 + flat `rf_models` 등)."""
 
 from __future__ import annotations
 

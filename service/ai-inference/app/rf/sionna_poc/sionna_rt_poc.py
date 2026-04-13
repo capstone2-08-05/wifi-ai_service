@@ -21,11 +21,17 @@ from pathlib import Path
 
 import numpy as np
 
-_RF_ROOT = Path(__file__).resolve().parent.parent
-if str(_RF_ROOT) not in sys.path:
-    sys.path.insert(0, str(_RF_ROOT))
+_AI = Path(__file__).resolve().parents[3]
+_RF = Path(__file__).resolve().parents[1]
+for _p in (_AI, _RF):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
-from golden_fixtures import GOLDEN_CONFIG, GOLDEN_LAYOUT, GOLDEN_SCENE  # noqa: E402
+from app.rf.fixtures.golden_fixtures import (  # noqa: E402
+    GOLDEN_CONFIG,
+    GOLDEN_LAYOUT,
+    GOLDEN_SCENE,
+)
 
 DEFAULT_MESH_DIR = Path(__file__).resolve().parent / "meshes"
 
@@ -110,8 +116,8 @@ def rss_w_to_dbm(rss_w: np.ndarray) -> np.ndarray:
 
 
 def run_baseline_summary() -> dict:
-    from baseline_rf_simulator import BaselineRfSimulator
-    from rf_models import ApLayout, Scene, SimulationConfig
+    from app.rf.models.rf_models import ApLayout, Scene, SimulationConfig
+    from app.rf.simulation.baseline_rf_simulator import BaselineRfSimulator
 
     scene = Scene.from_dict(GOLDEN_SCENE)
     layout = ApLayout.from_dict(GOLDEN_LAYOUT)

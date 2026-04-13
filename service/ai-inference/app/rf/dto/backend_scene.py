@@ -4,7 +4,7 @@
 씬 그래프(`SceneSchema`, `Wall`, `Opening`, `Room`)는 ``app.schemas.floorplan`` 에서 import 한다
 (혜승 백엔드 `backend/app/schemas/floorplan.py` 와 동일 계약).
 
-`scene_to_rf_adapter` 출력은 `rf_models.Scene` canonical dict (`docs/RF_SCENE_HANDOFF_SPEC.md`).
+`app.rf.conversion.scene_to_rf_adapter` 출력은 `rf_models.Scene` canonical dict (`docs/RF_SCENE_HANDOFF_SPEC.md`).
 """
 
 from __future__ import annotations

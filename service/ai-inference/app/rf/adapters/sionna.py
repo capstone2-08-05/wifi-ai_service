@@ -14,10 +14,10 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
-from backend_scene_dto import SceneSchema as BackendSceneSchema
-from backend_scene_dto import SionnaInputDTO
+from app.rf.dto.backend_scene import SceneSchema as BackendSceneSchema
+from app.rf.dto.backend_scene import SionnaInputDTO
 
-from material_mapping import (  # noqa: E402
+from app.rf.materials.material_mapping import (
     DEFAULT_BASELINE_MATERIAL_TO_SIONNA_ITU,
     map_baseline_material_to_sionna_itur,
 )

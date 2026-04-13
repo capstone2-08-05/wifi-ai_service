@@ -4,7 +4,7 @@
 - 기하: **2D floorplan만** (벽·개구·방은 x, y). 벽 `height`는 baseline 규칙상 손실 모델에 쓰이지 않더라도 스키마 호환을 위해 유지.
 - 안테나: 기본적으로 **수평 위치만** 사용하고, ``z``는 `z_policy`로 선택 (무시 시 `default_z_m`).
 
-Sionna(3D·ITU 재질) 경로는 `adapter_sionna_dto.py`.
+Sionna(3D·ITU 재질) 경로는 `app.rf.adapters.sionna`.
 """
 
 from __future__ import annotations
@@ -12,12 +12,12 @@ from __future__ import annotations
 import copy
 from typing import Any, Literal, Mapping
 
-from backend_scene_dto import AntennaDTO
-from backend_scene_dto import SceneSchema as BackendSceneSchema
-from backend_scene_dto import SimConfigDTO
-from backend_scene_dto import SionnaInputDTO
+from app.rf.dto.backend_scene import AntennaDTO
+from app.rf.dto.backend_scene import SceneSchema as BackendSceneSchema
+from app.rf.dto.backend_scene import SimConfigDTO
+from app.rf.dto.backend_scene import SionnaInputDTO
 
-from scene_to_rf_adapter import (  # noqa: PLC0415 — 동일 패키지 공용 헬퍼
+from app.rf.conversion.scene_to_rf_adapter import (  # noqa: PLC0415 — 공용 헬퍼
     _backend_opening_to_rf,
     _backend_room_to_rf,
     _normalize_wall,

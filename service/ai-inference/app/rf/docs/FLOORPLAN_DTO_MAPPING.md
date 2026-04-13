@@ -1,6 +1,6 @@
 # Floorplan DTO → RF canonical 매핑
 
-혜승 백엔드 `backend/app/schemas/floorplan.py`(`SceneSchema`, `Wall`, `Opening`, `Room`)와 RF 측 `rf_models.Scene` 사이의 필드 대응이다. 변환 구현은 `adapter_baseline_dto.scene_schema_to_baseline_rf_scene_dict` 및 `scene_to_rf_adapter.scene_schema_to_rf_scene_dict`를 참고하면 된다.
+혜승 백엔드 `backend/app/schemas/floorplan.py`(`SceneSchema`, `Wall`, `Opening`, `Room`)와 RF 측 `rf_models.Scene` 사이의 필드 대응이다. 변환 구현은 `app.rf.adapters.baseline.scene_schema_to_baseline_rf_scene_dict` 및 `app.rf.conversion.scene_to_rf_adapter.scene_schema_to_rf_scene_dict`를 참고하면 된다.
 
 ## 좌표·단위
 

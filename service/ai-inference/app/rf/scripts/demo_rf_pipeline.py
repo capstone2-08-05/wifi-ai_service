@@ -7,20 +7,22 @@ import json
 import sys
 from pathlib import Path
 
-_ROOT = Path(__file__).resolve().parent
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
+_AI = Path(__file__).resolve().parents[3]
+_RF = Path(__file__).resolve().parents[1]
+for _p in (_AI, _RF):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
-from ap_candidate_generator import generate_candidates
-from ap_layout_builder import ap_candidates_to_json_rows, candidates_to_ap_layout
-from baseline_rf_simulator import (
+from app.rf.layout.ap_candidate_generator import generate_candidates
+from app.rf.layout.ap_layout_builder import ap_candidates_to_json_rows, candidates_to_ap_layout
+from app.rf.models.rf_models import Scene, SimulationConfig
+from app.rf.persistence.rf_persistence import JsonPersistenceStore
+from app.rf.simulation.baseline_rf_simulator import (
     BaselineRfSimulator,
     load_json,
     print_run_summary,
     save_outputs,
 )
-from rf_models import Scene, SimulationConfig
-from rf_persistence import JsonPersistenceStore
 
 
 def _config_for_scene(config_path: Path, scene: Scene) -> SimulationConfig:
@@ -44,13 +46,13 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--scene",
         type=Path,
-        default=_ROOT / "sample" / "rf_scene_input_complex.json",
+        default=_RF / "sample" / "rf_scene_input_complex.json",
         help="기본값: 발표용 복잡 씬 (단순 씬은 sample/rf_scene_input.json)",
     )
     p.add_argument(
         "--config",
         type=Path,
-        default=_ROOT / "sample" / "sim_config_complex.json",
+        default=_RF / "sample" / "sim_config_complex.json",
     )
     p.add_argument(
         "--top-k",
@@ -61,7 +63,7 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--output-dir",
         type=Path,
-        default=_ROOT / "sample" / "output" / "pipeline_complex_demo",
+        default=_RF / "sample" / "output" / "pipeline_complex_demo",
         help="heatmap, npy, run_manifest.json 저장 폴더",
     )
     p.add_argument(
