@@ -2,22 +2,15 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
 import pytest
 
-_RF_ROOT = Path(__file__).resolve().parent.parent
-if str(_RF_ROOT) not in sys.path:
-    sys.path.insert(0, str(_RF_ROOT))
-
-from app.rf.fixtures.golden_fixtures import (  # noqa: E402
+from app.rf.fixtures.golden_fixtures import (
     GOLDEN_CONFIG,
     GOLDEN_LAYOUT,
     GOLDEN_SCENE,
 )
-from app.rf.models.rf_models import ApLayout, Scene, SimulationConfig  # noqa: E402
-from app.rf.simulation.baseline_rf_simulator import BaselineRfSimulator  # noqa: E402
+from app.rf.models.rf_models import ApLayout, Scene, SimulationConfig
+from app.rf.simulation.baseline_rf_simulator import BaselineRfSimulator
 
 np = pytest.importorskip("numpy")
 

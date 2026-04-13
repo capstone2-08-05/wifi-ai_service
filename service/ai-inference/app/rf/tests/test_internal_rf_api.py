@@ -2,14 +2,9 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pytest
-
-_AI = Path(__file__).resolve().parents[3]
-if str(_AI) not in sys.path:
-    sys.path.insert(0, str(_AI))
 
 
 def test_internal_rf_run_sionna_dto(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

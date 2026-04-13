@@ -65,16 +65,7 @@ class SimulationResult:
 
 
 class BaselineRfSimulator:
-    """Simple and explainable RF simulator for capstone preview and demos.
-
-    Model assumptions:
-    - 2D single-floor simulation
-    - distance-based path loss
-    - additive wall attenuation by material
-    - strongest-AP serving model
-    - openings remove wall loss when the line of sight crosses the opening segment
-    - objects[] 2D footprint: extra loss when AP–Rx LOS intersects footprint (see object_obstacle_rules)
-    """
+    """2D 단일 층 baseline preview: path loss + 재질별 벽 손실 + opening·objects[] 규칙."""
 
     def __init__(
         self,

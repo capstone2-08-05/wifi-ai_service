@@ -1,9 +1,4 @@
-"""
-Floorplan handoff DTO (혜승 백엔드 `backend/app/schemas/floorplan.py`와 동일 계약).
-
-ai-inference 서비스 내에서 `app.schemas.floorplan` 으로 import 한다.
-저장소 루트 `backend/app/schemas/floorplan.py` 와 내용을 맞출 것.
-"""
+"""Floorplan handoff DTO — 백엔드 `backend/app/schemas/floorplan.py`와 동일 계약."""
 
 from __future__ import annotations
 

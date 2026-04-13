@@ -1,4 +1,4 @@
-"""RF 테스트: ai-inference 루트 + `app/rf` 를 path 에 넣는다 (`app.*` 패키지 + flat `rf_models` 등)."""
+"""pytest 수집 시 ai-inference 루트와 ``app/rf`` 를 ``sys.path`` 에 추가."""
 
 from __future__ import annotations
 

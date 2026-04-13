@@ -6,13 +6,15 @@ import pytest
 
 from app.rf.adapters.baseline import scene_schema_to_baseline_rf_scene_dict
 from app.rf.adapters.sionna import sionna_input_dto_to_engine_plan
-from app.rf.dto.backend_scene import AntennaDTO
-from app.rf.dto.backend_scene import Opening as BackendOpening
-from app.rf.dto.backend_scene import Room as BackendRoom
-from app.rf.dto.backend_scene import SceneSchema
-from app.rf.dto.backend_scene import SimConfigDTO
-from app.rf.dto.backend_scene import SionnaInputDTO
-from app.rf.dto.backend_scene import Wall as BackendWall
+from app.rf.dto.backend_scene import (
+    AntennaDTO,
+    Opening as BackendOpening,
+    Room as BackendRoom,
+    SceneSchema,
+    SimConfigDTO,
+    SionnaInputDTO,
+    Wall as BackendWall,
+)
 from app.rf.models.rf_models import ApLayout, Scene
 from app.rf.conversion.scene_to_rf_adapter import (
     antenna_dto_to_ap_layout_dict,
