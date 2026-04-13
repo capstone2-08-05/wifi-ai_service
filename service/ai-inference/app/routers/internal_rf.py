@@ -12,6 +12,15 @@ from app.rf.services.rf_run_service import RfRunResult, run_rf
 router = APIRouter()
 
 
+class RfRunPaths(BaseModel):
+    """성공 시 저장된 파일 절대 경로 (Windows/Linux 모두 문자열)."""
+
+    output_dir: str
+    manifest: str
+    heatmap: str | None = None
+    summary: str
+
+
 class BaselineParams(BaseModel):
     grid_resolution_m: float = 0.25
     path_loss_constant_db: float = 63.0
@@ -52,16 +61,28 @@ class RfRunResponse(BaseModel):
     metrics: dict[str, Any] | None = None
     artifacts: dict[str, Any] | None = None
     output_root: str | None = None
+    """실행 루트(``runs/<rf_run_id>/``). 산출물은 보통 ``output_root/<output_dir_name>/`` 아래."""
+    paths: RfRunPaths | None = None
     detail: str | None = None
 
 
 def _to_response(r: RfRunResult) -> RfRunResponse:
+    paths: RfRunPaths | None = None
+    if r.status == "succeeded" and r.paths is not None:
+        p = r.paths
+        paths = RfRunPaths(
+            output_dir=p.output_dir,
+            manifest=p.manifest,
+            heatmap=p.heatmap,
+            summary=p.summary,
+        )
     return RfRunResponse(
         rf_run_id=r.rf_run_id,
         status=r.status,
         metrics=r.metrics,
         artifacts=r.artifacts if r.artifacts else None,
         output_root=r.output_root or None,
+        paths=paths,
         detail=r.error,
     )
 
@@ -75,6 +96,7 @@ def post_internal_rf_run(body: RfRunRequest) -> RfRunResponse:
             metrics=None,
             artifacts=None,
             output_root=None,
+            paths=None,
             detail="only engine=baseline is supported",
         )
     b = body.baseline

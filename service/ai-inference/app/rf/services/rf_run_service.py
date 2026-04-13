@@ -6,6 +6,7 @@ RF 실행 단일 진입점 (팀 연동·API 래핑용).
 
 from __future__ import annotations
 
+import json
 import os
 import uuid
 from dataclasses import dataclass
@@ -19,6 +20,27 @@ from app.rf.persistence.rf_persistence import JsonPersistenceStore
 from app.rf.simulation.baseline_rf_simulator import BaselineRfSimulator, save_outputs
 
 
+def _write_run_summary(
+    output_dir: Path,
+    rf_run_id: str,
+    manifest: dict[str, Any],
+) -> None:
+    m = manifest.get("metrics") or {}
+    payload = {
+        "rf_run_id": rf_run_id,
+        "status": "succeeded",
+        "scene_version_id": manifest.get("scene_version_id"),
+        "layout_name": manifest.get("layout_name"),
+        "rssi_summary": m.get("rssi_summary"),
+        "coverage_summary": m.get("coverage_summary"),
+        "artifact_filenames": manifest.get("artifacts"),
+    }
+    (output_dir / "run_summary.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
 def _default_storage_root() -> Path:
     env = os.environ.get("RF_STORAGE_ROOT")
     if env:
@@ -28,14 +50,24 @@ def _default_storage_root() -> Path:
 
 
 @dataclass(frozen=True)
+class RfOutputPaths:
+    """실행 산출물 절대 경로 (API 응답에서 바로 확인용)."""
+
+    output_dir: str
+    manifest: str
+    heatmap: str | None
+    summary: str
+
+
+@dataclass(frozen=True)
 class RfRunResult:
     rf_run_id: str
     status: Literal["succeeded", "failed"]
     metrics: dict[str, Any] | None
-    """`run_manifest.json` 의 `artifacts` (파일명 기준)."""
     artifacts: dict[str, Any]
     output_root: str
     manifest: dict[str, Any] | None
+    paths: RfOutputPaths | None = None
     error: str | None = None
 
 
@@ -163,6 +195,20 @@ def run_rf(
             output_dir=output_dir,
             skip_heatmap=skip_heatmap,
         )
+        _write_run_summary(output_dir, rf_run_id, manifest)
+
+        manifest_path = str((output_dir / "run_manifest.json").resolve())
+        summary_path = str((output_dir / "run_summary.json").resolve())
+        heatmap_name = manifest.get("artifacts", {}).get("heatmap_png")
+        heatmap_path = (
+            str((output_dir / heatmap_name).resolve()) if heatmap_name else None
+        )
+        path_bundle = RfOutputPaths(
+            output_dir=str(output_dir.resolve()),
+            manifest=manifest_path,
+            heatmap=heatmap_path,
+            summary=summary_path,
+        )
 
         placements_json = [
             {
@@ -200,6 +246,7 @@ def run_rf(
             artifacts=manifest["artifacts"],
             output_root=str(run_output_root.resolve()),
             manifest=manifest,
+            paths=path_bundle,
             error=None,
         )
     except Exception as exc:
@@ -211,5 +258,6 @@ def run_rf(
             artifacts={},
             output_root="",
             manifest=None,
+            paths=None,
             error=err_msg,
         )

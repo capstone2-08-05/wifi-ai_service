@@ -64,6 +64,8 @@
 
 **응답 (성공 시, 일부 생략)**
 
+`paths` 에 **저장된 파일 절대 경로**가 포함되므로, 호출 직후 manifest·heatmap·요약 JSON 위치를 바로 확인할 수 있다.
+
 ```json
 {
   "rf_run_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -83,9 +85,18 @@
     "heatmap_png": "strongest_rssi_heatmap.png"
   },
   "output_root": "C:\\\\...\\\\data\\\\rf\\\\runs\\\\550e8400-...",
+  "paths": {
+    "output_dir": "C:\\\\...\\\\data\\\\rf\\\\runs\\\\550e8400-...\\\\output",
+    "manifest": "C:\\\\...\\\\output\\\\run_manifest.json",
+    "heatmap": "C:\\\\...\\\\output\\\\strongest_rssi_heatmap.png",
+    "summary": "C:\\\\...\\\\output\\\\run_summary.json"
+  },
   "detail": null
 }
 ```
+
+- `paths.summary`: API가 추가로 쓰는 `run_summary.json`(핵심 지표·아티팩트 파일명 요약).
+- `baseline.skip_heatmap`: `true` 이면 `paths.heatmap` 은 `null` 이고 히트맵 파일은 생성되지 않는다.
 
 ---
 

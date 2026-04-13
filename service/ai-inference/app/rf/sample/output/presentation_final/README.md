@@ -20,4 +20,4 @@ python finalize_presentation.py
 
 matplotlib이 없으면 PNG는 생략되고 npy·manifest·비교 JSON/MD는 생성됩니다.
 
-상위 안내: `app/rf/RUNBOOK.md`
+상위 안내: `app/rf/RUNBOOK.md` (발표용 고정 절차)

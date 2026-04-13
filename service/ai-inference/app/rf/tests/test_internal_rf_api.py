@@ -71,3 +71,9 @@ def test_internal_rf_run_sionna_dto(monkeypatch: pytest.MonkeyPatch, tmp_path: P
     assert data["metrics"]
     assert data["artifacts"]
     assert "strongest_rssi_map" in data["artifacts"]
+    paths = data["paths"]
+    assert paths
+    assert paths["manifest"].endswith("run_manifest.json")
+    assert paths["summary"].endswith("run_summary.json")
+    assert paths["output_dir"]
+    assert paths["heatmap"] is None  # skip_heatmap: True

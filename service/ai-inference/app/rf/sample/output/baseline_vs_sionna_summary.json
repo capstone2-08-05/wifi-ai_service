@@ -1,7 +1,7 @@
 {
-  "generated_at_utc": "2026-04-13T10:59:43.203213+00:00",
+  "generated_at_utc": "2026-04-13T11:52:54.701263+00:00",
   "document_version": "presentation_final_1",
-  "sionna_resolved_from": "frozen_snapshot",
+  "sionna_resolved_from": "live_run",
   "baseline": {
     "status": "ok",
     "model": "baseline_rf_simulator",
@@ -65,7 +65,6 @@
   },
   "sionna": {
     "status": "ok",
-    "snapshot_version": "golden_poc_1",
     "model": "sionna_rt_radiomap",
     "frequency_ghz": [
       5.0
@@ -77,17 +76,16 @@
       4
     ],
     "rss_dbm": {
-      "min": -33.92560450370227,
-      "max": -30.604882062204794,
-      "mean": -32.4371455905851
+      "min": -33.92560480848823,
+      "max": -30.604881494682825,
+      "mean": -32.43714568627236
     },
-    "center_cell_rss_dbm": -30.60494136865905,
+    "center_cell_rss_dbm": -30.604941084894183,
     "solver": {
       "samples_per_tx": 300000,
       "max_depth": 3,
       "seed": 42
-    },
-    "source": "frozen_file:C:\\Users\\soohyun\\Desktop\\wifi-ai_service\\service\\ai-inference\\app\\rf\\sample\\output\\sionna_poc_frozen.json"
+    }
   },
   "complex_baseline_preview": {
     "status": "ok",

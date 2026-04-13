@@ -153,7 +153,10 @@ def _save_frozen_sionna(path: Path, sionna: dict) -> None:
     snap = {k: v for k, v in sionna.items() if k not in skip}
     snap["status"] = "ok"
     snap["snapshot_version"] = snap.get("snapshot_version", "auto_saved")
-    path.write_text(json.dumps(snap, ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(
+        json.dumps(to_jsonable(snap), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 
 
 def _presentation_block(

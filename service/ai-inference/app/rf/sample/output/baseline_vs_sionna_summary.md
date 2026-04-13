@@ -1,8 +1,8 @@
 # Baseline vs Sionna — 발표용 최종본 (golden)
 
-- 생성 시각(UTC): 2026-04-13T10:59:43.203213+00:00
+- 생성 시각(UTC): 2026-04-13T11:52:54.701263+00:00
 - 조건: 동일 `golden_fixtures` — AP (2, 2) m, z = 2.5 m, 5 GHz, 그리드 해상도 1 m
-- Sionna 수치 출처: **frozen_snapshot** (`live_run` = 이번 RadioMap 재실행, `frozen_snapshot` = `sionna_poc_frozen.json` 에 저장된 PoC 성공값)
+- Sionna 수치 출처: **live_run** (`live_run` = 이번 RadioMap 재실행, `frozen_snapshot` = `sionna_poc_frozen.json` 에 저장된 PoC 성공값)
 
 ## 한 줄
 
@@ -29,9 +29,9 @@
 
 | 항목 | Baseline (preview) | Sionna (precise) |
 |------|-------------------|------------------|
-| mean (dBm) | -24.327 | -32.4371455905851 |
-| min (dBm) | -29.031 | -33.92560450370227 |
-| max (dBm) | 0.000 | -30.604882062204794 |
+| mean (dBm) | -24.327 | -32.43714568627236 |
+| min (dBm) | -29.031 | -33.92560480848823 |
+| max (dBm) | 0.000 | -30.604881494682825 |
 
 
 ## 슬라이드용 표 (복사용)
