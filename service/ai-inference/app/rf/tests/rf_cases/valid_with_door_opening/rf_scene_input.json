@@ -1,0 +1,115 @@
+{
+  "units": "m",
+  "sourceType": "case_valid_door",
+  "scene_version_id": "case_valid_door",
+  "floor_id": "floor_01",
+  "walls": [
+    {
+      "id": "wall_001",
+      "x1": 0.0,
+      "y1": 0.0,
+      "x2": 8.0,
+      "y2": 0.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    },
+    {
+      "id": "wall_002",
+      "x1": 8.0,
+      "y1": 0.0,
+      "x2": 8.0,
+      "y2": 6.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    },
+    {
+      "id": "wall_003",
+      "x1": 8.0,
+      "y1": 6.0,
+      "x2": 0.0,
+      "y2": 6.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    },
+    {
+      "id": "wall_004",
+      "x1": 0.0,
+      "y1": 6.0,
+      "x2": 0.0,
+      "y2": 0.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    },
+    {
+      "id": "wall_005",
+      "x1": 4.0,
+      "y1": 0.0,
+      "x2": 4.0,
+      "y2": 4.0,
+      "thickness": 0.12,
+      "height": 2.8,
+      "role": "inner",
+      "material": "unknown"
+    }
+  ],
+  "openings": [
+    {
+      "id": "opening_001",
+      "version_id": "case_valid_door",
+      "wall_id": "wall_005",
+      "opening_type": "door",
+      "line_geom": {
+        "type": "LineString",
+        "coordinates": [[4.0, 1.8], [4.0, 2.7]]
+      },
+      "width_m": 0.9,
+      "sill_height_m": 0.0,
+      "head_height_m": 2.1
+    }
+  ],
+  "rooms": [
+    {
+      "id": "room_001",
+      "version_id": "case_valid_door",
+      "room_code": "R001",
+      "room_name": "Left Room",
+      "space_type": "room",
+      "polygon_geom": {
+        "type": "Polygon",
+        "coordinates": [[[0.0, 0.0], [4.0, 0.0], [4.0, 6.0], [0.0, 6.0], [0.0, 0.0]]]
+      },
+      "centroid_geom": {
+        "type": "Point",
+        "coordinates": [2.0, 3.0]
+      },
+      "area_m2": 24.0,
+      "occupancy": null
+    },
+    {
+      "id": "room_002",
+      "version_id": "case_valid_door",
+      "room_code": "R002",
+      "room_name": "Right Room",
+      "space_type": "room",
+      "polygon_geom": {
+        "type": "Polygon",
+        "coordinates": [[[4.0, 0.0], [8.0, 0.0], [8.0, 6.0], [4.0, 6.0], [4.0, 0.0]]]
+      },
+      "centroid_geom": {
+        "type": "Point",
+        "coordinates": [6.0, 3.0]
+      },
+      "area_m2": 24.0,
+      "occupancy": null
+    }
+  ],
+  "objects": []
+}

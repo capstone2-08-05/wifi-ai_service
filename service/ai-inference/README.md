@@ -90,3 +90,11 @@ AI_SERVICE_URL=http://<ai-host>:9000
 ```
 
 backend는 업로드된 파일을 AI 서버로 직접 전송합니다.
+
+## 5) RF (캡스톤) — 2D floorplan 중심
+
+- **실행·발표·Sionna:** `app/rf/RUNBOOK.md`
+- **RF 입력 handoff:** `app/rf/docs/RF_SCENE_HANDOFF_SPEC.md`
+- **DTO·어댑터:** `app/rf/docs/SCENE_GRAPH_ADAPTER_MAPPING.md` · `export_rf_from_backend_sample.py`
+- **재질·개구·가구(preview):** `app/rf/docs/RF_MATERIAL_AND_OPENING_RULES.md`
+- **비교 스크립트:** `python app/rf/compare_baseline_vs_sionna.py`

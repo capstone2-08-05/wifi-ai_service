@@ -1,0 +1,55 @@
+{
+  "purpose": "동일 RF 입력 축에서 내부 precise 엔진(Sionna RT)이 RadioMap을 산출하는지 검증. 사용자 UI는 2D heatmap 중심이며 3D 뷰가 전면이 아님.",
+  "layout": {
+    "room_m": [
+      4.0,
+      4.0
+    ],
+    "ap_position_m": [
+      2.0,
+      2.0,
+      2.5
+    ],
+    "materials_itu": {
+      "floor": "concrete",
+      "walls": "plasterboard (drywall 대응)"
+    }
+  },
+  "baseline_reference": {
+    "model": "baseline_rf_simulator",
+    "note": "벽 없음, 2D 그리드 path loss + 벽손실(0). Sionna PoC(3D RT, 벽/바닥 있음)과 물리 모델이 다름.",
+    "grid_shape": [
+      5,
+      5
+    ],
+    "rssi_dbm": {
+      "min": -29.030899869919438,
+      "max": 0.0,
+      "mean": -24.32659197224948
+    },
+    "center_cell_rssi_dbm": 0.0
+  },
+  "sionna_radiomap": {
+    "model": "sionna_rt_radiomap",
+    "frequency_ghz": [
+      5.0
+    ],
+    "measurement_plane_z_m": 1.0,
+    "cell_size_m": 1.0,
+    "grid_shape": [
+      4,
+      4
+    ],
+    "rss_dbm": {
+      "min": -33.92560450370227,
+      "max": -30.604882062204794,
+      "mean": -32.43714562859798
+    },
+    "center_cell_rss_dbm": -30.60494136865905,
+    "solver": {
+      "samples_per_tx": 300000,
+      "max_depth": 3,
+      "seed": 42
+    }
+  }
+}

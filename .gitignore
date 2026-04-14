@@ -3,6 +3,7 @@
 __pycache__/
 *.pyc
 .idea/
+.vs/
 .vscode/
 .pytest_cache/
 .mypy_cache/
@@ -12,16 +13,24 @@ outputs/
 artifacts/
 service/ai-inference/.venv/
 service/ai-inference/data/output/
+
+# RF: 시뮬/데모로 재생성되는 결과물 (baseline_rf_simulator, 파이프라인 등)
+service/ai-inference/app/rf/sample/output/**/*.npy
+service/ai-inference/app/rf/sample/output/**/*.png
+service/ai-inference/app/rf/sample/output/**/run_manifest.json
+service/ai-inference/app/rf/sample/output/**/persistence/
+service/ai-inference/app/rf/sample/output_backend_dto_demo/
+service/ai-inference/app/rf/sample/persistence/
+service/ai-inference/data/rf/
+
+# 학습/체크포인트·데이터 (main)
 **/data/**
 /data/
 /outputs/
 /checkpoints/
 /.venv/
-__pycache__/
-*.pyc
 *.pyo
 *.pyd
-*.npy
 *.pt
 *.pth
 .DS_Store

@@ -1,0 +1,7 @@
+{
+  "should_pass": true,
+  "expected_wall_count": 4,
+  "expected_opening_count": 0,
+  "expected_room_count": 1,
+  "expected_ap_count": 1
+}

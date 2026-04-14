@@ -1,0 +1,169 @@
+{
+  "units": "m",
+  "sourceType": "wifi_rf_capstone_complex",
+  "scene_version_id": "scene_complex_v1",
+  "floor_id": "floor_complex_01",
+  "walls": [
+    {
+      "id": "wall_o_1",
+      "x1": 0.0,
+      "y1": 0.0,
+      "x2": 12.0,
+      "y2": 0.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    },
+    {
+      "id": "wall_o_2",
+      "x1": 12.0,
+      "y1": 0.0,
+      "x2": 12.0,
+      "y2": 8.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    },
+    {
+      "id": "wall_o_3",
+      "x1": 12.0,
+      "y1": 8.0,
+      "x2": 0.0,
+      "y2": 8.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    },
+    {
+      "id": "wall_o_4",
+      "x1": 0.0,
+      "y1": 8.0,
+      "x2": 0.0,
+      "y2": 0.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    },
+    {
+      "id": "wall_in_vert",
+      "x1": 5.0,
+      "y1": 0.0,
+      "x2": 5.0,
+      "y2": 8.0,
+      "thickness": 0.12,
+      "height": 2.8,
+      "role": "inner",
+      "material": "unknown"
+    },
+    {
+      "id": "wall_in_horiz",
+      "x1": 5.0,
+      "y1": 5.0,
+      "x2": 12.0,
+      "y2": 5.0,
+      "thickness": 0.1,
+      "height": 2.8,
+      "role": "inner",
+      "material": "glass"
+    }
+  ],
+  "openings": [
+    {
+      "id": "op_west_se",
+      "version_id": "scene_complex_v1",
+      "wall_id": "wall_in_vert",
+      "opening_type": "door",
+      "line_geom": {
+        "type": "LineString",
+        "coordinates": [[5.0, 2.0], [5.0, 3.3]]
+      },
+      "width_m": 0.9,
+      "sill_height_m": 0.0,
+      "head_height_m": 2.1
+    },
+    {
+      "id": "op_west_ne",
+      "version_id": "scene_complex_v1",
+      "wall_id": "wall_in_vert",
+      "opening_type": "door",
+      "line_geom": {
+        "type": "LineString",
+        "coordinates": [[5.0, 6.1], [5.0, 7.1]]
+      },
+      "width_m": 0.9,
+      "sill_height_m": 0.0,
+      "head_height_m": 2.1
+    },
+    {
+      "id": "op_se_ne",
+      "version_id": "scene_complex_v1",
+      "wall_id": "wall_in_horiz",
+      "opening_type": "door",
+      "line_geom": {
+        "type": "LineString",
+        "coordinates": [[8.0, 5.0], [9.1, 5.0]]
+      },
+      "width_m": 0.9,
+      "sill_height_m": 0.0,
+      "head_height_m": 2.1
+    }
+  ],
+  "rooms": [
+    {
+      "id": "room_west",
+      "version_id": "scene_complex_v1",
+      "room_name": "West Office",
+      "space_type": "room",
+      "polygon_geom": {
+        "type": "Polygon",
+        "coordinates": [
+          [[0.0, 0.0], [5.0, 0.0], [5.0, 8.0], [0.0, 8.0], [0.0, 0.0]]
+        ]
+      },
+      "centroid_geom": {
+        "type": "Point",
+        "coordinates": [2.5, 4.0]
+      },
+      "area_m2": 40.0
+    },
+    {
+      "id": "room_corridor_block",
+      "version_id": "scene_complex_v1",
+      "room_name": "East Lower",
+      "space_type": "corridor",
+      "polygon_geom": {
+        "type": "Polygon",
+        "coordinates": [
+          [[5.0, 0.0], [12.0, 0.0], [12.0, 5.0], [5.0, 5.0], [5.0, 0.0]]
+        ]
+      },
+      "centroid_geom": {
+        "type": "Point",
+        "coordinates": [8.5, 2.5]
+      },
+      "area_m2": 35.0
+    },
+    {
+      "id": "room_ne",
+      "version_id": "scene_complex_v1",
+      "room_name": "East Upper",
+      "space_type": "room",
+      "polygon_geom": {
+        "type": "Polygon",
+        "coordinates": [
+          [[5.0, 5.0], [12.0, 5.0], [12.0, 8.0], [5.0, 8.0], [5.0, 5.0]]
+        ]
+      },
+      "centroid_geom": {
+        "type": "Point",
+        "coordinates": [8.5, 6.5]
+      },
+      "area_m2": 21.0
+    }
+  ],
+  "objects": []
+}

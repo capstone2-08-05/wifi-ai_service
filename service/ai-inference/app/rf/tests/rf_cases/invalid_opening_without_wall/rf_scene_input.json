@@ -1,0 +1,87 @@
+{
+  "units": "m",
+  "sourceType": "case_invalid_opening",
+  "scene_version_id": "case_invalid_opening",
+  "floor_id": "floor_01",
+  "walls": [
+    {
+      "id": "wall_001",
+      "x1": 0.0,
+      "y1": 0.0,
+      "x2": 8.0,
+      "y2": 0.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    },
+    {
+      "id": "wall_002",
+      "x1": 8.0,
+      "y1": 0.0,
+      "x2": 8.0,
+      "y2": 6.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    },
+    {
+      "id": "wall_003",
+      "x1": 8.0,
+      "y1": 6.0,
+      "x2": 0.0,
+      "y2": 6.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    },
+    {
+      "id": "wall_004",
+      "x1": 0.0,
+      "y1": 6.0,
+      "x2": 0.0,
+      "y2": 0.0,
+      "thickness": 0.2,
+      "height": 2.8,
+      "role": "outer",
+      "material": "concrete"
+    }
+  ],
+  "openings": [
+    {
+      "id": "opening_001",
+      "version_id": "case_invalid_opening",
+      "wall_id": "wall_no_such_wall",
+      "opening_type": "door",
+      "line_geom": {
+        "type": "LineString",
+        "coordinates": [[4.0, 1.0], [4.0, 2.0]]
+      },
+      "width_m": 0.9,
+      "sill_height_m": 0.0,
+      "head_height_m": 2.1
+    }
+  ],
+  "rooms": [
+    {
+      "id": "room_001",
+      "version_id": "case_invalid_opening",
+      "room_code": "R001",
+      "room_name": "Open Plan",
+      "space_type": "room",
+      "polygon_geom": {
+        "type": "Polygon",
+        "coordinates": [[[0.0, 0.0], [8.0, 0.0], [8.0, 6.0], [0.0, 6.0], [0.0, 0.0]]]
+      },
+      "centroid_geom": {
+        "type": "Point",
+        "coordinates": [4.0, 3.0]
+      },
+      "area_m2": 48.0,
+      "occupancy": null
+    }
+  ],
+  "objects": []
+}
