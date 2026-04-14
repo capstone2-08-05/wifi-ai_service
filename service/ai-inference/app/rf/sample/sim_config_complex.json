@@ -1,8 +1,0 @@
-{
-  "scene_version_id": "scene_complex_v1",
-  "grid_resolution_m": 0.25,
-  "path_loss_constant_db": 63.0,
-  "path_loss_exponent": 2.0,
-  "include_exterior_walls": false,
-  "output_dir_name": "output"
-}
