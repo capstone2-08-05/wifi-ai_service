@@ -35,14 +35,21 @@ def to_rf_response(result: RfRunResult) -> RfRunResponseDto:
             heatmap=p.heatmap,
             summary=p.summary,
         )
+    artifacts = result.artifacts if result.artifacts else None
+    image_url = None
+    if artifacts is not None:
+        image_url = artifacts.get("imageUrl")
+        if image_url is None:
+            image_url = artifacts.get("visualization_path")
+
     return RfRunResponseDto(
         rf_run_id=result.rf_run_id,
         status=result.status,
         metrics=result.metrics,
-        artifacts=result.artifacts if result.artifacts else None,
+        artifacts=artifacts,
         output_root=result.output_root or None,
         paths=paths,
-        imageUrl=(result.artifacts or {}).get("imageUrl"),
+        imageUrl=image_url,
         detail=result.error,
     )
 

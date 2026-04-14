@@ -1,1 +1,1 @@
-"""Baseline RF preview 시뮬레이터."""
+"""RF simulation 모듈."""

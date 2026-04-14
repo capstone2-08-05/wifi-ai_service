@@ -1,22 +1,19 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal, Union
+from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from app.domain.entities.rf_preview_entity import (
-    BaselineParamsEntity,
-    InputRfCanonicalEntity,
     InputSionnaPayloadEntity,
 )
 
 
 class RfRunRequestDto(BaseModel):
-    engine: Literal["baseline"] = "baseline"
+    engine: Literal["sionna_rt"] = "sionna_rt"
     run_type: str = "preview"
     floor_id: str | None = None
-    baseline: BaselineParamsEntity = Field(default_factory=BaselineParamsEntity)
-    input: Annotated[Union[InputSionnaPayloadEntity, InputRfCanonicalEntity], Field(discriminator="kind")]
+    input: InputSionnaPayloadEntity
 
 
 class SionnaRtPocRequestDto(BaseModel):

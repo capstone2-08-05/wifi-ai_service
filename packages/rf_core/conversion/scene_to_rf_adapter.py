@@ -7,8 +7,6 @@ Floorplan DTO 매핑: `docs/FLOORPLAN_DTO_MAPPING.md` (레거시 dict: `docs/SCE
 서비스는 **2D floorplan** 기준 설명(heatmap·재질·창문·가구)이 전면: `docs/SCENE_GRAPH_ADAPTER_MAPPING.md` 서문.
 
 **권장 입력:** `app.rf.dto.SionnaInputDTO` / `SceneSchema` (합의 DTO).
-
-- **Baseline 변환:** `app.rf.adapters.baseline` (2D 씬 + baseline 규칙, 안테나 z 정책).
 - **Sionna 변환:** `app.rf.adapters.sionna` (3D·ITU 재질·솔버 파라미터 스냅샷).
 
 레거시 dict(JSON)는 `scene_graph_to_rf_scene_dict()` 유지.
@@ -18,15 +16,13 @@ from __future__ import annotations
 
 import copy
 import math
-from typing import Any, Literal, Mapping
+from typing import Any, Mapping
 
-from packages.rf_core.dto.backend_scene import AntennaDTO
 from packages.rf_core.dto.backend_scene import SceneSchema as BackendSceneSchema
-from packages.rf_core.dto.backend_scene import SimConfigDTO
 from packages.rf_core.dto.backend_scene import SionnaInputDTO
 
 
-def _coerce_material_key_for_baseline(material: str) -> str:
+def _normalize_wall_material_key(material: str) -> str:
     """스키마 enum·레거시 별칭은 `material_mapping.normalize_wall_material_key` 와 동일."""
     from packages.rf_core.materials.material_mapping import normalize_wall_material_key  # noqa: PLC0415
 
@@ -81,7 +77,7 @@ def _normalize_wall(
         material_id_to_profile_key=material_id_to_profile_key,
     )
     if mat is not None:
-        out["material"] = _coerce_material_key_for_baseline(mat)
+        out["material"] = _normalize_wall_material_key(mat)
 
     vid = _first_str(raw, "version_id", "versionId")
     if vid is not None:
@@ -234,96 +230,6 @@ def _backend_room_to_rf(room: Any, *, scene_version_id: str) -> dict[str, Any]:
         "centroid_geom": centroid_geom,
         "area_m2": float(room.area),
     }
-
-
-def scene_schema_to_rf_scene_dict(
-    scene: BackendSceneSchema | Mapping[str, Any],
-    *,
-    floor_id: str | None = None,
-    material_id_to_profile_key: dict[str, str] | None = None,
-) -> dict[str, Any]:
-    """
-    백엔드 ``SceneSchema`` → **Baseline** RF 루트 scene dict.
-
-    (별칭) 내부적으로 ``app.rf.adapters.baseline.scene_schema_to_baseline_rf_scene_dict`` 와 동일.
-    """
-    from packages.rf_core.adapters.baseline import scene_schema_to_baseline_rf_scene_dict  # noqa: PLC0415
-
-    return scene_schema_to_baseline_rf_scene_dict(
-        scene,
-        floor_id=floor_id,
-        material_id_to_profile_key=material_id_to_profile_key,
-    )
-
-
-def antenna_dto_to_ap_layout_dict(
-    antenna: AntennaDTO | Mapping[str, Any],
-    *,
-    scene_version_id: str,
-    sim_config: SimConfigDTO | Mapping[str, Any] | None = None,
-    layout_name: str = "manual_single",
-    layout_type: str = "manual",
-) -> dict[str, Any]:
-    """
-    ``AntennaDTO`` → 단일 AP `ApLayout` JSON (**하위 호환**).
-
-    기존 동작: ``position_m[2]`` 를 ``z_m`` 에 반영. Baseline 전용 옵션은
-    ``app.rf.adapters.baseline.antenna_dto_to_baseline_ap_layout_dict(..., z_policy=...)`` 사용.
-    """
-    from packages.rf_core.adapters.baseline import antenna_dto_to_baseline_ap_layout_dict  # noqa: PLC0415
-
-    return antenna_dto_to_baseline_ap_layout_dict(
-        antenna,
-        scene_version_id=scene_version_id,
-        sim_config=sim_config,
-        layout_name=layout_name,
-        layout_type=layout_type,
-        z_policy="use_position_z",
-    )
-
-
-def sionna_input_dto_to_rf_scene_dict(
-    payload: SionnaInputDTO | Mapping[str, Any],
-    *,
-    floor_id: str | None = None,
-    material_id_to_profile_key: dict[str, str] | None = None,
-) -> dict[str, Any]:
-    """``SionnaInputDTO`` 전체에서 RF scene 루트 dict만 추출."""
-    dto = payload if isinstance(payload, SionnaInputDTO) else SionnaInputDTO.model_validate(payload)
-    return scene_schema_to_rf_scene_dict(
-        dto.scene,
-        floor_id=floor_id,
-        material_id_to_profile_key=material_id_to_profile_key,
-    )
-
-
-def sionna_input_dto_to_rf_scene_and_manual_layout(
-    payload: SionnaInputDTO | Mapping[str, Any],
-    *,
-    floor_id: str | None = None,
-    material_id_to_profile_key: dict[str, str] | None = None,
-    layout_name: str = "manual_single",
-    layout_type: str = "manual",
-    antenna_z_policy: Literal["ignore", "use_position_z"] = "ignore",
-    default_antenna_z_m: float = 2.5,
-) -> tuple[dict[str, Any], dict[str, Any]]:
-    """
-    **Baseline** 한 세트: (RF scene dict, 수동 단일 AP layout).
-
-    기본은 안테나 **z 무시**·``default_antenna_z_m`` (2D preview). ``antenna_z_policy=\"use_position_z`` 로 바꿀 수 있다.
-    후보 AP 파이프라인은 동일 scene dict에 ``ap_candidate_generator`` 등을 쓰면 된다.
-    """
-    from packages.rf_core.adapters.baseline import sionna_input_dto_to_baseline_scene_and_layout  # noqa: PLC0415
-
-    return sionna_input_dto_to_baseline_scene_and_layout(
-        payload,
-        floor_id=floor_id,
-        material_id_to_profile_key=material_id_to_profile_key,
-        layout_name=layout_name,
-        layout_type=layout_type,
-        antenna_z_policy=antenna_z_policy,
-        default_antenna_z_m=default_antenna_z_m,
-    )
 
 
 def sionna_input_dto_to_sionna_engine_plan(

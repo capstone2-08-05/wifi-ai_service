@@ -1,8 +1,8 @@
-"""Baseline 회귀용 golden 씬/레이아웃/설정 — `tests/test_baseline_golden.py` 및 Sionna PoC와 공유."""
+"""RF 회귀용 golden 씬/레이아웃/설정 — Sionna PoC와 공유."""
 
 from __future__ import annotations
 
-# 벽 없음 → path loss만 (test_baseline_golden 과 동일)
+# 벽 없음 → path loss 중심 비교용
 GOLDEN_SCENE: dict = {
     "units": "m",
     "sourceType": "golden_regression",

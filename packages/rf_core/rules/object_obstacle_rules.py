@@ -1,7 +1,7 @@
 """
-objects[] → Baseline 2D 장애물(가구·clutter) 추가 손실 규칙.
+objects[] → 2D 장애물(가구·clutter) 추가 손실 규칙.
 
-3D 메시 없음. `docs/OBJECTS_FURNITURE_SCHEMA.md`, `docs/BASELINE_OBJECTS_OBSTACLE_RULES.md` 참고.
+3D 메시 없음. `docs/OBJECTS_FURNITURE_SCHEMA.md` 참고.
 """
 
 from __future__ import annotations

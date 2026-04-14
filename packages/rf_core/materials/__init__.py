@@ -1,1 +1,1 @@
-"""재질 프로파일·enum ↔ Baseline/Sionna 매핑."""
+"""재질 프로파일·enum ↔ Sionna 매핑."""

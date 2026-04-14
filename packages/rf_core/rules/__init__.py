@@ -1,1 +1,1 @@
-"""objects[] 기반 baseline 장애물 규칙."""
+"""objects[] 기반 RF 장애물 규칙."""

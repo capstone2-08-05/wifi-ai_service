@@ -11,7 +11,7 @@ BACKEND_SCHEMA_WALL_MATERIALS: FrozenSet[str] = frozenset(
 
 @dataclass(frozen=True)
 class MaterialProfile:
-    """Simple RF attenuation profile used by the baseline simulator."""
+    """Simple RF attenuation profile used by the RF engine."""
 
     name: str
     freq_ghz: float
@@ -54,7 +54,7 @@ DEFAULT_MATERIAL_PROFILES: Dict[str, MaterialProfile] = {
 
 
 class MaterialProfileRegistry:
-    """Lookup object so the simulator is not tied to hard-coded globals."""
+    """Lookup object so the engine is not tied to hard-coded globals."""
 
     def __init__(self, profiles: Dict[str, MaterialProfile] | None = None) -> None:
         self._profiles = dict(profiles or DEFAULT_MATERIAL_PROFILES)
@@ -62,7 +62,7 @@ class MaterialProfileRegistry:
     def get_loss_db(self, material_name: str) -> float:
         """등록된 프로파일 키의 `attenuation_db`. 미등록 키는 ``unknown`` 과 동일 손실로 폴백.
 
-        Baseline은 `Scene` 파싱 후 `Wall.material` 문자열만 사용한다.
+        RF 계산기는 `Scene` 파싱 후 `Wall.material` 문자열만 사용한다.
         조회 전 `material_mapping.normalize_wall_material_key` 로 enum 키로 맞춘다.
         규칙 요약: `docs/RF_MATERIAL_AND_OPENING_RULES.md`.
         """
