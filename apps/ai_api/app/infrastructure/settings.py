@@ -42,3 +42,15 @@ def yolo_conf_threshold() -> float:
 
 def yolo_device() -> str:
     return os.getenv("YOLO_DEVICE", "").strip()
+
+
+def sionna_cell_size_m() -> float:
+    return float(os.getenv("SIONNA_CELL_SIZE_M", "0.5"))
+
+
+def sionna_samples_per_tx() -> int:
+    return int(os.getenv("SIONNA_SAMPLES_PER_TX", "100000"))
+
+
+def sionna_seed() -> int:
+    return int(os.getenv("SIONNA_SEED", "42"))
