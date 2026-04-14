@@ -1,7 +1,7 @@
 # ai_api
 
 `rf-service` 내 운영 FastAPI 앱입니다.  
-U-Net/YOLO 추론과 RF preview API를 제공합니다.
+U-Net/YOLO 추론과 RF preview API를 제공합니다. 이 문서는 실행/운영 상세 가이드입니다.
 
 ## Architecture (Current)
 
@@ -63,7 +63,7 @@ apps/trainer/src/models/
 ```powershell
 cd rf-service/apps/ai_api
 .venv\Scripts\activate
-uvicorn app.main:app --host 0.0.0.0 --port 9000 --reload
+uvicorn main:app --host 0.0.0.0 --port 9000 --reload
 ```
 
 ## Environment Variables
@@ -84,10 +84,10 @@ uvicorn app.main:app --host 0.0.0.0 --port 9000 --reload
 
 - `No module named 'app'`
   - `apps/ai_api`에서 실행해야 함
-  - 실행 커맨드는 `uvicorn app.main:app ...`
+  - 실행 커맨드는 `uvicorn main:app ...`
 - `No module named 'packages'`
-  - `app.main`의 repo root path bootstrap이 적용된 최신 코드인지 확인
-  - 레포 루트가 `c:/capstone2/rf-service`인지 확인
+  - `main.py` 엔트리포인트로 실행 중인지 확인 (`uvicorn main:app`)
+  - 실행 위치가 `apps/ai_api`인지 확인
 - `Form data requires "python-multipart"`
   - `pip install -r requirements.txt` 재실행 (또는 `pip install python-multipart`)
 

@@ -1,26 +1,11 @@
-import sys
-from pathlib import Path
-
-# Ensure repo root is importable before loading app modules.
-_REPO_ROOT = Path(__file__).resolve().parents[3]
-_REPO_ROOT_STR = str(_REPO_ROOT)
-if _REPO_ROOT_STR not in sys.path:
-    sys.path.insert(0, _REPO_ROOT_STR)
-
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
 from app.api.routes.inference import router as inference_router
 from app.api.routes.rf import router as rf_router
-from app.infrastructure.settings import preload_models
 from app.infrastructure.ai_runtime.unet_gateway import preload_unet_model
 from app.infrastructure.ai_runtime.yolo_gateway import preload_yolo_model
-
-# Keep ai_api importable for local scripts.
-_AI_ROOT = Path(__file__).resolve().parents[1]
-_AI_ROOT_STR = str(_AI_ROOT.resolve())
-if _AI_ROOT_STR not in sys.path:
-    sys.path.insert(0, _AI_ROOT_STR)
+from app.infrastructure.settings import preload_models
 
 app = FastAPI(title="capstone2-ai", version="0.1.0")
 app.include_router(inference_router)

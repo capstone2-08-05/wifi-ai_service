@@ -1,44 +1,51 @@
+from __future__ import annotations
+
+from typing import Any
+
 from packages.rf_core.services.rf_run_service import run_rf
 
-from app.presentation.requests.rf_request_dto import RfRunRequestDto
 
+def run_rf_preview_with_rf_core(payload: dict[str, Any]):
+    baseline = payload["baseline"]
+    run_type = payload["run_type"]
+    floor_id = payload["floor_id"]
+    input_kind = payload["input_kind"]
+    input_data = payload["input_data"]
 
-def run_rf_preview_with_rf_core(body: RfRunRequestDto):
-    b = body.baseline
-    if body.input.kind == "sionna_dto":
+    if input_kind == "sionna_dto":
         return run_rf(
             engine="baseline",
-            run_type=body.run_type,
-            floor_id=body.floor_id,
+            run_type=run_type,
+            floor_id=floor_id,
             input_mode="sionna_dto",
-            sionna_payload=body.input.data,
-            grid_resolution_m=b.grid_resolution_m,
-            path_loss_constant_db=b.path_loss_constant_db,
-            path_loss_exponent=b.path_loss_exponent,
-            include_exterior_walls=b.include_exterior_walls,
-            output_dir_name=b.output_dir_name,
-            antenna_z_policy=b.antenna_z_policy,
-            default_antenna_z_m=b.default_antenna_z_m,
-            layout_name=b.layout_name,
-            layout_type=b.layout_type,
-            skip_heatmap=b.skip_heatmap,
+            sionna_payload=input_data,
+            grid_resolution_m=baseline["grid_resolution_m"],
+            path_loss_constant_db=baseline["path_loss_constant_db"],
+            path_loss_exponent=baseline["path_loss_exponent"],
+            include_exterior_walls=baseline["include_exterior_walls"],
+            output_dir_name=baseline["output_dir_name"],
+            antenna_z_policy=baseline["antenna_z_policy"],
+            default_antenna_z_m=baseline["default_antenna_z_m"],
+            layout_name=baseline["layout_name"],
+            layout_type=baseline["layout_type"],
+            skip_heatmap=baseline["skip_heatmap"],
             persist_outputs=False,
         )
 
-    inp = body.input
+    canonical = input_data
     return run_rf(
         engine="baseline",
-        run_type=body.run_type,
-        floor_id=body.floor_id,
+        run_type=run_type,
+        floor_id=floor_id,
         input_mode="rf_canonical",
-        scene_dict=inp.scene,
-        ap_layout_dict=inp.ap_layout,
-        sim_config_dict=inp.sim_config,
-        grid_resolution_m=b.grid_resolution_m,
-        path_loss_constant_db=b.path_loss_constant_db,
-        path_loss_exponent=b.path_loss_exponent,
-        include_exterior_walls=b.include_exterior_walls,
-        output_dir_name=b.output_dir_name,
-        skip_heatmap=b.skip_heatmap,
+        scene_dict=canonical["scene"],
+        ap_layout_dict=canonical["ap_layout"],
+        sim_config_dict=canonical["sim_config"],
+        grid_resolution_m=baseline["grid_resolution_m"],
+        path_loss_constant_db=baseline["path_loss_constant_db"],
+        path_loss_exponent=baseline["path_loss_exponent"],
+        include_exterior_walls=baseline["include_exterior_walls"],
+        output_dir_name=baseline["output_dir_name"],
+        skip_heatmap=baseline["skip_heatmap"],
         persist_outputs=False,
     )
