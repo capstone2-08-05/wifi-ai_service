@@ -6,7 +6,7 @@
   ``frequency_ghz``, ``tx_power_dbm`` 그대로 전달.
 - 재질: wall 문자열 키 → **ITU RadioMaterial 이름** (Sionna) 테이블 매핑.
 
-실제 메시 빌드·`run_sionna_radiomap` 연결은 PoC 단계에서 별도로 두고,
+실제 메시 빌드·`run_sionna_radiomap` 연결은 런타임 단계에서 별도로 두고,
 여기서는 **JSON 직렬화 가능한 엔진 입력 스냅샷**을 만든다.
 """
 

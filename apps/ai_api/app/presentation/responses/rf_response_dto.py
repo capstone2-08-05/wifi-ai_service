@@ -19,12 +19,6 @@ class RfRunResponseDto(BaseModel):
     detail: str | None = None
 
 
-class SionnaRtPocResponseDto(BaseModel):
-    status: Literal["ok"]
-    engine: Literal["sionna_rt"]
-    plan: dict[str, Any]
-
-
 def to_rf_response(result: RfRunResult) -> RfRunResponseDto:
     paths: RfRunPathsEntity | None = None
     if result.status == "succeeded" and result.paths is not None:
@@ -52,5 +46,3 @@ def to_rf_response(result: RfRunResult) -> RfRunResponseDto:
         imageUrl=image_url,
         detail=result.error,
     )
-
-
