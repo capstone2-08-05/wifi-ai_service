@@ -14,7 +14,7 @@ artifacts/
 service/ai-inference/.venv/
 service/ai-inference/data/output/
 
-# RF: 시뮬/데모로 재생성되는 결과물 (baseline_rf_simulator, 파이프라인 등)
+# RF: 시뮬/데모로 재생성되는 결과물 (파이프라인 등)
 service/ai-inference/app/rf/sample/output/**/*.npy
 service/ai-inference/app/rf/sample/output/**/*.png
 service/ai-inference/app/rf/sample/output/**/run_manifest.json

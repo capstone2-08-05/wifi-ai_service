@@ -1,4 +1,4 @@
-"""내부 RF 실행 API (인증·DB 본연동 없음, baseline preview)."""
+"""내부 RF 실행 API (인증·DB 본연동 없음, sionna_rt 기본)."""
 
 from __future__ import annotations
 
@@ -24,8 +24,8 @@ def post_internal_rf_run(
     runner=Depends(get_rf_preview_runner),
 ) -> RfRunResponseDto:
     try:
-        if body.engine != "baseline":
-            raise AppError(status_code=400, detail="only engine=baseline is supported")
+        if body.engine != "sionna_rt":
+            raise AppError(status_code=400, detail="only engine=sionna_rt is supported")
         result = run_rf_preview_usecase(body, runner)
         return to_rf_response(result)
     except Exception as exc:

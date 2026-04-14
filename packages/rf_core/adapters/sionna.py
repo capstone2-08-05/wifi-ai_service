@@ -4,7 +4,7 @@
 - 기하: 벽 **높이(thickness, height)**, 안테나 **(x,y,z)** 를 명시.
 - 솔버: ``SimConfigDTO.reflection_order`` → 레이 최대 반사 차수(`max_depth` 등)에 매핑,
   ``frequency_ghz``, ``tx_power_dbm`` 그대로 전달.
-- 재질: baseline 문자열 키 → **ITU RadioMaterial 이름** (Sionna) 테이블 매핑.
+- 재질: wall 문자열 키 → **ITU RadioMaterial 이름** (Sionna) 테이블 매핑.
 
 실제 메시 빌드·`run_sionna_radiomap` 연결은 PoC 단계에서 별도로 두고,
 여기서는 **JSON 직렬화 가능한 엔진 입력 스냅샷**을 만든다.
@@ -18,8 +18,8 @@ from packages.rf_core.dto.backend_scene import SceneSchema as BackendSceneSchema
 from packages.rf_core.dto.backend_scene import SionnaInputDTO
 
 from packages.rf_core.materials.material_mapping import (
-    DEFAULT_BASELINE_MATERIAL_TO_SIONNA_ITU,
-    map_baseline_material_to_sionna_itur,
+    DEFAULT_WALL_MATERIAL_TO_SIONNA_ITU,
+    map_wall_material_to_sionna_itur,
 )
 
 
@@ -40,7 +40,7 @@ def scene_schema_to_sionna_scene_plan(
 
     walls: list[dict[str, Any]] = []
     for w in scene.walls:
-        itu = map_baseline_material_to_sionna_itur(w.material, table=material_map)
+        itu = map_wall_material_to_sionna_itur(w.material, table=material_map)
         walls.append(
             {
                 "id": w.id,
@@ -51,7 +51,7 @@ def scene_schema_to_sionna_scene_plan(
                 "thickness_m": float(w.thickness),
                 "height_m": float(w.height),
                 "role": w.role,
-                "baseline_material": w.material,
+                "wall_material": w.material,
                 "itu_radio_material": itu,
             }
         )
@@ -128,5 +128,5 @@ def sionna_input_dto_to_engine_plan(
             "max_depth": int(cfg.reflection_order),
             "measurement_plane_z_m": float(measurement_plane_z_m),
         },
-        "material_table": material_map if material_map is not None else DEFAULT_BASELINE_MATERIAL_TO_SIONNA_ITU,
+        "material_table": material_map if material_map is not None else DEFAULT_WALL_MATERIAL_TO_SIONNA_ITU,
     }
