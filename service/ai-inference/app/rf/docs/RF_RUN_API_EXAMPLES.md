@@ -135,6 +135,36 @@
 
 ---
 
+## 3) `POST /internal/rf/sionna_rt/poc/run` (Sionna RT golden PoC)
+
+**전제:** `pip install -r app/rf/requirements-sionna-poc.txt` (CPU LLVM 이슈는 `RUNBOOK.md` 참고)
+
+**요청 (본문 기본값으로도 동작)**
+
+```json
+{}
+```
+
+또는:
+
+```json
+{
+  "mesh_dir": null,
+  "cell_size_m": 1.0,
+  "samples_per_tx": 300000,
+  "max_depth": 3,
+  "measurement_z_m": 1.0,
+  "seed": 42,
+  "include_baseline_reference": true
+}
+```
+
+**응답:** `status`, `report`(CLI `sionna_rt_poc.py`와 동일 구조: `baseline_reference`, `sionna_radiomap` 등). 미설치 시 **503**.
+
+- 임의 도면 전체가 아니라 **golden 4×4 m 메시 PoC** 전용이다.
+
+---
+
 ## 저장 위치
 
 - 환경 변수 `RF_STORAGE_ROOT` 미설정 시: `service/ai-inference/data/rf/`

@@ -86,17 +86,55 @@ def to_jsonable(obj: object) -> object:
     return str(obj)
 
 
-def _try_import_sionna():
+def check_sionna_available() -> None:
+    """`sionna.rt` 미설치 시 ImportError (API는 503 등으로 매핑)."""
     try:
         import sionna.rt  # noqa: F401
     except ImportError as e:
-        print(
-            "sionna-rt 가 설치되어 있지 않습니다.\n"
-            "  pip install -r requirements-sionna-poc.txt\n"
-            f"원인: {e}",
-            file=sys.stderr,
-        )
-        sys.exit(2)
+        raise ImportError(
+            "sionna-rt 가 설치되어 있지 않습니다. "
+            "pip install -r requirements-sionna-poc.txt\n"
+            f"원인: {e}"
+        ) from e
+
+
+def build_sionna_poc_report(
+    *,
+    mesh_dir: Path | None = None,
+    cell_size_m: float = 1.0,
+    samples_per_tx: int = 300_000,
+    max_depth: int = 3,
+    measurement_z_m: float = 1.0,
+    seed: int = 42,
+    include_baseline_reference: bool = True,
+) -> dict:
+    """golden PoC 리포트 dict (JSON 직렬화 가능). API·CLI 공통."""
+    check_sionna_available()
+    baseline = run_baseline_summary() if include_baseline_reference else None
+    md = mesh_dir if mesh_dir is not None else DEFAULT_MESH_DIR
+    _, sionna = run_sionna_radiomap(
+        mesh_dir=md,
+        cell_size_m=cell_size_m,
+        samples_per_tx=samples_per_tx,
+        max_depth=max_depth,
+        measurement_z_m=measurement_z_m,
+        seed=seed,
+    )
+    report: dict = {
+        "purpose": (
+            "동일 RF 입력 축에서 내부 precise 엔진(Sionna RT)이 RadioMap을 산출하는지 검증. "
+            "사용자 UI는 2D heatmap 중심이며 3D 뷰가 전면이 아님."
+        ),
+        "layout": {
+            "room_m": [4.0, 4.0],
+            "ap_position_m": [2.0, 2.0, 2.5],
+            "materials_itu": {"floor": "concrete", "walls": "plasterboard (drywall 대응)"},
+        },
+        "sionna_radiomap": sionna,
+    }
+    if baseline is not None:
+        report["baseline_reference"] = baseline
+    return to_jsonable(report)
 
 
 def _tensor_to_numpy(t) -> np.ndarray:
@@ -255,8 +293,6 @@ def run_sionna_radiomap(
 
 
 def main() -> None:
-    _try_import_sionna()
-
     parser = argparse.ArgumentParser(description="Sionna RT golden PoC (RadioMap RSS)")
     parser.add_argument(
         "--mesh-dir",
@@ -287,31 +323,25 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    baseline = run_baseline_summary()
-    _, sionna = run_sionna_radiomap(
-        mesh_dir=args.mesh_dir,
-        cell_size_m=args.cell_size_m,
-        samples_per_tx=args.samples_per_tx,
-        max_depth=args.max_depth,
-        measurement_z_m=args.measurement_z_m,
-        seed=args.seed,
-    )
+    try:
+        safe_report = build_sionna_poc_report(
+            mesh_dir=args.mesh_dir,
+            cell_size_m=args.cell_size_m,
+            samples_per_tx=args.samples_per_tx,
+            max_depth=args.max_depth,
+            measurement_z_m=args.measurement_z_m,
+            seed=args.seed,
+            include_baseline_reference=True,
+        )
+    except ImportError as e:
+        print(
+            "sionna-rt 가 설치되어 있지 않습니다.\n"
+            "  pip install -r requirements-sionna-poc.txt\n"
+            f"원인: {e}",
+            file=sys.stderr,
+        )
+        sys.exit(2)
 
-    report = {
-        "purpose": (
-            "동일 RF 입력 축에서 내부 precise 엔진(Sionna RT)이 RadioMap을 산출하는지 검증. "
-            "사용자 UI는 2D heatmap 중심이며 3D 뷰가 전면이 아님."
-        ),
-        "layout": {
-            "room_m": [4.0, 4.0],
-            "ap_position_m": [2.0, 2.0, 2.5],
-            "materials_itu": {"floor": "concrete", "walls": "plasterboard (drywall 대응)"},
-        },
-        "baseline_reference": baseline,
-        "sionna_radiomap": sionna,
-    }
-
-    safe_report = to_jsonable(report)
     text = json.dumps(safe_report, ensure_ascii=False, indent=2)
     print(text)
     if args.out_json is not None:
