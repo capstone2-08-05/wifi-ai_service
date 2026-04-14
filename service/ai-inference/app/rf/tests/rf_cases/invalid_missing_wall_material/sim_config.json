@@ -1,8 +1,0 @@
-{
-  "scene_version_id": "case_invalid_material",
-  "grid_resolution_m": 1.0,
-  "path_loss_constant_db": 40.0,
-  "path_loss_exponent": 2.0,
-  "include_exterior_walls": false,
-  "output_dir_name": "output"
-}
