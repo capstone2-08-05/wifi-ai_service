@@ -27,6 +27,6 @@ def post_internal_rf_run(
         result = run_rf_preview_usecase(body, runner)
         if result.status == "failed":
             raise AppError(status_code=500, detail=result.error or "Sionna RT run failed")
-        return to_rf_response(result)
     except Exception as exc:
         raise to_http_exception(exc) from exc
+    return to_rf_response(result)

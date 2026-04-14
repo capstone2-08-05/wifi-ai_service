@@ -17,12 +17,23 @@ from packages.rf_core.services.rf_run_service import RfRunResult
 def _save_radiomap_png(rf_run_id: str, radiomap_dbm: list[list[float]]) -> str | None:
     try:
         arr = np.asarray(radiomap_dbm, dtype=float)
+        # 유효 범위 밖(-270 dBm placeholder) 셀은 시각화에서 제외해 비교 왜곡을 줄인다.
+        masked = np.ma.masked_where(arr <= -269.0, arr)
         out_dir = OUTPUT_DIR / "rf" / "sionna_rt" / rf_run_id
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / "radiomap_heatmap.png"
         plt.figure(figsize=(6, 5))
-        plt.imshow(arr, origin="lower", cmap="inferno")
-        plt.colorbar(label="RSS (dBm)")
+        cmap = plt.get_cmap("inferno").copy()
+        cmap.set_bad(color="#5a5a5a", alpha=1.0)
+        plt.imshow(
+            masked,
+            origin="lower",
+            cmap=cmap,
+            vmin=-90.0,
+            vmax=-30.0,
+            interpolation="bicubic",
+        )
+        plt.colorbar(label="RSS (dBm), fixed range [-90, -30]")
         plt.title("Sionna RT RadioMap")
         plt.tight_layout()
         plt.savefig(out_path, dpi=140)

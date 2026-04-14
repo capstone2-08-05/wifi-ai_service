@@ -45,7 +45,7 @@ def yolo_device() -> str:
 
 
 def sionna_cell_size_m() -> float:
-    return float(os.getenv("SIONNA_CELL_SIZE_M", "0.5"))
+    return float(os.getenv("SIONNA_CELL_SIZE_M", "0.25"))
 
 
 def sionna_samples_per_tx() -> int:
