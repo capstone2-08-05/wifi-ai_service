@@ -3,8 +3,6 @@ from __future__ import annotations
 import torch
 from ultralytics import YOLO
 
-from apps.trainer.src.inference_cli.infer_yolo import infer_yolo_array
-
 _YOLO_MODEL = None
 
 
@@ -27,6 +25,24 @@ def load_yolo_runtime(weights_path: str) -> YOLO:
     if _YOLO_MODEL is None:
         _YOLO_MODEL = YOLO(weights_path)
     return _YOLO_MODEL
+
+
+def infer_yolo_array(
+    model: YOLO,
+    image_bgr,
+    *,
+    conf: float = 0.25,
+    device: str = "cpu",
+):
+    """Run YOLO inference for a single BGR image."""
+    results = model.predict(
+        source=image_bgr,
+        imgsz=max(image_bgr.shape[:2]),
+        conf=conf,
+        device=device,
+        verbose=False,
+    )
+    return results[0]
 
 
 def run_yolo_inference_result(
