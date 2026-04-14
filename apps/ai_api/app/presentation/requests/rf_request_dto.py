@@ -14,11 +14,3 @@ class RfRunRequestDto(BaseModel):
     run_type: str = "preview"
     floor_id: str | None = None
     input: InputSionnaPayloadEntity
-
-
-class SionnaRtPocRequestDto(BaseModel):
-    input: InputSionnaPayloadEntity
-    measurement_plane_z_m: float = 1.0
-    material_map: dict[str, str] | None = None
-
-

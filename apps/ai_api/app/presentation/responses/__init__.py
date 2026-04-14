@@ -4,13 +4,11 @@ from app.presentation.responses.inference_response_dto import (
 )
 from app.presentation.responses.rf_response_dto import (
     RfRunResponseDto,
-    SionnaRtPocResponseDto,
     to_rf_response,
 )
 
 __all__ = [
     "RfRunResponseDto",
-    "SionnaRtPocResponseDto",
     "to_rf_response",
     "build_unet_response",
     "build_yolo_response",

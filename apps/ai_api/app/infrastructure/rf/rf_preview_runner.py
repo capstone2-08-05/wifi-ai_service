@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import uuid
 from pathlib import Path
 from typing import Any
@@ -27,6 +28,17 @@ def _save_radiomap_png(rf_run_id: str, radiomap_dbm: list[list[float]]) -> str |
         plt.savefig(out_path, dpi=140)
         plt.close()
         return str(Path(out_path).resolve())
+    except Exception:
+        return None
+
+
+def _save_runtime_result_json(rf_run_id: str, runtime_result: dict[str, Any]) -> str | None:
+    try:
+        out_dir = OUTPUT_DIR / "rf" / "sionna_rt" / rf_run_id
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / "runtime_result.json"
+        out_path.write_text(json.dumps(runtime_result, ensure_ascii=False, indent=2), encoding="utf-8")
+        return str(out_path.resolve())
     except Exception:
         return None
 
@@ -73,6 +85,7 @@ def run_rf_preview_with_rf_core(payload: dict[str, Any]):
         )
 
     visualization_path = _save_radiomap_png(rf_run_id, sionna_result["radiomap_dbm"])
+    runtime_result_path = _save_runtime_result_json(rf_run_id, sionna_result)
     metrics = {
         "mode": "sionna_rt_runtime",
         "run_type": run_type,
@@ -95,7 +108,8 @@ def run_rf_preview_with_rf_core(payload: dict[str, Any]):
     }
     if visualization_path is not None:
         artifacts["visualization_path"] = visualization_path
-        artifacts["imageUrl"] = visualization_path
+    if runtime_result_path is not None:
+        artifacts["runtime_result_path"] = runtime_result_path
 
     return RfRunResult(
         rf_run_id=rf_run_id,

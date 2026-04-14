@@ -1,4 +1,4 @@
-"""RF 회귀용 golden 씬/레이아웃/설정 — Sionna PoC와 공유."""
+"""RF 회귀용 golden 씬/레이아웃/설정."""
 
 from __future__ import annotations
 

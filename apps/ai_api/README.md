@@ -97,7 +97,6 @@ uvicorn main:app --host 0.0.0.0 --port 9000 --reload
 - `POST /inference/unet`
 - `POST /inference/yolo`
 - `POST /internal/rf/run`
-- `POST /internal/rf/sionna/poc` (PoC: SionnaRT engine plan 생성)
 
 문서:
 
@@ -110,7 +109,6 @@ uvicorn main:app --host 0.0.0.0 --port 9000 --reload
   - `file_id`
   - `file` (`png|jpg|jpeg`)
 - `/internal/rf/run` 응답은 `imageUrl`(템플릿 기반 URL) 포함
-- `/internal/rf/sionna/poc`는 SionnaRT 실행 전 단계의 엔진 입력 plan 스냅샷을 반환
 
 ## Backend Integration
 
