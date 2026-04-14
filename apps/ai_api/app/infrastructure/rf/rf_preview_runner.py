@@ -108,7 +108,6 @@ def run_rf_preview_with_rf_core(payload: dict[str, Any]):
     }
     if visualization_path is not None:
         artifacts["visualization_path"] = visualization_path
-        artifacts["imageUrl"] = visualization_path
     if runtime_result_path is not None:
         artifacts["runtime_result_path"] = runtime_result_path
 

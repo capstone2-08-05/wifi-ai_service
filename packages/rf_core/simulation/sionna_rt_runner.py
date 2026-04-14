@@ -251,9 +251,11 @@ def run_sionna_rt_from_engine_plan(
         )
         rss_w = _to_numpy(rm.rss)
 
-    # rss shape이 [H,W] 또는 [1,H,W] 형태일 수 있어 마지막 2축으로 맞춘다.
-    if rss_w.ndim > 2:
-        rss_w = np.squeeze(rss_w)
+    # rss shape이 [H,W], [1,H,W], [1,1,W], [1,1,1] 등으로 올 수 있어 안전하게 2D로 맞춘다.
+    while rss_w.ndim > 2:
+        rss_w = rss_w[0]
+    if rss_w.ndim == 1:
+        rss_w = rss_w[np.newaxis, :]
     if rss_w.ndim != 2:
         raise ValueError(f"unexpected radiomap rss shape: {rss_w.shape}")
 
