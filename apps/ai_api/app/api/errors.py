@@ -1,4 +1,9 @@
+import logging
+
 from fastapi import HTTPException
+
+
+logger = logging.getLogger(__name__)
 
 
 class AppError(Exception):
@@ -17,4 +22,5 @@ def to_http_exception(exc: Exception) -> HTTPException:
         return HTTPException(status_code=400, detail=str(exc))
     if isinstance(exc, FileNotFoundError):
         return HTTPException(status_code=404, detail=str(exc))
-    return HTTPException(status_code=500, detail=str(exc))
+    logger.exception("Unhandled exception during API request")
+    return HTTPException(status_code=500, detail="Internal Server Error")

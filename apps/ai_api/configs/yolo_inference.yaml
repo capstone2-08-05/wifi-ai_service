@@ -1,5 +1,5 @@
 model:
-  weights_path: c:/capstone2/rf-service/apps/trainer/src/models/yolo/best.pt
+  weights_path: apps/trainer/src/models/yolo/best.pt
 
 infer:
   conf_threshold: 0.25

@@ -181,7 +181,7 @@ def run_rf(
         simulator = BaselineRfSimulator(scene=scene, ap_layout=layout, config=config)
         result = simulator.run()
 
-        image_url = None if skip_heatmap else _resolve_image_url(rf_run_id)
+        image_url = None
         manifest: dict[str, Any]
         path_bundle: RfOutputPaths | None
         run_output_root_str = ""
@@ -219,6 +219,8 @@ def run_rf(
             manifest_path = str((output_dir / "run_manifest.json").resolve())
             summary_path = str((output_dir / "run_summary.json").resolve())
             heatmap_name = manifest.get("artifacts", {}).get("heatmap_png")
+            if heatmap_name and not skip_heatmap:
+                image_url = _resolve_image_url(rf_run_id)
             heatmap_path = (
                 str((output_dir / heatmap_name).resolve()) if heatmap_name else None
             )
