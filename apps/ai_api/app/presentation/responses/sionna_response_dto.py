@@ -4,26 +4,26 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
-from app.domain.entities.rf_preview_entity import RfRunPathsEntity
+from app.domain.entities.sionna_preview_entity import SionnaRunPathsEntity
 
 
-class RfRunResponseDto(BaseModel):
-    rf_run_id: str
+class SionnaRunResponseDto(BaseModel):
+    sionna_run_id: str
     status: Literal["succeeded", "failed"]
     metrics: dict[str, Any] | None = None
     artifacts: dict[str, Any] | None = None
     output_root: str | None = None
-    paths: RfRunPathsEntity | None = None
+    paths: SionnaRunPathsEntity | None = None
     imageUrl: str | None = None
     detail: str | None = None
 
 
-def to_rf_response(result: dict[str, Any]) -> RfRunResponseDto:
-    paths: RfRunPathsEntity | None = None
+def to_sionna_response(result: dict[str, Any]) -> SionnaRunResponseDto:
+    paths: SionnaRunPathsEntity | None = None
     raw_paths = result.get("paths")
     if result.get("status") == "succeeded" and isinstance(raw_paths, dict):
         p = raw_paths
-        paths = RfRunPathsEntity(
+        paths = SionnaRunPathsEntity(
             output_dir=str(p.get("output_dir", "")),
             manifest=str(p.get("manifest", "")),
             heatmap=p.get("heatmap"),
@@ -36,8 +36,8 @@ def to_rf_response(result: dict[str, Any]) -> RfRunResponseDto:
         if image_url is None:
             image_url = artifacts.get("visualization_path")
 
-    return RfRunResponseDto(
-        rf_run_id=str(result.get("rf_run_id", "")),
+    return SionnaRunResponseDto(
+        sionna_run_id=str(result.get("sionna_run_id", "")),
         status=str(result.get("status", "failed")),
         metrics=result.get("metrics"),
         artifacts=artifacts,

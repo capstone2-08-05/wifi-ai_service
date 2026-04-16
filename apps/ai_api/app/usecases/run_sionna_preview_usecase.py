@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.presentation.requests.rf_request_dto import RfRunRequestDto
+from app.presentation.requests.sionna_request_dto import SionnaRunRequestDto
 
 
-def run_rf_preview_usecase(body: RfRunRequestDto, runner):
+def run_sionna_preview_usecase(body: SionnaRunRequestDto, runner):
     payload: dict[str, Any] = {
         "engine": body.engine,
         "run_type": body.run_type,

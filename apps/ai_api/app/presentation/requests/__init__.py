@@ -2,10 +2,10 @@ from app.presentation.requests.inference_request_dto import (
     InferenceUploadRequestDto,
     parse_inference_upload_request,
 )
-from app.presentation.requests.rf_request_dto import RfRunRequestDto
+from app.presentation.requests.sionna_request_dto import SionnaRunRequestDto
 
 __all__ = [
-    "RfRunRequestDto",
+    "SionnaRunRequestDto",
     "InferenceUploadRequestDto",
     "parse_inference_upload_request",
 ]

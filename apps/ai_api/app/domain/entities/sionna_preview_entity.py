@@ -5,7 +5,7 @@ from typing import Any, Literal
 from pydantic import BaseModel
 
 
-class RfRunPathsEntity(BaseModel):
+class SionnaRunPathsEntity(BaseModel):
     output_dir: str
     manifest: str
     heatmap: str | None = None
