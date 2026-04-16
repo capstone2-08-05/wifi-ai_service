@@ -7,6 +7,8 @@ from typing import Any, Mapping
 
 import numpy as np
 
+INVALID_DBM_THRESHOLD = -200.0
+
 
 def _to_numpy(x: Any) -> np.ndarray:
     if hasattr(x, "numpy"):
@@ -19,15 +21,48 @@ def _rss_w_to_dbm(rss_w: np.ndarray) -> np.ndarray:
     return 10.0 * np.log10(safe * 1e3)
 
 
-def _coverage_summary(dbm_map: np.ndarray) -> dict[str, float]:
+def _coverage_summary(dbm_map: np.ndarray, valid_mask: np.ndarray) -> dict[str, float | int]:
     flat = dbm_map.reshape(-1)
-    if flat.size == 0:
-        return {"ge_-67": 0.0, "ge_-70": 0.0, "ge_-75": 0.0}
+    flat_valid = valid_mask.reshape(-1)
+    valid_values = flat[flat_valid]
+    total_count = int(flat.size)
+    valid_count = int(valid_values.size)
+    if valid_count == 0:
+        return {
+            "ge_-67": 0.0,
+            "ge_-70": 0.0,
+            "ge_-75": 0.0,
+            "valid_cell_count": 0,
+            "total_cell_count": total_count,
+            "valid_cell_ratio": 0.0,
+        }
     return {
-        "ge_-67": float(np.mean(flat >= -67.0)),
-        "ge_-70": float(np.mean(flat >= -70.0)),
-        "ge_-75": float(np.mean(flat >= -75.0)),
+        "ge_-67": float(np.mean(valid_values >= -67.0)),
+        "ge_-70": float(np.mean(valid_values >= -70.0)),
+        "ge_-75": float(np.mean(valid_values >= -75.0)),
+        "valid_cell_count": valid_count,
+        "total_cell_count": total_count,
+        "valid_cell_ratio": float(valid_count / max(total_count, 1)),
     }
+
+
+def _nearest_valid_cell(
+    dbm_map: np.ndarray,
+    valid_mask: np.ndarray,
+    cy: int,
+    cx: int,
+) -> tuple[float | None, bool, str]:
+    if valid_mask[cy, cx]:
+        return float(dbm_map[cy, cx]), True, "center"
+
+    ys, xs = np.where(valid_mask)
+    if ys.size == 0:
+        return None, False, "none"
+
+    dy = ys.astype(float) - float(cy)
+    dx = xs.astype(float) - float(cx)
+    idx = int(np.argmin(dx * dx + dy * dy))
+    return float(dbm_map[int(ys[idx]), int(xs[idx])]), False, "nearest_valid"
 
 
 def _scene_bounds(scene_plan: Mapping[str, Any], antenna_pos: list[float]) -> tuple[float, float, float, float]:
@@ -252,7 +287,29 @@ def run_sionna_rt_from_engine_plan(
         raise ValueError(f"unexpected radiomap rss shape: {rss_w.shape}")
 
     rss_dbm = _rss_w_to_dbm(rss_w)
-    center_dbm = float(rss_dbm[rss_dbm.shape[0] // 2, rss_dbm.shape[1] // 2])
+    valid_mask = rss_dbm > INVALID_DBM_THRESHOLD
+    valid_values = rss_dbm[valid_mask]
+    total_cell_count = int(rss_dbm.size)
+    valid_cell_count = int(valid_values.size)
+    invalid_cell_count = int(total_cell_count - valid_cell_count)
+    valid_ratio = float(valid_cell_count / max(total_cell_count, 1))
+    center_y = rss_dbm.shape[0] // 2
+    center_x = rss_dbm.shape[1] // 2
+    center_dbm, center_valid, center_source = _nearest_valid_cell(rss_dbm, valid_mask, center_y, center_x)
+    if valid_values.size == 0:
+        rss_summary = {"min": None, "max": None, "mean": None}
+    else:
+        rss_summary = {
+            "min": float(np.min(valid_values)),
+            "max": float(np.max(valid_values)),
+            "mean": float(np.mean(valid_values)),
+        }
+    coverage = _coverage_summary(rss_dbm, valid_mask)
+    coverage_valid_only = {
+        "ge_-67": float(coverage["ge_-67"]),
+        "ge_-70": float(coverage["ge_-70"]),
+        "ge_-75": float(coverage["ge_-75"]),
+    }
     return {
         "engine": "sionna_rt",
         "model": "sionna_rt_radiomap",
@@ -271,11 +328,15 @@ def run_sionna_rt_from_engine_plan(
             "max_depth": int(max_depth),
             "seed": int(seed),
         },
-        "rss_dbm": {
-            "min": float(np.min(rss_dbm)),
-            "max": float(np.max(rss_dbm)),
-            "mean": float(np.mean(rss_dbm)),
-        },
+        "valid_cell_count": valid_cell_count,
+        "invalid_cell_count": invalid_cell_count,
+        "valid_ratio": valid_ratio,
+        "rss_dbm": rss_summary,
+        "rss_dbm_valid": rss_summary,
         "center_cell_rss_dbm": center_dbm,
-        "coverage_summary": _coverage_summary(rss_dbm),
+        "center_cell_valid": center_valid,
+        "center_cell_source": center_source,
+        "coverage_summary": coverage,
+        "coverage_summary_valid_only": coverage_valid_only,
+        "coverage_thresholds_dbm": [-67, -70, -75],
     }
