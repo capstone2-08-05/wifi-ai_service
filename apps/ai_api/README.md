@@ -1,7 +1,7 @@
 # ai_api
 
 `rf-service` 내 운영 FastAPI 앱입니다.  
-U-Net/YOLO 추론과 Sionna preview API를 제공합니다. 이 문서는 실행/운영 상세 가이드입니다.
+U-Net/YOLO 추론과 Sionna API를 제공합니다. 이 문서는 실행/운영 상세 가이드입니다.
 
 ## Architecture (Current)
 

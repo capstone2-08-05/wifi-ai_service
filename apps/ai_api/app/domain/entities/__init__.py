@@ -1,4 +1,4 @@
-from app.domain.entities.sionna_preview_entity import (
+from app.domain.entities.sionna_entity import (
     InputSionnaPayloadEntity,
     SionnaRunPathsEntity,
 )
