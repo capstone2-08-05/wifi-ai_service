@@ -45,10 +45,10 @@ def _scene_bounds(scene_plan: Mapping[str, Any], antenna_pos: list[float]) -> tu
         points = room.get("points")
         if not isinstance(points, list):
             continue
-        for p in points:
-            if isinstance(p, (list, tuple)) and len(p) >= 2:
-                xs.append(float(p[0]))
-                ys.append(float(p[1]))
+        for point in points:
+            if isinstance(point, (list, tuple)) and len(point) >= 2:
+                xs.append(float(point[0]))
+                ys.append(float(point[1]))
 
     if not xs or not ys:
         ax, ay = float(antenna_pos[0]), float(antenna_pos[1])
@@ -56,7 +56,6 @@ def _scene_bounds(scene_plan: Mapping[str, Any], antenna_pos: list[float]) -> tu
 
     min_x, max_x = min(xs), max(xs)
     min_y, max_y = min(ys), max(ys)
-    # 안정적인 라디오맵 크기를 위한 최소 패딩
     pad = 0.5
     if math.isclose(min_x, max_x):
         min_x -= 1.0
@@ -99,12 +98,10 @@ def _write_wall_box_obj(
     hx = nx * (thickness / 2.0)
     hy = ny * (thickness / 2.0)
 
-    # 바닥 꼭짓점 4개 (반시계)
     a = (x1 + hx, y1 + hy, 0.0)
     b = (x2 + hx, y2 + hy, 0.0)
     c = (x2 - hx, y2 - hy, 0.0)
     d = (x1 - hx, y1 - hy, 0.0)
-    # 상단 꼭짓점 4개
     e = (a[0], a[1], height)
     f = (b[0], b[1], height)
     g = (c[0], c[1], height)
@@ -112,7 +109,6 @@ def _write_wall_box_obj(
 
     verts = [a, b, c, d, e, f, g, h]
     lines = [f"v {vx:.6f} {vy:.6f} {vz:.6f}" for vx, vy, vz in verts]
-    # 6면(삼각형 12개)
     lines += [
         "f 1 2 3",
         "f 1 3 4",
@@ -137,12 +133,9 @@ def run_sionna_rt_from_engine_plan(
     samples_per_tx: int = 100_000,
     seed: int = 42,
 ) -> dict[str, Any]:
-    """
-    Engine plan을 받아 Sionna RT RadioMap을 실제 계산한다.
-    """
     try:
         from sionna.rt import ITURadioMaterial, PlanarArray, RadioMapSolver, SceneObject, Transmitter, load_scene
-    except Exception as exc:  # pragma: no cover - 환경 의존
+    except Exception as exc:
         raise ImportError(
             "Sionna runtime is not available. Install runtime dependencies for sionna.rt."
         ) from exc
@@ -251,7 +244,6 @@ def run_sionna_rt_from_engine_plan(
         )
         rss_w = _to_numpy(rm.rss)
 
-    # rss shape이 [H,W], [1,H,W], [1,1,W], [1,1,1] 등으로 올 수 있어 안전하게 2D로 맞춘다.
     while rss_w.ndim > 2:
         rss_w = rss_w[0]
     if rss_w.ndim == 1:
@@ -287,4 +279,3 @@ def run_sionna_rt_from_engine_plan(
         "center_cell_rss_dbm": center_dbm,
         "coverage_summary": _coverage_summary(rss_dbm),
     }
-
