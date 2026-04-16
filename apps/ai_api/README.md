@@ -1,7 +1,7 @@
 # ai_api
 
 `rf-service` 내 운영 FastAPI 앱입니다.  
-U-Net/YOLO 추론과 RF preview API를 제공합니다. 이 문서는 실행/운영 상세 가이드입니다.
+U-Net/YOLO 추론과 Sionna preview API를 제공합니다. 이 문서는 실행/운영 상세 가이드입니다.
 
 ## Architecture (Current)
 
@@ -10,7 +10,7 @@ app/
 ├─ api/routes              # endpoint
 ├─ presentation            # RequestDto / ResponseDto
 ├─ usecases                # usecase orchestration
-├─ infrastructure          # runtime/rf adapters
+├─ infrastructure          # runtime/sionna adapters
 └─ main.py
 ```
 
@@ -78,7 +78,7 @@ uvicorn main:app --host 0.0.0.0 --port 9000 --reload
 - `YOLO_DEVICE`: YOLO 디바이스 강제 지정(예: `cpu`, `cuda:0`)
 - `DEFAULT_DEVICE`: 기본 디바이스(`auto|cpu|cuda`)
 - `PRELOAD_MODELS`: 시작 시 모델 preload 여부(`true|false`)
-- `RF_ARTIFACT_IMAGE_URL_TEMPLATE`: RF 결과 `imageUrl` 템플릿 (`{rf_run_id}` 사용)
+- `SIONNA_ARTIFACT_IMAGE_URL_TEMPLATE`: Sionna 결과 `imageUrl` 템플릿 (`{sionna_run_id}` 사용)
 
 ### Common Startup Issues
 
@@ -96,7 +96,7 @@ uvicorn main:app --host 0.0.0.0 --port 9000 --reload
 - `GET /health`
 - `POST /inference/unet`
 - `POST /inference/yolo`
-- `POST /internal/rf/run`
+- `POST /internal/sionna/run`
 
 문서:
 
@@ -108,7 +108,7 @@ uvicorn main:app --host 0.0.0.0 --port 9000 --reload
 - `/inference/*`는 `multipart/form-data`:
   - `file_id`
   - `file` (`png|jpg|jpeg`)
-- `/internal/rf/run` 응답은 `imageUrl`(템플릿 기반 URL) 포함
+- `/internal/sionna/run` 응답은 `imageUrl`(템플릿 기반 URL) 포함
 
 ## Backend Integration
 

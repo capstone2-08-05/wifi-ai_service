@@ -9,17 +9,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from app.infrastructure.settings import OUTPUT_DIR, sionna_cell_size_m, sionna_samples_per_tx, sionna_seed
-from packages.rf_core.adapters.sionna import sionna_input_dto_to_engine_plan
-from packages.rf_core.simulation.sionna_rt_runner import run_sionna_rt_from_engine_plan
-from packages.rf_core.services.rf_run_service import RfRunResult
+from packages.ai_runtime.sionna_adapter import sionna_input_dto_to_engine_plan
+from packages.ai_runtime.sionna_runtime import run_sionna_rt_from_engine_plan
 
 
-def _save_radiomap_png(rf_run_id: str, radiomap_dbm: list[list[float]]) -> str | None:
+def _save_radiomap_png(sionna_run_id: str, radiomap_dbm: list[list[float]]) -> str | None:
     try:
         arr = np.asarray(radiomap_dbm, dtype=float)
-        # 유효 범위 밖(-270 dBm placeholder) 셀은 시각화에서 제외해 비교 왜곡을 줄인다.
         masked = np.ma.masked_where(arr <= -269.0, arr)
-        out_dir = OUTPUT_DIR / "rf" / "sionna_rt" / rf_run_id
+        out_dir = OUTPUT_DIR / "sionna" / "sionna_rt" / sionna_run_id
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / "radiomap_heatmap.png"
         plt.figure(figsize=(6, 5))
@@ -43,9 +41,9 @@ def _save_radiomap_png(rf_run_id: str, radiomap_dbm: list[list[float]]) -> str |
         return None
 
 
-def _save_runtime_result_json(rf_run_id: str, runtime_result: dict[str, Any]) -> str | None:
+def _save_runtime_result_json(sionna_run_id: str, runtime_result: dict[str, Any]) -> str | None:
     try:
-        out_dir = OUTPUT_DIR / "rf" / "sionna_rt" / rf_run_id
+        out_dir = OUTPUT_DIR / "sionna" / "sionna_rt" / sionna_run_id
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / "runtime_result.json"
         out_path.write_text(json.dumps(runtime_result, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -54,8 +52,8 @@ def _save_runtime_result_json(rf_run_id: str, runtime_result: dict[str, Any]) ->
         return None
 
 
-def run_rf_preview_with_rf_core(payload: dict[str, Any]):
-    rf_run_id = str(uuid.uuid4())
+def run_sionna_preview_with_runtime(payload: dict[str, Any]) -> dict[str, Any]:
+    sionna_run_id = str(uuid.uuid4())
     engine = str(payload.get("engine", "sionna_rt"))
     run_type = payload.get("run_type", "preview")
     floor_id = payload.get("floor_id")
@@ -73,30 +71,30 @@ def run_rf_preview_with_rf_core(payload: dict[str, Any]):
             seed=sionna_seed(),
         )
     except ImportError as exc:
-        return RfRunResult(
-            rf_run_id=rf_run_id,
-            status="failed",
-            metrics={"mode": "sionna_rt_runtime", "error": str(exc)},
-            artifacts={},
-            output_root="",
-            manifest=None,
-            paths=None,
-            error=f"ImportError: {exc}",
-        )
+        return {
+            "sionna_run_id": sionna_run_id,
+            "status": "failed",
+            "metrics": {"mode": "sionna_rt_runtime", "error": str(exc)},
+            "artifacts": {},
+            "output_root": "",
+            "manifest": None,
+            "paths": None,
+            "error": f"ImportError: {exc}",
+        }
     except Exception as exc:
-        return RfRunResult(
-            rf_run_id=rf_run_id,
-            status="failed",
-            metrics={"mode": "sionna_rt_runtime", "error": str(exc)},
-            artifacts={},
-            output_root="",
-            manifest=None,
-            paths=None,
-            error=f"{type(exc).__name__}: {exc}",
-        )
+        return {
+            "sionna_run_id": sionna_run_id,
+            "status": "failed",
+            "metrics": {"mode": "sionna_rt_runtime", "error": str(exc)},
+            "artifacts": {},
+            "output_root": "",
+            "manifest": None,
+            "paths": None,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
 
-    visualization_path = _save_radiomap_png(rf_run_id, sionna_result["radiomap_dbm"])
-    runtime_result_path = _save_runtime_result_json(rf_run_id, sionna_result)
+    visualization_path = _save_radiomap_png(sionna_run_id, sionna_result["radiomap_dbm"])
+    runtime_result_path = _save_runtime_result_json(sionna_run_id, sionna_result)
     metrics = {
         "mode": "sionna_rt_runtime",
         "run_type": run_type,
@@ -122,19 +120,19 @@ def run_rf_preview_with_rf_core(payload: dict[str, Any]):
     if runtime_result_path is not None:
         artifacts["runtime_result_path"] = runtime_result_path
 
-    return RfRunResult(
-        rf_run_id=rf_run_id,
-        status="succeeded",
-        metrics=metrics,
-        artifacts=artifacts,
-        output_root="",
-        manifest={
+    return {
+        "sionna_run_id": sionna_run_id,
+        "status": "succeeded",
+        "metrics": metrics,
+        "artifacts": artifacts,
+        "output_root": "",
+        "manifest": {
             "engine": "sionna_rt",
             "run_type": run_type,
             "floor_id": floor_id,
             "metrics": metrics,
             "artifacts": artifacts,
         },
-        paths=None,
-        error=None,
-    )
+        "paths": None,
+        "error": None,
+    }

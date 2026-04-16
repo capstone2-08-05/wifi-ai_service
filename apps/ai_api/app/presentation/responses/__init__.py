@@ -2,14 +2,14 @@ from app.presentation.responses.inference_response_dto import (
     build_unet_response,
     build_yolo_response,
 )
-from app.presentation.responses.rf_response_dto import (
-    RfRunResponseDto,
-    to_rf_response,
+from app.presentation.responses.sionna_response_dto import (
+    SionnaRunResponseDto,
+    to_sionna_response,
 )
 
 __all__ = [
-    "RfRunResponseDto",
-    "to_rf_response",
+    "SionnaRunResponseDto",
+    "to_sionna_response",
     "build_unet_response",
     "build_yolo_response",
 ]
