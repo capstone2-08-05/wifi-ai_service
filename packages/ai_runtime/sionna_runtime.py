@@ -10,6 +10,55 @@ import numpy as np
 INVALID_DBM_THRESHOLD = -200.0
 
 
+def _resolve_target_device(preferred_device: str, default_device: str) -> str:
+    preferred = (preferred_device or "").strip().lower()
+    if preferred and preferred != "auto":
+        if preferred in {"gpu", "cuda"} or preferred.startswith("cuda"):
+            return "cuda"
+        return "cpu"
+
+    configured = (default_device or "auto").strip().lower()
+    if configured == "cpu":
+        return "cpu"
+    if configured in {"gpu", "cuda"} or configured.startswith("cuda"):
+        return "cuda"
+    return "auto"
+
+
+def _select_runtime_backend(preferred_device: str, default_device: str) -> dict[str, Any]:
+    try:
+        import drjit as dr
+        import mitsuba as mi
+    except Exception as exc:
+        raise RuntimeError("Failed to import Dr.Jit/Mitsuba runtime backends") from exc
+
+    requested = _resolve_target_device(preferred_device, default_device)
+    if requested == "cpu":
+        candidates = [("cpu", "llvm_ad_mono_polarized")]
+    elif requested == "cuda":
+        candidates = [("cuda", "cuda_ad_mono_polarized"), ("cpu", "llvm_ad_mono_polarized")]
+    else:
+        candidates = [("cuda", "cuda_ad_mono_polarized"), ("cpu", "llvm_ad_mono_polarized")]
+
+    errors: list[str] = []
+    for device_name, variant in candidates:
+        if device_name == "cuda" and not bool(dr.has_backend(dr.JitBackend.CUDA)):
+            errors.append("cuda backend unavailable in Dr.Jit")
+            continue
+        try:
+            mi.set_variant(variant)
+            return {
+                "requested_device": requested,
+                "selected_device": device_name,
+                "mitsuba_variant": mi.variant(),
+                "fallback_used": device_name != "cuda" and requested in {"cuda", "auto"},
+            }
+        except Exception as exc:
+            errors.append(f"{variant}: {exc}")
+
+    raise RuntimeError(f"Unable to select Sionna runtime backend ({'; '.join(errors)})")
+
+
 def _to_numpy(x: Any) -> np.ndarray:
     if hasattr(x, "numpy"):
         return np.asarray(x.numpy())
@@ -167,7 +216,10 @@ def run_sionna_rt_from_engine_plan(
     cell_size_m: float = 0.5,
     samples_per_tx: int = 100_000,
     seed: int = 42,
+    preferred_device: str = "",
+    default_device: str = "auto",
 ) -> dict[str, Any]:
+    backend_info = _select_runtime_backend(preferred_device, default_device)
     try:
         from sionna.rt import ITURadioMaterial, PlanarArray, RadioMapSolver, SceneObject, Transmitter, load_scene
     except Exception as exc:
@@ -327,7 +379,10 @@ def run_sionna_rt_from_engine_plan(
             "samples_per_tx": int(samples_per_tx),
             "max_depth": int(max_depth),
             "seed": int(seed),
+            "measurement_plane_z_m": float(z_plane),
+            "runtime_backend": backend_info,
         },
+        "runtime_backend": backend_info,
         "valid_cell_count": valid_cell_count,
         "invalid_cell_count": invalid_cell_count,
         "valid_ratio": valid_ratio,

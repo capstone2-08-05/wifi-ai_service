@@ -85,3 +85,10 @@ def sionna_seed() -> int:
     infer_cfg = cfg.get("infer", {})
     default_value = infer_cfg.get("seed", 42)
     return int(os.getenv("SIONNA_SEED", str(default_value)))
+
+
+def sionna_device() -> str:
+    cfg = _load_sionna_config()
+    infer_cfg = cfg.get("infer", {})
+    default_value = str(infer_cfg.get("device", "")).strip()
+    return os.getenv("SIONNA_DEVICE", default_value).strip()

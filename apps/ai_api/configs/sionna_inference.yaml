@@ -2,3 +2,4 @@ infer:
   cell_size_m: 0.25
   samples_per_tx: 100000
   seed: 42
+  device:

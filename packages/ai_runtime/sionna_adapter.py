@@ -34,6 +34,7 @@ class SimConfigDTO(BaseModel):
     frequency_ghz: float = 28.0
     tx_power_dbm: float = 30.0
     reflection_order: int = 2
+    measurement_plane_z_m: float = 1.0
 
 
 class AntennaDTO(BaseModel):
@@ -137,7 +138,6 @@ def sionna_input_dto_to_engine_plan(
     payload: SionnaInputDTO | Mapping[str, Any],
     *,
     material_map: dict[str, str] | None = None,
-    measurement_plane_z_m: float = 1.0,
 ) -> dict[str, Any]:
     dto = payload if isinstance(payload, SionnaInputDTO) else SionnaInputDTO.model_validate(payload)
     cfg = dto.config
@@ -158,7 +158,7 @@ def sionna_input_dto_to_engine_plan(
         },
         "solver": {
             "max_depth": int(cfg.reflection_order),
-            "measurement_plane_z_m": float(measurement_plane_z_m),
+            "measurement_plane_z_m": float(cfg.measurement_plane_z_m),
         },
         "material_table": material_map if material_map is not None else DEFAULT_WALL_MATERIAL_TO_SIONNA_ITU,
     }
