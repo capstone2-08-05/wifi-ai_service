@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
-from app.domain.entities.sionna_preview_entity import SionnaRunPathsEntity
+from app.domain.entities.sionna_entity import SionnaRunPathsEntity
 
 
 class SionnaRunResponseDto(BaseModel):

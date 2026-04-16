@@ -52,10 +52,10 @@ def _save_runtime_result_json(sionna_run_id: str, runtime_result: dict[str, Any]
         return None
 
 
-def run_sionna_preview_with_runtime(payload: dict[str, Any]) -> dict[str, Any]:
+def run_sionna_with_runtime(payload: dict[str, Any]) -> dict[str, Any]:
     sionna_run_id = str(uuid.uuid4())
     engine = str(payload.get("engine", "sionna_rt"))
-    run_type = payload.get("run_type", "preview")
+    run_type = payload.get("run_type", "run")
     floor_id = payload.get("floor_id")
     input_data = payload["input_data"]
 
