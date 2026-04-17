@@ -1,5 +1,5 @@
 model:
-  weights_path: apps/trainer/src/models/yolo/best.pt
+  weights_path:
 
 infer:
   conf_threshold: 0.25
