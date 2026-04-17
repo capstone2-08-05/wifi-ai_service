@@ -1,9 +1,9 @@
-from app.domain.entities.rf_preview_entity import (
+from app.domain.entities.sionna_entity import (
     InputSionnaPayloadEntity,
-    RfRunPathsEntity,
+    SionnaRunPathsEntity,
 )
 
 __all__ = [
-    "RfRunPathsEntity",
+    "SionnaRunPathsEntity",
     "InputSionnaPayloadEntity",
 ]

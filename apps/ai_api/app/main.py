@@ -2,14 +2,14 @@ from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
 from app.api.routes.inference import router as inference_router
-from app.api.routes.rf import router as rf_router
+from app.api.routes.sionna import router as sionna_router
 from app.infrastructure.ai_runtime.unet_gateway import preload_unet_model
 from app.infrastructure.ai_runtime.yolo_gateway import preload_yolo_model
 from app.infrastructure.settings import preload_models
 
 app = FastAPI(title="capstone2-ai", version="0.1.0")
 app.include_router(inference_router)
-app.include_router(rf_router, prefix="/internal", tags=["internal"])
+app.include_router(sionna_router, prefix="/internal", tags=["internal"])
 
 
 def _replace_refs(obj, old_ref: str, new_ref: str):

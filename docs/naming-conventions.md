@@ -9,7 +9,7 @@
 - **Entity 클래스**: `*Entity`
 - **Usecase 파일**: `*_usecase.py`
 - **Usecase 함수**: `*_usecase`
-- **라우터 파일**: 리소스 중심 (`inference.py`, `rf.py`)
+- **라우터 파일**: 리소스 중심 (`inference.py`, `sionna.py`)
 - **인프라 실행기 파일**: 역할 중심 (`*_runner.py`, `*_gateway.py`)
 
 ## Layer Rules
@@ -22,12 +22,12 @@
 - `presentation/requests`
   - API 입력 DTO만 둡니다.
   - 파일명: `*_request_dto.py`
-  - 예: `rf_request_dto.py`, `inference_request_dto.py`
+  - 예: `sionna_request_dto.py`, `inference_request_dto.py`
 
 - `presentation/responses`
   - API 출력 DTO + response builder만 둡니다.
   - 파일명: `*_response_dto.py`
-  - 예: `rf_response_dto.py`, `inference_response_dto.py`
+  - 예: `sionna_response_dto.py`, `inference_response_dto.py`
 
 - `domain/entities`
   - 도메인 모델만 둡니다.
@@ -42,15 +42,15 @@
 - `infrastructure`
   - 외부 라이브러리/패키지 호출 어댑터를 둡니다.
   - `ai_runtime`: 모델 런타임 호출
-  - `rf`: RF 코어 호출
+  - `sionna`: Sionna 런타임 호출
   - 파일명은 `*_runner.py`, `*_gateway.py`를 사용합니다.
 
 ## Naming Examples
 
-- Request DTO: `RfRunRequestDto`, `InferenceUploadRequestDto`
-- Response DTO: `RfRunResponseDto`
-- Entity: `RfRunPathsEntity`, `BaselineParamsEntity`
-- Usecase function: `run_rf_preview_usecase`, `run_unet_usecase`
+- Request DTO: `SionnaRunRequestDto`, `InferenceUploadRequestDto`
+- Response DTO: `SionnaRunResponseDto`
+- Entity: `SionnaRunPathsEntity`
+- Usecase function: `run_sionna_preview_usecase`, `run_unet_usecase`
 
 ## Prohibited Patterns
 

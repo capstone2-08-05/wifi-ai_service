@@ -7,6 +7,8 @@ from typing import Any, Mapping
 
 import numpy as np
 
+INVALID_DBM_THRESHOLD = -200.0
+
 
 def _to_numpy(x: Any) -> np.ndarray:
     if hasattr(x, "numpy"):
@@ -19,15 +21,48 @@ def _rss_w_to_dbm(rss_w: np.ndarray) -> np.ndarray:
     return 10.0 * np.log10(safe * 1e3)
 
 
-def _coverage_summary(dbm_map: np.ndarray) -> dict[str, float]:
+def _coverage_summary(dbm_map: np.ndarray, valid_mask: np.ndarray) -> dict[str, float | int]:
     flat = dbm_map.reshape(-1)
-    if flat.size == 0:
-        return {"ge_-67": 0.0, "ge_-70": 0.0, "ge_-75": 0.0}
+    flat_valid = valid_mask.reshape(-1)
+    valid_values = flat[flat_valid]
+    total_count = int(flat.size)
+    valid_count = int(valid_values.size)
+    if valid_count == 0:
+        return {
+            "ge_-67": 0.0,
+            "ge_-70": 0.0,
+            "ge_-75": 0.0,
+            "valid_cell_count": 0,
+            "total_cell_count": total_count,
+            "valid_cell_ratio": 0.0,
+        }
     return {
-        "ge_-67": float(np.mean(flat >= -67.0)),
-        "ge_-70": float(np.mean(flat >= -70.0)),
-        "ge_-75": float(np.mean(flat >= -75.0)),
+        "ge_-67": float(np.mean(valid_values >= -67.0)),
+        "ge_-70": float(np.mean(valid_values >= -70.0)),
+        "ge_-75": float(np.mean(valid_values >= -75.0)),
+        "valid_cell_count": valid_count,
+        "total_cell_count": total_count,
+        "valid_cell_ratio": float(valid_count / max(total_count, 1)),
     }
+
+
+def _nearest_valid_cell(
+    dbm_map: np.ndarray,
+    valid_mask: np.ndarray,
+    cy: int,
+    cx: int,
+) -> tuple[float | None, bool, str]:
+    if valid_mask[cy, cx]:
+        return float(dbm_map[cy, cx]), True, "center"
+
+    ys, xs = np.where(valid_mask)
+    if ys.size == 0:
+        return None, False, "none"
+
+    dy = ys.astype(float) - float(cy)
+    dx = xs.astype(float) - float(cx)
+    idx = int(np.argmin(dx * dx + dy * dy))
+    return float(dbm_map[int(ys[idx]), int(xs[idx])]), False, "nearest_valid"
 
 
 def _scene_bounds(scene_plan: Mapping[str, Any], antenna_pos: list[float]) -> tuple[float, float, float, float]:
@@ -45,10 +80,10 @@ def _scene_bounds(scene_plan: Mapping[str, Any], antenna_pos: list[float]) -> tu
         points = room.get("points")
         if not isinstance(points, list):
             continue
-        for p in points:
-            if isinstance(p, (list, tuple)) and len(p) >= 2:
-                xs.append(float(p[0]))
-                ys.append(float(p[1]))
+        for point in points:
+            if isinstance(point, (list, tuple)) and len(point) >= 2:
+                xs.append(float(point[0]))
+                ys.append(float(point[1]))
 
     if not xs or not ys:
         ax, ay = float(antenna_pos[0]), float(antenna_pos[1])
@@ -56,7 +91,6 @@ def _scene_bounds(scene_plan: Mapping[str, Any], antenna_pos: list[float]) -> tu
 
     min_x, max_x = min(xs), max(xs)
     min_y, max_y = min(ys), max(ys)
-    # 안정적인 라디오맵 크기를 위한 최소 패딩
     pad = 0.5
     if math.isclose(min_x, max_x):
         min_x -= 1.0
@@ -99,12 +133,10 @@ def _write_wall_box_obj(
     hx = nx * (thickness / 2.0)
     hy = ny * (thickness / 2.0)
 
-    # 바닥 꼭짓점 4개 (반시계)
     a = (x1 + hx, y1 + hy, 0.0)
     b = (x2 + hx, y2 + hy, 0.0)
     c = (x2 - hx, y2 - hy, 0.0)
     d = (x1 - hx, y1 - hy, 0.0)
-    # 상단 꼭짓점 4개
     e = (a[0], a[1], height)
     f = (b[0], b[1], height)
     g = (c[0], c[1], height)
@@ -112,7 +144,6 @@ def _write_wall_box_obj(
 
     verts = [a, b, c, d, e, f, g, h]
     lines = [f"v {vx:.6f} {vy:.6f} {vz:.6f}" for vx, vy, vz in verts]
-    # 6면(삼각형 12개)
     lines += [
         "f 1 2 3",
         "f 1 3 4",
@@ -137,12 +168,9 @@ def run_sionna_rt_from_engine_plan(
     samples_per_tx: int = 100_000,
     seed: int = 42,
 ) -> dict[str, Any]:
-    """
-    Engine plan을 받아 Sionna RT RadioMap을 실제 계산한다.
-    """
     try:
         from sionna.rt import ITURadioMaterial, PlanarArray, RadioMapSolver, SceneObject, Transmitter, load_scene
-    except Exception as exc:  # pragma: no cover - 환경 의존
+    except Exception as exc:
         raise ImportError(
             "Sionna runtime is not available. Install runtime dependencies for sionna.rt."
         ) from exc
@@ -251,7 +279,6 @@ def run_sionna_rt_from_engine_plan(
         )
         rss_w = _to_numpy(rm.rss)
 
-    # rss shape이 [H,W], [1,H,W], [1,1,W], [1,1,1] 등으로 올 수 있어 안전하게 2D로 맞춘다.
     while rss_w.ndim > 2:
         rss_w = rss_w[0]
     if rss_w.ndim == 1:
@@ -260,7 +287,29 @@ def run_sionna_rt_from_engine_plan(
         raise ValueError(f"unexpected radiomap rss shape: {rss_w.shape}")
 
     rss_dbm = _rss_w_to_dbm(rss_w)
-    center_dbm = float(rss_dbm[rss_dbm.shape[0] // 2, rss_dbm.shape[1] // 2])
+    valid_mask = rss_dbm > INVALID_DBM_THRESHOLD
+    valid_values = rss_dbm[valid_mask]
+    total_cell_count = int(rss_dbm.size)
+    valid_cell_count = int(valid_values.size)
+    invalid_cell_count = int(total_cell_count - valid_cell_count)
+    valid_ratio = float(valid_cell_count / max(total_cell_count, 1))
+    center_y = rss_dbm.shape[0] // 2
+    center_x = rss_dbm.shape[1] // 2
+    center_dbm, center_valid, center_source = _nearest_valid_cell(rss_dbm, valid_mask, center_y, center_x)
+    if valid_values.size == 0:
+        rss_summary = {"min": None, "max": None, "mean": None}
+    else:
+        rss_summary = {
+            "min": float(np.min(valid_values)),
+            "max": float(np.max(valid_values)),
+            "mean": float(np.mean(valid_values)),
+        }
+    coverage = _coverage_summary(rss_dbm, valid_mask)
+    coverage_valid_only = {
+        "ge_-67": float(coverage["ge_-67"]),
+        "ge_-70": float(coverage["ge_-70"]),
+        "ge_-75": float(coverage["ge_-75"]),
+    }
     return {
         "engine": "sionna_rt",
         "model": "sionna_rt_radiomap",
@@ -279,12 +328,15 @@ def run_sionna_rt_from_engine_plan(
             "max_depth": int(max_depth),
             "seed": int(seed),
         },
-        "rss_dbm": {
-            "min": float(np.min(rss_dbm)),
-            "max": float(np.max(rss_dbm)),
-            "mean": float(np.mean(rss_dbm)),
-        },
+        "valid_cell_count": valid_cell_count,
+        "invalid_cell_count": invalid_cell_count,
+        "valid_ratio": valid_ratio,
+        "rss_dbm": rss_summary,
+        "rss_dbm_valid": rss_summary,
         "center_cell_rss_dbm": center_dbm,
-        "coverage_summary": _coverage_summary(rss_dbm),
+        "center_cell_valid": center_valid,
+        "center_cell_source": center_source,
+        "coverage_summary": coverage,
+        "coverage_summary_valid_only": coverage_valid_only,
+        "coverage_thresholds_dbm": [-67, -70, -75],
     }
-
