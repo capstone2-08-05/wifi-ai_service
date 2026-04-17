@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from fastapi import File, Form, HTTPException, UploadFile
+from app.api.errors import ErrorCode
 
 _ALLOWED_EXTS = {".png", ".jpg", ".jpeg"}
 
@@ -17,13 +18,36 @@ class InferenceUploadRequestDto:
 def _validate_image_upload(file: UploadFile) -> str:
     filename = (file.filename or "").strip()
     if not filename:
-        raise HTTPException(status_code=400, detail="filename is required")
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": {
+                    "code": ErrorCode.INVALID_REQUEST,
+                    "message": "filename is required",
+                    "status": 400,
+                    "layer": "api",
+                    "phase": "request_validate",
+                    "retryable": False,
+                    "context": {},
+                }
+            },
+        )
     ext = filename.lower().rsplit(".", 1)
     ext = f".{ext[-1]}" if len(ext) > 1 else ""
     if ext not in _ALLOWED_EXTS:
         raise HTTPException(
             status_code=415,
-            detail="Unsupported file type. Allowed: png, jpg, jpeg",
+            detail={
+                "error": {
+                    "code": ErrorCode.UNSUPPORTED_FILE_TYPE,
+                    "message": "Unsupported file type. Allowed: png, jpg, jpeg",
+                    "status": 415,
+                    "layer": "api",
+                    "phase": "request_validate",
+                    "retryable": False,
+                    "context": {"extension": ext},
+                }
+            },
         )
     return filename
 
