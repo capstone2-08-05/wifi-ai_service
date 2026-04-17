@@ -19,6 +19,15 @@ YOLO_OUTPUT_DIR = OUTPUT_DIR / "yolo"
 _YOLO_CFG = None
 
 
+def _resolve_weights_path(value: object) -> str:
+    if value is None:
+        return yolo_model_path()
+    text = str(value).strip()
+    if not text or text.lower() in {"none", "null"}:
+        return yolo_model_path()
+    return text
+
+
 def _decode_bgr(image_bytes: bytes) -> np.ndarray:
     buf = np.frombuffer(image_bytes, dtype=np.uint8)
     img = cv2.imdecode(buf, cv2.IMREAD_COLOR)
@@ -29,7 +38,7 @@ def _decode_bgr(image_bytes: bytes) -> np.ndarray:
 
 def preload_yolo_model() -> None:
     cfg = _load_yolo_config()
-    weights = str(cfg.get("model", {}).get("weights_path", "")).strip() or yolo_model_path()
+    weights = _resolve_weights_path(cfg.get("model", {}).get("weights_path"))
     load_yolo_runtime(weights)
 
 
@@ -59,7 +68,7 @@ def run_yolo_inference(file_id: str, image_bytes: bytes, filename: str) -> tuple
     model_cfg = cfg.get("model", {})
     conf = float(infer_cfg.get("conf_threshold", yolo_conf_threshold()))
     preferred_device = str(infer_cfg.get("device", "")).strip() or yolo_device()
-    weights_path = str(model_cfg.get("weights_path", "")).strip() or yolo_model_path()
+    weights_path = _resolve_weights_path(model_cfg.get("weights_path"))
     model, result, device = run_yolo_inference_result(
         img,
         weights_path=weights_path,

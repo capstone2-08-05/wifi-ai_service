@@ -1,0 +1,5 @@
+# RF / Sionna RT runtime
+sionna
+numpy
+matplotlib>=3.8.0
+pydantic>=2
