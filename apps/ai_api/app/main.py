@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.openapi.utils import get_openapi
+from fastapi.responses import JSONResponse
 
+from app.api.errors import AppError, ErrorCode
 from app.api.routes.inference import router as inference_router
 from app.api.routes.sionna import router as sionna_router
 from app.infrastructure.ai_runtime.unet_gateway import preload_unet_model
@@ -10,6 +12,50 @@ from app.infrastructure.settings import preload_models
 app = FastAPI(title="capstone2-ai", version="0.1.0")
 app.include_router(inference_router)
 app.include_router(sionna_router, prefix="/internal", tags=["internal"])
+
+
+@app.exception_handler(AppError)
+async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": {
+                "error": {
+                    "code": exc.code,
+                    "message": exc.detail,
+                    "status": exc.status_code,
+                    "layer": exc.layer,
+                    "phase": exc.phase,
+                    "retryable": exc.retryable,
+                    "context": exc.context,
+                }
+            }
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_error_handler(_: Request, exc: Exception) -> JSONResponse:
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": {
+                "error": {
+                    "code": ErrorCode.INTERNAL_SERVER_ERROR,
+                    "message": "Internal Server Error",
+                    "status": 500,
+                    "layer": "api",
+                    "phase": "unhandled",
+                    "retryable": False,
+                    "context": {},
+                    "cause": {
+                        "type": type(exc).__name__,
+                        "detail": str(exc),
+                    },
+                }
+            }
+        },
+    )
 
 
 def _replace_refs(obj, old_ref: str, new_ref: str):
