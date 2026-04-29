@@ -1,19 +1,50 @@
 """Shared FastAPI dependencies."""
 
-from app.infrastructure.ai_runtime.inference_runner import (
-    run_unet_with_runtime,
-    run_yolo_with_runtime,
-)
-from app.infrastructure.ai_runtime.sionna_gateway import run_sionna_with_runtime
+from __future__ import annotations
+
+from fastapi import File, Form, UploadFile
+
+from app.api.errors import AppError, ErrorCode
+from app.presentation.requests.inference_request_dto import InferenceUploadRequestDto
+
+_ALLOWED_IMAGE_EXTS = {".png", ".jpg", ".jpeg"}
 
 
-def get_unet_runner():
-    return run_unet_with_runtime
+def _validate_image_upload(file: UploadFile) -> str:
+    filename = (file.filename or "").strip()
+    if not filename:
+        raise AppError(
+            status_code=400,
+            detail="filename is required",
+            code=ErrorCode.INVALID_REQUEST,
+            layer="api",
+            phase="request_validate",
+            retryable=False,
+            context={},
+        )
+    parts = filename.lower().rsplit(".", 1)
+    ext = f".{parts[-1]}" if len(parts) > 1 else ""
+    if ext not in _ALLOWED_IMAGE_EXTS:
+        raise AppError(
+            status_code=415,
+            detail="Unsupported file type. Allowed: png, jpg, jpeg",
+            code=ErrorCode.UNSUPPORTED_FILE_TYPE,
+            layer="api",
+            phase="request_validate",
+            retryable=False,
+            context={"extension": ext},
+        )
+    return filename
 
 
-def get_yolo_runner():
-    return run_yolo_with_runtime
-
-
-def get_sionna_runner():
-    return run_sionna_with_runtime
+async def parse_inference_upload_request(
+    file_id: str = Form(...),
+    file: UploadFile = File(...),
+) -> InferenceUploadRequestDto:
+    filename = _validate_image_upload(file)
+    image_bytes = await file.read()
+    return InferenceUploadRequestDto(
+        file_id=file_id,
+        filename=filename,
+        image_bytes=image_bytes,
+    )
