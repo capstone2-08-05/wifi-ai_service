@@ -34,7 +34,10 @@ phases:
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
       - echo ECR_URI=$ECR_URI
       - echo IMAGE_TAG=$IMAGE_TAG
-
+      - echo Downloading model weights from S3...
+      - mkdir -p apps/trainer/src/models/unet apps/trainer/src/models/yolo
+      - aws s3 cp s3://wificapstone-ai-artifacts/models/unet/best_unet.pth apps/trainer/src/models/unet/best_unet.pth
+      - aws s3 cp s3://wificapstone-ai-artifacts/models/yolo/best.pt apps/trainer/src/models/yolo/best.pt
   build:
     commands:
       - echo Building Docker image...
