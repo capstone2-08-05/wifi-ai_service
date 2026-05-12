@@ -57,28 +57,28 @@ async def invocations(request: Request) -> JSONResponse:
         result = handle_invocation(body)
         return JSONResponse(content=result, status_code=HttpStatus.OK)
     except ContractError as exc:
-        logger.warning("ContractError: %s — %s", exc.code, exc.message)
+        logger.warning("ContractError: %s — %s", exc.code.value, exc.message)
         return JSONResponse(
             status_code=HttpStatus.CONTRACT_ERROR,
             content={
                 "error": {
-                    "code": str(exc.code),
-                    "stage": str(ErrorStage.VALIDATE_INPUT),
+                    "code": exc.code.value,
+                    "stage": ErrorStage.VALIDATE_INPUT.value,
                     "message": exc.message,
                     "details": exc.details,
                 }
             },
         )
     except HandlerError as exc:
-        logger.warning("HandlerError: %s (stage=%s) — %s", exc.code, exc.stage, exc.message)
+        logger.warning("HandlerError: %s (stage=%s) — %s", exc.code.value, exc.stage.value, exc.message)
         # SageMaker 가 FailureLocation 에 쓸 수 있도록 5xx 로 응답.
         # 컨테이너는 이미 output_prefix/failure.json 도 PUT 했음 (handler 내부).
         return JSONResponse(
             status_code=HttpStatus.HANDLER_ERROR,
             content={
                 "error": {
-                    "code": str(exc.code),
-                    "stage": str(exc.stage),
+                    "code": exc.code.value,
+                    "stage": exc.stage.value,
                     "message": exc.message,
                     "retryable": exc.retryable,
                     "details": exc.details,
@@ -91,8 +91,8 @@ async def invocations(request: Request) -> JSONResponse:
             status_code=HttpStatus.INTERNAL_ERROR,
             content={
                 "error": {
-                    "code": str(ErrorCode.INTERNAL_ERROR),
-                    "stage": str(ErrorStage.UNKNOWN),
+                    "code": ErrorCode.INTERNAL_ERROR.value,
+                    "stage": ErrorStage.UNKNOWN.value,
                     "message": str(exc) or repr(exc),
                     "retryable": True,
                 }

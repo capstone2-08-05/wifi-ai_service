@@ -1,13 +1,16 @@
 """상수 및 enum 중앙 관리.
 
-도메인 문자열은 모두 StrEnum 으로, 수치/경로 기본값은 모듈 상수로 정의.
+도메인 문자열은 모두 `class X(str, Enum)` 패턴으로, 수치/경로 기본값은 모듈 상수로 정의.
 다른 모듈은 여기서 import 만 한다.
 """
 from __future__ import annotations
 
 import os
-from enum import StrEnum
+from enum import Enum
 from pathlib import Path
+
+# 주의: StrEnum 은 Python 3.11+ 전용. PyTorch base image 의 Python 이 3.10 일 수
+# 있으므로 `class X(str, Enum)` 패턴을 사용한다 (3.7+ 호환).
 
 
 # ============================================================
@@ -49,7 +52,7 @@ DEFAULT_DEVICE_MODE = "auto"
 # ============================================================
 # 환경변수 이름
 # ============================================================
-class EnvVar(StrEnum):
+class EnvVar(str, Enum):
     UNET_CHECKPOINT_PATH = "UNET_CHECKPOINT_PATH"
     UNET_CONFIG_PATH = "UNET_CONFIG_PATH"
     YOLO_MODEL_PATH = "YOLO_MODEL_PATH"
@@ -64,7 +67,7 @@ class EnvVar(StrEnum):
 # ============================================================
 # output_prefix 하위 고정 파일명
 # ============================================================
-class OutputFile(StrEnum):
+class OutputFile(str, Enum):
     """계약 README 의 "출력 파일 규약" 표와 일치해야 함."""
     RESULT = "result.json"
     FAILURE = "failure.json"
@@ -83,7 +86,7 @@ class OutputFile(StrEnum):
 # ============================================================
 # stages 키 (result.json 의 시간 측정)
 # ============================================================
-class StageMs(StrEnum):
+class StageMs(str, Enum):
     DOWNLOAD = "download_ms"
     UNET = "unet_ms"
     YOLO = "yolo_ms"
@@ -94,7 +97,7 @@ class StageMs(StrEnum):
 # ============================================================
 # failure.json 의 error.code
 # ============================================================
-class ErrorCode(StrEnum):
+class ErrorCode(str, Enum):
     INVALID_INPUT = "INVALID_INPUT"
     UNSUPPORTED_SCHEMA_VERSION = "UNSUPPORTED_SCHEMA_VERSION"
     SOURCE_IMAGE_DOWNLOAD_FAILED = "SOURCE_IMAGE_DOWNLOAD_FAILED"
@@ -108,7 +111,7 @@ class ErrorCode(StrEnum):
 # ============================================================
 # failure.json 의 error.stage
 # ============================================================
-class ErrorStage(StrEnum):
+class ErrorStage(str, Enum):
     VALIDATE_INPUT = "validate_input"
     DOWNLOAD_SOURCE = "download_source"
     DECODE_IMAGE = "decode_image"

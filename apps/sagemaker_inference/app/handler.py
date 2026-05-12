@@ -136,7 +136,7 @@ def handle_invocation(payload_bytes: bytes) -> dict[str, Any]:
                 retryable=True,
                 details={"source_image_s3_uri": parsed.source_image_s3_uri},
             ) from exc
-        sw.mark(str(StageMs.DOWNLOAD))
+        sw.mark(StageMs.DOWNLOAD.value)
 
         # 3) 이미지 디코드
         image_bgr = _decode_bgr(image_bytes)
@@ -163,7 +163,7 @@ def handle_invocation(payload_bytes: bytes) -> dict[str, Any]:
         else:
             prob_map = np.zeros((height_px, width_px), dtype=np.float32)
             unet_rt = {"model": "skipped", "device": device_resolved, "mode": "skipped"}
-        sw.mark(str(StageMs.UNET))
+        sw.mark(StageMs.UNET.value)
 
         # 5) YOLO 추론
         yolo_conf = float(
@@ -184,7 +184,7 @@ def handle_invocation(payload_bytes: bytes) -> dict[str, Any]:
             detections = []
             yolo_model_used = "skipped"
             yolo_device = device_resolved
-        sw.mark(str(StageMs.YOLO))
+        sw.mark(StageMs.YOLO.value)
 
         # 6) 출력 인코딩 + S3 업로드
         try:
@@ -219,11 +219,11 @@ def handle_invocation(payload_bytes: bytes) -> dict[str, Any]:
                 retryable=True,
                 details={"failed_uri": str(exc)[:200]},
             ) from exc
-        sw.mark(str(StageMs.UPLOAD))
+        sw.mark(StageMs.UPLOAD.value)
 
         # 7) result.json 작성
         stages = dict(sw.stages)
-        stages[str(StageMs.TOTAL)] = int((time.perf_counter() - t0) * 1000)
+        stages[StageMs.TOTAL.value] = int((time.perf_counter() - t0) * 1000)
         result = build_result(
             parsed=parsed,
             output_prefix=output_prefix,

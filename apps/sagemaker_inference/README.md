@@ -25,7 +25,9 @@ sagemaker_inference/
 └── tests/
 ```
 
-## 출력 5종 (output_prefix 하위)
+## 출력 파일 (output_prefix 하위)
+
+### 성공 시 (5종)
 
 | 파일 | 형식 | 용도 |
 |---|---|---|
@@ -34,7 +36,12 @@ sagemaker_inference/
 | `wall_prob_map.npy` | numpy float32 | U-Net 확률 맵 (H×W) |
 | `detections.json` | JSON | YOLO bbox + class + score |
 | `preview_overlay.png` | PNG | 시각화 (벽 heatmap + bbox) |
-| `failure.json` | JSON | 실패 시. result.json 과 상호 배타적 |
+
+### 실패 시 (1종, result.json 과 상호 배타적)
+
+| 파일 | 형식 | 용도 |
+|---|---|---|
+| `failure.json` | JSON | 컨테이너 측 실패 정보 (`error.code`, `error.stage` 등) |
 
 ## 로컬 개발
 
@@ -92,7 +99,7 @@ python apps/sagemaker_inference/scripts/run_local_invocation.py \
 - 응답 본문 = result.json 내용
 
 실패하면:
-- `output_prefix/failure.json` 생성
+- `output_prefix/failure.json` 1개 생성 (result.json 등은 생성되지 않음)
 - HTTP 4xx/5xx + 에러 JSON 응답
 
 ## SageMaker 규격 준수 확인

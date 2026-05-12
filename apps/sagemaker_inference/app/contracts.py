@@ -201,8 +201,8 @@ def build_failure(
         "floor_id": floor_id,
         "failed_at": _now_iso(),
         "error": {
-            "code": str(code),
-            "stage": str(stage),
+            "code": code.value,
+            "stage": stage.value,
             "message": message,
             "retryable": retryable,
             "details": details or {},
