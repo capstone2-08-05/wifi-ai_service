@@ -1,0 +1,76 @@
+# Docker build context 축소.
+# build context 가 rf-service/ 라 이 파일이 적용된다.
+# (apps/sagemaker_inference/.dockerignore 는 적용 안 됨)
+
+# ============================================
+# Version control
+# ============================================
+.git
+.gitignore
+.gitattributes
+
+# ============================================
+# Python
+# ============================================
+**/__pycache__
+**/.venv
+**/venv
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.coverage
+**/htmlcov
+
+# ============================================
+# IDE / OS
+# ============================================
+**/.idea
+**/.vscode
+**/.vs
+**/*.swp
+**/*.swo
+**/.DS_Store
+**/Thumbs.db
+
+# ============================================
+# 데이터 / 실험 산출물
+# ============================================
+**/data
+**/output
+**/outputs
+**/runs
+**/wandb
+**/.ipynb_checkpoints
+**/artifacts
+
+# ============================================
+# 학습 체크포인트 — 컨테이너에 굽는 best_*.{pth,pt} 만 예외로 포함
+# ============================================
+apps/trainer/src/models/**
+!apps/trainer/src/models/
+!apps/trainer/src/models/unet/
+!apps/trainer/src/models/unet/best_unet.pth
+!apps/trainer/src/models/yolo/
+!apps/trainer/src/models/yolo/best.pt
+
+# ============================================
+# 다른 앱의 빌드 / 테스트 산출물
+# ============================================
+apps/ai_api/data
+apps/sagemaker_inference/tests
+apps/sagemaker_inference/scripts
+
+# Docker 메타
+**/Dockerfile.bak
+**/.dockerignore.bak
+
+# 환경 파일
+**/.env
+**/.env.*
+!**/.env.example
+
+# 로그
+**/*.log

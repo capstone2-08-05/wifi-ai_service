@@ -1,0 +1,10 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+boto3==1.35.36
+jsonschema==4.23.0
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+PyYAML==6.0.2
+ultralytics==8.3.27
+# torch 는 base image 에 이미 포함됨 (pytorch CUDA runtime)
