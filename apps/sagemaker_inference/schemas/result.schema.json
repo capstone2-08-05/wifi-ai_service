@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capstone2/contracts/ai-inference/result.schema.json",
+  "title": "AI Inference Result (Success)",
+  "description": "정상 종료 시 output_prefix/result.json 에 기록되는 페이로드.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "job_id",
+    "completed_at",
+    "outputs",
+    "stages",
+    "image"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "status": {
+      "type": "string",
+      "const": "completed"
+    },
+    "job_id": {
+      "type": "string",
+      "description": "input.json 의 job_id 와 동일."
+    },
+    "project_id": {
+      "type": ["string", "null"],
+      "description": "input.json 의 project_id echo back."
+    },
+    "floor_id": {
+      "type": ["string", "null"],
+      "description": "input.json 의 floor_id echo back."
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "컨테이너가 /invocations 를 받은 시각 (UTC ISO8601)."
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "결과 업로드 완료 직전 시각 (UTC ISO8601)."
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result_s3_uri",
+        "wall_mask_s3_uri",
+        "wall_prob_map_s3_uri",
+        "detections_s3_uri",
+        "preview_overlay_s3_uri"
+      ],
+      "properties": {
+        "result_s3_uri": { "type": "string", "pattern": "^s3://" },
+        "wall_mask_s3_uri": { "type": "string", "pattern": "^s3://" },
+        "wall_prob_map_s3_uri": { "type": "string", "pattern": "^s3://" },
+        "detections_s3_uri": { "type": "string", "pattern": "^s3://" },
+        "preview_overlay_s3_uri": { "type": "string", "pattern": "^s3://" }
+      }
+    },
+    "stages": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "컨테이너 측 각 단계별 실행 시간(ms). SceneDraft 변환은 백엔드 책임이라 여기 포함되지 않음.",
+      "properties": {
+        "download_ms": { "type": "integer", "minimum": 0 },
+        "unet_ms": { "type": "integer", "minimum": 0 },
+        "yolo_ms": { "type": "integer", "minimum": 0 },
+        "upload_ms": { "type": "integer", "minimum": 0 },
+        "total_ms": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width_px", "height_px"],
+      "description": "컨테이너가 디코딩한 원본 이미지 크기. 픽셀↔미터 변환은 백엔드가 자체적으로 real_width_m 을 곱해 수행.",
+      "properties": {
+        "width_px": { "type": "integer", "minimum": 1 },
+        "height_px": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "관측/디버깅용 정보.",
+      "properties": {
+        "container_version": { "type": "string" },
+        "device": { "type": "string", "description": "예: cuda:0, cpu" },
+        "unet_model": { "type": "string" },
+        "yolo_model": { "type": "string" }
+      }
+    },
+    "echo": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "input.json 의 metadata 필드를 그대로 echo back."
+    }
+  }
+}

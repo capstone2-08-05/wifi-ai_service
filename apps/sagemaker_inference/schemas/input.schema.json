@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capstone2/contracts/ai-inference/input.schema.json",
+  "title": "AI Inference Input",
+  "description": "SageMaker Async Inference 컨테이너가 input.json 으로 받는 페이로드.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "job_id",
+    "source_image_s3_uri",
+    "output_prefix",
+    "tasks"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "계약 스키마 버전. 컨테이너는 이 값으로 호환성 판단."
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_\\-]{1,64}$",
+      "description": "추론 작업 식별자. 백엔드가 발급 (UUID 권장)."
+    },
+    "project_id": {
+      "type": ["string", "null"],
+      "description": "백엔드 프로젝트 UUID. 컨테이너는 사용하지 않지만 로깅/관측용으로 결과에 echo back."
+    },
+    "floor_id": {
+      "type": ["string", "null"],
+      "description": "백엔드 층 UUID. 컨테이너는 사용하지 않지만 로깅/관측용으로 결과에 echo back."
+    },
+    "source_image_s3_uri": {
+      "type": "string",
+      "pattern": "^s3://[a-z0-9.\\-]{3,63}/.+",
+      "description": "원본 도면 이미지의 S3 URI. PNG/JPG/JPEG 지원."
+    },
+    "output_prefix": {
+      "type": "string",
+      "pattern": "^s3://[a-z0-9.\\-]{3,63}/.+/$",
+      "description": "출력 파일을 쓸 S3 prefix. 반드시 `/` 로 끝나야 함. 이 아래에 result.json / scene_draft.json 등이 생성됨."
+    },
+    "tasks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wall_segmentation",
+        "object_detection"
+      ],
+      "properties": {
+        "wall_segmentation": {
+          "type": "boolean",
+          "description": "U-Net 벽 세그멘테이션 수행 여부."
+        },
+        "object_detection": {
+          "type": "boolean",
+          "description": "YOLO 객체 탐지 수행 여부."
+        }
+      }
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "선택적 튜닝 파라미터. 컨테이너 버전마다 지원 범위 다름.",
+      "properties": {
+        "yolo_conf_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "YOLO confidence 임계값. 미지정 시 컨테이너 기본값."
+        },
+        "unet_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "U-Net 확률 → binary mask 변환 임계값."
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "백엔드가 추적용으로 첨부하는 임의 메타데이터. 컨테이너는 result.json 에 echo back."
+    }
+  }
+}

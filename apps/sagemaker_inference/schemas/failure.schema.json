@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capstone2/contracts/ai-inference/failure.schema.json",
+  "title": "AI Inference Failure",
+  "description": "예측 가능한 실패 시 output_prefix/failure.json 에 기록되는 페이로드. SageMaker가 자동 생성하는 FailureLocation 파일과 별개로, 컨테이너가 명시적으로 작성함.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "job_id",
+    "failed_at",
+    "error"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "status": {
+      "type": "string",
+      "const": "failed"
+    },
+    "job_id": { "type": "string" },
+    "project_id": { "type": ["string", "null"] },
+    "floor_id": { "type": ["string", "null"] },
+    "started_at": { "type": "string", "format": "date-time" },
+    "failed_at": { "type": "string", "format": "date-time" },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "stage", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "INVALID_INPUT",
+            "UNSUPPORTED_SCHEMA_VERSION",
+            "SOURCE_IMAGE_DOWNLOAD_FAILED",
+            "SOURCE_IMAGE_DECODE_FAILED",
+            "UNET_INFERENCE_FAILED",
+            "YOLO_INFERENCE_FAILED",
+            "OUTPUT_UPLOAD_FAILED",
+            "INTERNAL_ERROR"
+          ],
+          "description": "에러 분류. 자세한 매핑은 error_codes.md 참조. SceneDraft 변환은 백엔드 책임이라 코드 목록에 포함되지 않음."
+        },
+        "stage": {
+          "type": "string",
+          "enum": [
+            "validate_input",
+            "download_source",
+            "decode_image",
+            "wall_segmentation",
+            "object_detection",
+            "upload_outputs",
+            "unknown"
+          ],
+          "description": "컨테이너 처리 단계."
+        },
+        "message": {
+          "type": "string",
+          "description": "사람이 읽을 수 있는 에러 설명 (디버깅용; 사용자 노출용 아님)."
+        },
+        "retryable": {
+          "type": "boolean",
+          "default": false,
+          "description": "백엔드가 동일 input 으로 재시도할 가치가 있는지 힌트."
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "에러별 부가 정보. 예: S3 URI, 잘못된 필드명, 모델 출력 shape."
+        }
+      }
+    },
+    "partial_outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "실패 전에 업로드된 일부 산출물의 S3 URI. 백엔드가 부분 결과 정리에 사용 가능.",
+      "properties": {
+        "wall_mask_s3_uri": { "type": "string", "pattern": "^s3://" },
+        "wall_prob_map_s3_uri": { "type": "string", "pattern": "^s3://" },
+        "detections_s3_uri": { "type": "string", "pattern": "^s3://" }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "container_version": { "type": "string" },
+        "device": { "type": "string" }
+      }
+    },
+    "echo": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}
