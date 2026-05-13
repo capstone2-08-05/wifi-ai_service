@@ -108,6 +108,8 @@ python apps/sagemaker_inference/scripts/run_local_invocation.py \
 - ✅ `/invocations` : POST 본문 처리, JSON 응답
 - ✅ 포트 8080
 - ✅ stderr/stdout 로그 (CloudWatch 자동 수집)
+- ✅ **`docker run <image> serve` 호출 형태 지원** — SageMaker hosting 은 컨테이너를 이 형태로 실행함.
+  `serve` 스크립트가 ENTRYPOINT 로 등록되어 인자를 받아 uvicorn 실행. 로컬 `docker run <image>` 도 동일하게 동작.
 
 ## 환경변수
 
