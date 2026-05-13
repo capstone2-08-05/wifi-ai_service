@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# SageMaker BYOC 는 컨테이너를 `docker run <image> serve` 형태로 실행한다.
+# 로컬 `docker run <image>` 에서도 동일하게 동작하도록 serve 인자가 들어오면 무시한다.
+if [ "${1:-}" = "serve" ]; then
+  shift
+fi
+
+exec uvicorn app.main:app \
+  --host 0.0.0.0 \
+  --port 8080 \
+  --workers 1
