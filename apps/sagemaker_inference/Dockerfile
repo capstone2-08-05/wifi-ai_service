@@ -38,6 +38,13 @@ COPY packages /opt/app/packages
 COPY apps/sagemaker_inference/app     /opt/app/app
 COPY apps/sagemaker_inference/schemas /opt/app/schemas
 
+# --- 7. SageMaker BYOC entrypoint ---------------------------------------
+# SageMaker hosting 은 컨테이너를 `docker run <image> serve` 로 띄움.
+# /usr/local/bin/serve 를 ENTRYPOINT 로 둬서 두 케이스 모두 처리.
+# sed: Windows 에서 빌드 컨텍스트를 만든 경우 CRLF 가 섞여 들어오는 걸 방어.
+COPY apps/sagemaker_inference/serve /usr/local/bin/serve
+RUN sed -i 's/\r$//' /usr/local/bin/serve && chmod +x /usr/local/bin/serve
+
 # --- Env ---------------------------------------------------------------
 ENV PYTHONPATH=/opt/app \
     PYTHONUNBUFFERED=1 \
@@ -55,4 +62,6 @@ EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=4s --start-period=120s --retries=3 \
     CMD curl -fsS http://localhost:8080/ping || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+# SageMaker 가 `docker run <image> serve` 로 호출하면 ENTRYPOINT 가 받아서 처리.
+# 로컬 `docker run <image>` 도 동일하게 동작.
+ENTRYPOINT ["serve"]
