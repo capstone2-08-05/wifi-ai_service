@@ -23,39 +23,61 @@ from app.contracts import AccessPoint, ParsedInput, SimulationParams
 
 logger = logging.getLogger(__name__)
 
-# Mitsuba variant 를 sionna.rt import 전에 강제 설정.
-# - cuda_ad_rgb: GPU (OptiX 필요). Dockerfile 의 NVIDIA_DRIVER_CAPABILITIES 에 'graphics' 가
-#   포함되고 NVIDIA driver 가 OptiX 지원해야 동작.
-# - llvm_ad_rgb: CPU JIT — 느리지만 어떤 인스턴스에서도 동작.
-# 기본은 GPU 시도 → 실패 시 자동으로 CPU 폴백.
+# Mitsuba variant 설정 — sionna.rt import 전에 결정.
+#   cuda_ad_rgb : GPU (OptiX). Dockerfile NVIDIA_DRIVER_CAPABILITIES 에 'graphics' 필수.
+#   llvm_ad_rgb : CPU JIT. 느리지만 의존성 없음.
+#
+# 중요: mi.set_variant() 는 lazy — 변수만 세팅하고 OptiX 초기화는 첫 ray tracing 호출
+# 시점에 일어난다. 그래서 단순히 set_variant 만으로는 GPU 가능 여부 판단 불가.
+# 여기선 **실제로 작은 ray tracing 작업을 한 번 돌려서** OptiX 가 살아있는지 확인한 뒤,
+# 실패 시 CPU 로 영구 전환한다. 이후 sionna_runtime 호출은 활성 variant 로 동작.
 _PREFERRED_VARIANT = os.getenv("MITSUBA_VARIANT", "cuda_ad_rgb")
 _FALLBACK_VARIANT = "llvm_ad_rgb"
-ACTIVE_MITSUBA_VARIANT = _FALLBACK_VARIANT  # set 성공 시 갱신
+ACTIVE_MITSUBA_VARIANT = _FALLBACK_VARIANT  # 확정 후 갱신
 
-try:
-    import mitsuba as mi  # type: ignore[import-not-found]
 
+def _probe_variant(variant: str) -> bool:
+    """주어진 variant 로 set_variant + 작은 render 1회 → 실제 OptiX/CPU 초기화까지 확인.
+
+    True 반환 시 그 variant 가 진짜로 동작. False 면 set 또는 render 단계에서 실패.
+    """
     try:
-        mi.set_variant(_PREFERRED_VARIANT)
-        ACTIVE_MITSUBA_VARIANT = _PREFERRED_VARIANT
-        logger.info("Mitsuba variant: %s (preferred)", _PREFERRED_VARIANT)
-    except Exception as exc:
-        # GPU/OptiX 초기화 실패 시 CPU 로 자동 폴백 — 시뮬은 계속 됨.
-        logger.warning(
-            "Mitsuba %s failed (%s) — falling back to %s (CPU)",
-            _PREFERRED_VARIANT, exc, _FALLBACK_VARIANT,
+        import mitsuba as mi  # type: ignore[import-not-found]
+
+        mi.set_variant(variant)
+        # 최소 scene + render 1 spp 로 OptiX/LLVM 백엔드 강제 초기화.
+        scene = mi.load_dict(
+            {
+                "type": "scene",
+                "integrator": {"type": "path"},
+                "sensor": {
+                    "type": "perspective",
+                    "film": {"type": "hdrfilm", "width": 2, "height": 2},
+                },
+                "shape": {"type": "sphere"},
+            }
         )
-        try:
-            mi.set_variant(_FALLBACK_VARIANT)
-            ACTIVE_MITSUBA_VARIANT = _FALLBACK_VARIANT
-            logger.info("Mitsuba variant: %s (fallback)", _FALLBACK_VARIANT)
-        except Exception as exc2:
-            logger.error(
-                "Mitsuba CPU fallback also failed (%s) — sionna.rt will fail at first call",
-                exc2,
-            )
-except ImportError as exc:
-    logger.warning("Mitsuba import failed: %s — sionna.rt unavailable", exc)
+        mi.render(scene, spp=1)
+        return True
+    except Exception as exc:
+        logger.warning("Mitsuba variant probe failed (%s): %s", variant, exc)
+        return False
+
+
+# 1차: 선호 variant (보통 GPU) 실측 → 안 되면 CPU 로 폴백.
+if _probe_variant(_PREFERRED_VARIANT):
+    ACTIVE_MITSUBA_VARIANT = _PREFERRED_VARIANT
+    logger.info("Mitsuba variant: %s (preferred, probed OK)", _PREFERRED_VARIANT)
+elif _PREFERRED_VARIANT != _FALLBACK_VARIANT and _probe_variant(_FALLBACK_VARIANT):
+    ACTIVE_MITSUBA_VARIANT = _FALLBACK_VARIANT
+    logger.warning(
+        "Mitsuba %s probe failed — using %s (CPU) for the rest of this process",
+        _PREFERRED_VARIANT, _FALLBACK_VARIANT,
+    )
+else:
+    logger.error(
+        "Both Mitsuba variants failed to initialize. sionna.rt will fail at first call.",
+    )
 
 
 def default_device() -> str:
