@@ -182,18 +182,64 @@ def run_simulation_for_all_aps(
     aggregate_db: np.ndarray | None = None
     last_meta: dict[str, Any] = {}
 
+    # === 입력 scene 디버그 dump — Sionna 가 죽을 때 원인 추적용 ===========
+    raw_walls = scene_dict.get("walls") or []
+    raw_rooms = scene_dict.get("rooms") or []
+    logger.info(
+        "[RF_DEBUG] num_aps=%d num_walls(raw)=%d num_rooms(raw)=%d mitsuba=%s",
+        len(parsed.access_points), len(raw_walls), len(raw_rooms),
+        ACTIVE_MITSUBA_VARIANT,
+    )
+    logger.info(
+        "[RF_DEBUG] sim freq_Hz=%.0f tx_dBm=%.1f res_m=%.3f max_depth=%d "
+        "samples_per_tx=%d measurement_z_m=%.2f",
+        sim.frequency_hz, sim.tx_power_dbm, sim.resolution_m, sim.max_depth,
+        sim.samples_per_tx, sim.measurement_plane_z_m,
+    )
+    for i, ap in enumerate(parsed.access_points[:5]):
+        logger.info(
+            "[RF_DEBUG] ap[%d] id=%s pos=(%.3f, %.3f, %.3f)",
+            i, ap.id, ap.x_m, ap.y_m, ap.z_m,
+        )
+    for i, w in enumerate(raw_walls[:8]):
+        logger.info("[RF_DEBUG] wall[%d] %s", i, w)
+    if raw_rooms:
+        logger.info(
+            "[RF_DEBUG] room[0] points_count=%d sample=%s",
+            len(raw_rooms[0].get("points") or []),
+            (raw_rooms[0].get("points") or [])[:3],
+        )
+
     for ap in parsed.access_points:
         plan = _build_engine_plan(scene_dict, ap, sim)
+        # 변환된 plan 의 wall/room 개수도 한 번 더 확인 (필터링 후 남은 수).
+        plan_walls = plan.get("scene_plan", {}).get("walls", [])
+        plan_rooms = plan.get("scene_plan", {}).get("rooms", [])
+        logger.info(
+            "[RF_DEBUG] engine_plan ap=%s plan_walls=%d plan_rooms=%d",
+            ap.id, len(plan_walls), len(plan_rooms),
+        )
         logger.info(
             "Sionna RT start ap_id=%s freq_GHz=%.3f res_m=%.3f max_depth=%d",
             ap.id, sim.frequency_hz / 1e9, sim.resolution_m, sim.max_depth,
         )
-        rt_out = run_sionna_rt_from_engine_plan(
-            plan,
-            cell_size_m=float(sim.resolution_m),
-            samples_per_tx=int(sim.samples_per_tx),
-            seed=int(sim.seed),
-        )
+        try:
+            rt_out = run_sionna_rt_from_engine_plan(
+                plan,
+                cell_size_m=float(sim.resolution_m),
+                samples_per_tx=int(sim.samples_per_tx),
+                seed=int(sim.seed),
+            )
+        except Exception:
+            # CloudWatch 에 full traceback 을 남겨야 진짜 원인이 보임.
+            # handler 가 위에서 다시 wrap 하기 전에 raw exc 를 여기서 먼저 기록.
+            logger.exception(
+                "[RF_ERROR] run_sionna_rt_from_engine_plan failed ap=%s "
+                "(variant=%s, walls=%d, samples=%d, max_depth=%d)",
+                ap.id, ACTIVE_MITSUBA_VARIANT, len(plan_walls),
+                sim.samples_per_tx, sim.max_depth,
+            )
+            raise
         dbm = np.asarray(rt_out["radiomap_dbm"], dtype=np.float32)
 
         if aggregate_db is None:

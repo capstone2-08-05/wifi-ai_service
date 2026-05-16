@@ -95,12 +95,24 @@ def handle_invocation(payload_bytes: bytes) -> dict[str, Any]:
         try:
             sim_out = run_simulation_for_all_aps(parsed, scene_dict)
         except Exception as exc:
+            # CloudWatch 에 full traceback 명시 기록 — wrap 된 메시지만 보면
+            # Dr.Jit 같은 내부 라이브러리의 진짜 에러 위치가 가려져서 진단 불가.
+            logger.exception(
+                "[RF_ERROR] Sionna RT failed at ray_tracing stage "
+                "(num_aps=%d, num_walls=%d)",
+                len(parsed.access_points),
+                len(scene_dict.get("walls") or []),
+            )
             raise HandlerError(
                 ErrorCode.SIMULATION_FAILED,
                 ErrorStage.RAY_TRACING,
                 f"Sionna RT failed: {exc}",
                 retryable=True,
-                details={"num_aps": len(parsed.access_points)},
+                details={
+                    "num_aps": len(parsed.access_points),
+                    "num_walls": len(scene_dict.get("walls") or []),
+                    "exc_type": type(exc).__name__,
+                },
             ) from exc
         sw.mark(StageMs.RAY_TRACING.value)
 
