@@ -36,11 +36,20 @@ COPY apps/sagemaker_rf_inference/serve /usr/local/bin/serve
 RUN sed -i 's/\r$//' /usr/local/bin/serve && chmod +x /usr/local/bin/serve
 
 # --- Env ---------------------------------------------------------------
+# NVIDIA_DRIVER_CAPABILITIES: 기본값 'compute,utility' 만으론 OptiX(ray tracing) 라이브러리가
+# 컨테이너에 mount 되지 않아 Sionna RT 가 "Could not initialize OptiX!" 로 실패.
+# 'graphics' 를 추가하면 NVIDIA Container Toolkit 이 libnvoptix.so 도 mount.
+# MITSUBA_VARIANT: runtime.py 가 import 직후 mi.set_variant() 에 사용. GPU 가 정상이면
+# cuda_ad_rgb, 실패 시 코드가 llvm_ad_rgb(CPU) 로 자동 폴백.
 ENV PYTHONPATH=/opt/app \
     PYTHONUNBUFFERED=1 \
     DEFAULT_DEVICE=auto \
-    CONTAINER_VERSION=rf-inference@0.1.0 \
-    TF_CPP_MIN_LOG_LEVEL=2
+    CONTAINER_VERSION=rf-inference@0.1.1-optix \
+    TF_CPP_MIN_LOG_LEVEL=2 \
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics \
+    NVIDIA_VISIBLE_DEVICES=all \
+    MITSUBA_VARIANT=cuda_ad_rgb \
+    LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/lib/x86_64-linux-gnu
 
 # SageMaker BYOC 는 8080 포트 표준
 EXPOSE 8080

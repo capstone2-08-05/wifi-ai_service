@@ -23,20 +23,39 @@ from app.contracts import AccessPoint, ParsedInput, SimulationParams
 
 logger = logging.getLogger(__name__)
 
-# Mitsuba variant 를 sionna.rt import 전에 강제 — OptiX 초기화 실패 회피.
-# `cuda_ad_rgb` 는 NVIDIA OptiX SDK 가 컨테이너에 있어야 동작.
-# `llvm_ad_rgb` 는 CPU JIT (LLVM) — 느리지만 의존성 없음.
-_MITSUBA_VARIANT = os.getenv("MITSUBA_VARIANT", "llvm_ad_rgb")
+# Mitsuba variant 를 sionna.rt import 전에 강제 설정.
+# - cuda_ad_rgb: GPU (OptiX 필요). Dockerfile 의 NVIDIA_DRIVER_CAPABILITIES 에 'graphics' 가
+#   포함되고 NVIDIA driver 가 OptiX 지원해야 동작.
+# - llvm_ad_rgb: CPU JIT — 느리지만 어떤 인스턴스에서도 동작.
+# 기본은 GPU 시도 → 실패 시 자동으로 CPU 폴백.
+_PREFERRED_VARIANT = os.getenv("MITSUBA_VARIANT", "cuda_ad_rgb")
+_FALLBACK_VARIANT = "llvm_ad_rgb"
+ACTIVE_MITSUBA_VARIANT = _FALLBACK_VARIANT  # set 성공 시 갱신
+
 try:
     import mitsuba as mi  # type: ignore[import-not-found]
 
-    mi.set_variant(_MITSUBA_VARIANT)
-    logger.info("Mitsuba variant set to %s", _MITSUBA_VARIANT)
-except Exception as exc:
-    logger.warning(
-        "Mitsuba variant set to %s failed (%s) — sionna.rt may pick its default",
-        _MITSUBA_VARIANT, exc,
-    )
+    try:
+        mi.set_variant(_PREFERRED_VARIANT)
+        ACTIVE_MITSUBA_VARIANT = _PREFERRED_VARIANT
+        logger.info("Mitsuba variant: %s (preferred)", _PREFERRED_VARIANT)
+    except Exception as exc:
+        # GPU/OptiX 초기화 실패 시 CPU 로 자동 폴백 — 시뮬은 계속 됨.
+        logger.warning(
+            "Mitsuba %s failed (%s) — falling back to %s (CPU)",
+            _PREFERRED_VARIANT, exc, _FALLBACK_VARIANT,
+        )
+        try:
+            mi.set_variant(_FALLBACK_VARIANT)
+            ACTIVE_MITSUBA_VARIANT = _FALLBACK_VARIANT
+            logger.info("Mitsuba variant: %s (fallback)", _FALLBACK_VARIANT)
+        except Exception as exc2:
+            logger.error(
+                "Mitsuba CPU fallback also failed (%s) — sionna.rt will fail at first call",
+                exc2,
+            )
+except ImportError as exc:
+    logger.warning("Mitsuba import failed: %s — sionna.rt unavailable", exc)
 
 
 def default_device() -> str:
