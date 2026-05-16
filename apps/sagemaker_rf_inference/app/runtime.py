@@ -24,15 +24,16 @@ from app.contracts import AccessPoint, ParsedInput, SimulationParams
 logger = logging.getLogger(__name__)
 
 # Mitsuba variant 설정 — sionna.rt import 전에 결정.
-#   cuda_ad_rgb : GPU (OptiX). Dockerfile NVIDIA_DRIVER_CAPABILITIES 에 'graphics' 필수.
-#   llvm_ad_rgb : CPU JIT. 느리지만 의존성 없음.
+#   cuda_ad_mono_polarized : GPU (OptiX) + polarized (Sionna RT 가 Jones matrix 처리에 필수).
+#   llvm_ad_mono_polarized : CPU JIT + polarized. 느리지만 의존성 없음.
+#
+# ❌ *_ad_rgb 계열은 안 됨 — Sionna RT 의 4-element Jones matrix 가
+#    RGB variant 의 3-element Color3f 와 mismatch 해서 dr.while_loop 에서 터짐.
 #
 # 중요: mi.set_variant() 는 lazy — 변수만 세팅하고 OptiX 초기화는 첫 ray tracing 호출
-# 시점에 일어난다. 그래서 단순히 set_variant 만으로는 GPU 가능 여부 판단 불가.
-# 여기선 **실제로 작은 ray tracing 작업을 한 번 돌려서** OptiX 가 살아있는지 확인한 뒤,
-# 실패 시 CPU 로 영구 전환한다. 이후 sionna_runtime 호출은 활성 variant 로 동작.
-_PREFERRED_VARIANT = os.getenv("MITSUBA_VARIANT", "cuda_ad_rgb")
-_FALLBACK_VARIANT = "llvm_ad_rgb"
+# 시점에 일어난다. 그래서 _probe_variant 가 실제 미니 render 로 검증.
+_PREFERRED_VARIANT = os.getenv("MITSUBA_VARIANT", "cuda_ad_mono_polarized")
+_FALLBACK_VARIANT = "llvm_ad_mono_polarized"
 ACTIVE_MITSUBA_VARIANT = _FALLBACK_VARIANT  # 확정 후 갱신
 
 
