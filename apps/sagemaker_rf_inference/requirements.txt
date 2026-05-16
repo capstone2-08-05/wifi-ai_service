@@ -5,5 +5,10 @@ boto3==1.35.36
 jsonschema==4.23.0
 numpy==1.26.4
 opencv-python-headless==4.10.0.84
-# Sionna RT — Mitsuba 기반 ray tracer. TensorFlow 가 함께 깔림.
-sionna==1.0.2
+# Sionna RT — Mitsuba 기반 ray tracer.
+# 1.0.2 + mitsuba RGB(non-polarized) variant 조합에 알려진 버그:
+#   `TypeError: Color3f expected 3 elements, got 4` (Jones matrix → Spectrum 변환 실패).
+# 1.1+ 에서 polarized 처리가 RGB variant 와 호환되게 수정됨.
+sionna>=1.1.0,<2.0
+# mitsuba/drjit 은 sionna 가 transitive 로 매기는 권장 버전 사용 (pin 안 함).
+# 만약 또 호환성 깨지면 sionna 의 GitHub README 권장 조합으로 명시 pin.

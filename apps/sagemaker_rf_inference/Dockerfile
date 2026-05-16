@@ -44,7 +44,7 @@ RUN sed -i 's/\r$//' /usr/local/bin/serve && chmod +x /usr/local/bin/serve
 ENV PYTHONPATH=/opt/app \
     PYTHONUNBUFFERED=1 \
     DEFAULT_DEVICE=auto \
-    CONTAINER_VERSION=rf-inference@0.1.3-debug \
+    CONTAINER_VERSION=rf-inference@0.1.5-sionna11 \
     TF_CPP_MIN_LOG_LEVEL=2 \
     NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics \
     NVIDIA_VISIBLE_DEVICES=all \

@@ -64,6 +64,22 @@ def _probe_variant(variant: str) -> bool:
         return False
 
 
+# 라이브러리 버전 로그 — sionna/mitsuba/drjit 호환성 디버깅용.
+# Dr.Jit while_loop 같은 내부 에러가 버전 mismatch 일 때 흔히 발생.
+try:
+    import sionna  # type: ignore[import-not-found]
+    import mitsuba as _mi_v  # type: ignore[import-not-found]
+    import drjit  # type: ignore[import-not-found]
+    logger.info(
+        "[RF_DEBUG] sionna=%s mitsuba=%s drjit=%s",
+        getattr(sionna, "__version__", "?"),
+        getattr(_mi_v, "__version__", "?"),
+        getattr(drjit, "__version__", "?"),
+    )
+except Exception as _vexc:
+    logger.warning("[RF_DEBUG] version probe failed: %s", _vexc)
+
+
 # 1차: 선호 variant (보통 GPU) 실측 → 안 되면 CPU 로 폴백.
 if _probe_variant(_PREFERRED_VARIANT):
     ACTIVE_MITSUBA_VARIANT = _PREFERRED_VARIANT
