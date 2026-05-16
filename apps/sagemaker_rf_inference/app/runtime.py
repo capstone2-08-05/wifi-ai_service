@@ -5,7 +5,10 @@ input.json 의 access_points 와 simulation 파라미터를 `engine_plan` 형식
 
 여러 AP 가 있으면 AP 별로 시뮬을 돌리고, 셀별 dBm 의 max 를 취해서 "best signal" radio map 으로 집계.
 
-GPU/CPU 디바이스 선택은 sionna_runtime 내부의 sionna.rt 가 자동 처리.
+Mitsuba/Sionna variant 선택:
+  - 기본은 LLVM CPU variant — OptiX(NVIDIA GPU ray tracing) 의존성 없이 어떤 인스턴스에서도 동작.
+    GPU 인스턴스 + OptiX SDK 가 컨테이너에 포함된 경우에만 cuda_ad_rgb 사용 가능.
+  - `MITSUBA_VARIANT` env 로 override (예: `cuda_ad_rgb`).
 """
 from __future__ import annotations
 
@@ -19,6 +22,21 @@ from app.constants import INVALID_DBM_THRESHOLD
 from app.contracts import AccessPoint, ParsedInput, SimulationParams
 
 logger = logging.getLogger(__name__)
+
+# Mitsuba variant 를 sionna.rt import 전에 강제 — OptiX 초기화 실패 회피.
+# `cuda_ad_rgb` 는 NVIDIA OptiX SDK 가 컨테이너에 있어야 동작.
+# `llvm_ad_rgb` 는 CPU JIT (LLVM) — 느리지만 의존성 없음.
+_MITSUBA_VARIANT = os.getenv("MITSUBA_VARIANT", "llvm_ad_rgb")
+try:
+    import mitsuba as mi  # type: ignore[import-not-found]
+
+    mi.set_variant(_MITSUBA_VARIANT)
+    logger.info("Mitsuba variant set to %s", _MITSUBA_VARIANT)
+except Exception as exc:
+    logger.warning(
+        "Mitsuba variant set to %s failed (%s) — sionna.rt may pick its default",
+        _MITSUBA_VARIANT, exc,
+    )
 
 
 def default_device() -> str:
