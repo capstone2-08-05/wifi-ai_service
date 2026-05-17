@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capstone2/contracts/rf-inference/input.schema.json",
+  "title": "RF Inference Input",
+  "description": "SageMaker Async RF Inference 컨테이너가 input.json 으로 받는 페이로드. scene.json (벽/룸/장애물 geometry) 과 안테나/시뮬레이션 파라미터를 명시.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "job_id",
+    "scene_s3_uri",
+    "output_prefix",
+    "simulation",
+    "access_points"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "계약 스키마 버전. 컨테이너는 이 값으로 호환성 판단."
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_\\-]{1,64}$",
+      "description": "RF 시뮬레이션 작업 식별자. 백엔드가 발급 (UUID 권장)."
+    },
+    "project_id": {
+      "type": ["string", "null"],
+      "description": "백엔드 프로젝트 UUID. 컨테이너는 사용하지 않지만 결과에 echo back."
+    },
+    "floor_id": {
+      "type": ["string", "null"],
+      "description": "백엔드 층 UUID. 컨테이너는 사용하지 않지만 결과에 echo back."
+    },
+    "scene_version_id": {
+      "type": ["string", "null"],
+      "description": "RF 시뮬레이션의 입력이 된 scene version. 결과에 echo back."
+    },
+    "scene_s3_uri": {
+      "type": "string",
+      "pattern": "^s3://[a-z0-9.\\-]{3,63}/.+\\.json$",
+      "description": "벽/룸/장애물 geometry 가 들어있는 scene.json 의 S3 URI. 형식은 백엔드 SceneSchema 와 호환."
+    },
+    "output_prefix": {
+      "type": "string",
+      "pattern": "^s3://[a-z0-9.\\-]{3,63}/.+/$",
+      "description": "출력 파일을 쓸 S3 prefix. 반드시 `/` 로 끝나야 함. 이 아래에 result.json / heatmap.png / radio_map.npy 가 생성됨."
+    },
+    "simulation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frequency_hz", "tx_power_dbm"],
+      "description": "RF 시뮬레이션 파라미터.",
+      "properties": {
+        "frequency_hz": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "전송 주파수 (Hz). 예: 5.2GHz = 5200000000"
+        },
+        "tx_power_dbm": {
+          "type": "number",
+          "description": "송신 전력 (dBm). 일반적인 Wi-Fi AP 는 15~20 dBm."
+        },
+        "resolution_m": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 0.5,
+          "description": "radio map 셀 한 변의 크기 (미터). 작을수록 정밀하지만 메모리/시간 증가."
+        },
+        "measurement_plane_z_m": {
+          "type": "number",
+          "default": 1.0,
+          "description": "측정 평면 높이 (미터). 일반적으로 책상 높이 ~ 1.0m."
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 3,
+          "description": "ray 추적 최대 반사 횟수."
+        },
+        "samples_per_tx": {
+          "type": "integer",
+          "minimum": 1000,
+          "default": 100000,
+          "description": "송신기 당 ray 샘플 수. 클수록 정밀하지만 시뮬 시간 증가."
+        },
+        "seed": {
+          "type": "integer",
+          "default": 42,
+          "description": "ray 샘플링 RNG seed."
+        }
+      }
+    },
+    "access_points": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "description": "AP 목록. 최소 1개. 여러 개면 셀 별 best (max) dBm 으로 집계.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "x_m", "y_m", "z_m"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_\\-]{1,32}$",
+            "description": "AP 식별자 (백엔드 발급)."
+          },
+          "x_m": { "type": "number", "description": "AP 위치 X (미터)" },
+          "y_m": { "type": "number", "description": "AP 위치 Y (미터)" },
+          "z_m": { "type": "number", "description": "AP 위치 Z (미터). 보통 천장 ~2.5m." }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "백엔드가 추적용으로 첨부하는 임의 메타데이터. 컨테이너는 result.json 에 echo back."
+    }
+  }
+}
