@@ -50,7 +50,7 @@ def point_in_polygon(x: float, y: float, polygon: list[tuple[float, float]]) -> 
 
 
 def _polygon_from_room(room: dict[str, Any]) -> list[tuple[float, float]]:
-    points = room.get("points")
+    points = room.get("polygon_xy")
     if not isinstance(points, list) or len(points) < 3:
         return []
     polygon: list[tuple[float, float]] = []

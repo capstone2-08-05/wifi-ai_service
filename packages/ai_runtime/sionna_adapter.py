@@ -1,164 +1,139 @@
-"""Sionna engine plan adapter from backend DTO payload."""
+"""Sionna engine plan adapter.
+
+도메인 객체(FloorScene, AccessPoint, RadioMaterial, SimulationConfig,
+MeasurementPlane)를 받아 Sionna RT runtime이 소비할 engine plan(dict)으로
+변환한다.
+
+이 모듈의 책임은 domain → Sionna 표현 변환뿐이다.
+- domain 단계에서 의미 분리/검증은 끝났다고 가정한다.
+- material id → Sionna ITU material key 매핑은 `RadioMaterial.sionna_material_key`로
+  도메인에 내재화되어 있으므로 adapter는 dict 룩업/normalize를 하지 않는다.
+"""
 
 from __future__ import annotations
 
 from typing import Any, Mapping
 
-from pydantic import BaseModel, Field
-
-from packages.contracts.floorplan import SceneSchema
-
-BACKEND_SCHEMA_WALL_MATERIALS = frozenset(("concrete", "glass", "wood", "metal", "unknown"))
-WALL_TO_SIONNA_ITU: dict[str, str] = {
-    "concrete": "concrete",
-    "glass": "glass",
-    "wood": "wood",
-    "metal": "metal",
-    "unknown": "plasterboard",
-}
-LEGACY_EXTRA_TO_SIONNA_ITU: dict[str, str] = {
-    "brick": "brick",
-    "marble": "marble",
-    "chipboard": "chipboard",
-    "floorboard": "floorboard",
-    "ceiling_board": "ceiling_board",
-}
-DEFAULT_WALL_MATERIAL_TO_SIONNA_ITU: dict[str, str] = {
-    **WALL_TO_SIONNA_ITU,
-    **LEGACY_EXTRA_TO_SIONNA_ITU,
-    "drywall": "plasterboard",
-}
+from app.domain.entities.geometry import FloorScene, SceneBounds
+from app.domain.entities.radio import (
+    AccessPoint,
+    MeasurementPlane,
+    RadioMaterial,
+    SimulationConfig,
+    radio_material_table,
+)
 
 
-class SimConfigDTO(BaseModel):
-    frequency_ghz: float = 28.0
-    tx_power_dbm: float = 30.0
-    reflection_order: int = 2
+def _resolve_material(
+    material_id: str, table: Mapping[str, RadioMaterial]
+) -> RadioMaterial:
+    if material_id not in table:
+        raise ValueError(f"unknown material_id: {material_id}")
+    return table[material_id]
 
 
-class AntennaDTO(BaseModel):
-    tx_id: str = "router_1"
-    position_m: list[float] = Field(..., description="[x, y, z] in meters")
-
-
-class SionnaInputDTO(BaseModel):
-    config: SimConfigDTO
-    antenna: AntennaDTO
-    scene: SceneSchema
-
-
-def normalize_wall_material_key(raw: str) -> str:
-    if not isinstance(raw, str):
-        return "unknown"
-    s = raw.strip().lower()
-    if not s:
-        return "unknown"
-    if s in ("drywall", "gypsum", "plasterboard"):
-        return "wood"
-    if s in BACKEND_SCHEMA_WALL_MATERIALS:
-        return s
-    return "unknown"
-
-
-def map_wall_material_to_sionna_itur(
-    wall_material_key: str,
-    *,
-    table: dict[str, str] | None = None,
-) -> str:
-    merged_extra = {**LEGACY_EXTRA_TO_SIONNA_ITU, **(table or {})}
-    key = wall_material_key.strip() if isinstance(wall_material_key, str) else str(wall_material_key)
-    lowered = key.lower()
-    if lowered in merged_extra:
-        return merged_extra[lowered]
-    normalized = normalize_wall_material_key(key)
-    return WALL_TO_SIONNA_ITU.get(normalized, "plasterboard")
-
-
-def _scene_schema_to_sionna_scene_plan(
-    scene: SceneSchema | Mapping[str, Any],
-    *,
-    material_map: dict[str, str] | None = None,
-) -> dict[str, Any]:
-    if not isinstance(scene, SceneSchema):
-        scene = SceneSchema.model_validate(scene)
-
+def _scene_to_plan(scene: FloorScene, table: Mapping[str, RadioMaterial]) -> dict[str, Any]:
     walls: list[dict[str, Any]] = []
     for wall in scene.walls:
+        material = _resolve_material(wall.material_id, table)
         walls.append(
             {
                 "id": wall.id,
-                "x1": float(wall.x1),
-                "y1": float(wall.y1),
-                "x2": float(wall.x2),
-                "y2": float(wall.y2),
-                "thickness_m": float(wall.thickness),
-                "height_m": float(wall.height),
-                "role": wall.role,
-                "wall_material": wall.material,
-                "itu_radio_material": map_wall_material_to_sionna_itur(wall.material, table=material_map),
+                "x1": float(wall.start_xy[0]),
+                "y1": float(wall.start_xy[1]),
+                "x2": float(wall.end_xy[0]),
+                "y2": float(wall.end_xy[1]),
+                "thickness_m": float(wall.thickness_m),
+                "height_m": float(wall.height_m),
+                "material_id": wall.material_id,
+                "sionna_material_key": material.sionna_material_key,
             }
         )
 
     openings = [
         {
             "id": opening.id,
-            "type": opening.type,
-            "x1": float(opening.x1),
-            "y1": float(opening.y1),
-            "x2": float(opening.x2),
-            "y2": float(opening.y2),
-            "wall_ref": opening.wall_ref,
+            "wall_id": opening.wall_id,
+            "kind": str(opening.kind),
+            "center_xy": [float(opening.center_xy[0]), float(opening.center_xy[1])],
+            "width_m": float(opening.width_m),
+            "bottom_z_m": float(opening.bottom_z_m),
+            "height_m": float(opening.height_m),
+            "material_id": opening.material_id,
+            "sionna_material_key": _resolve_material(opening.material_id, table).sionna_material_key,
         }
         for opening in scene.openings
     ]
     rooms = [
-        {
-            "id": room.id,
-            "points": room.points,
-            "center": room.center,
-            "area_m2": float(room.area),
-        }
+        {"id": room.id, "polygon_xy": [[float(x), float(y)] for x, y in room.polygon_xy]}
         for room in scene.rooms
+    ]
+    furniture = [
+        {
+            "id": piece.id,
+            "polygon_xy": [[float(x), float(y)] for x, y in piece.polygon_xy],
+            "height_m": float(piece.height_m),
+            "material_id": piece.material_id,
+            "sionna_material_key": _resolve_material(piece.material_id, table).sionna_material_key,
+        }
+        for piece in scene.furniture
     ]
 
     return {
-        "scene_version": scene.scene_version,
-        "units": scene.units,
-        "sourceType": scene.sourceType,
-        "scale_ratio": scene.scale_ratio,
+        "scene_id": scene.scene_id,
         "walls": walls,
         "openings": openings,
         "rooms": rooms,
-        "objects": list(scene.objects),
+        "furniture": furniture,
     }
 
 
-def sionna_input_dto_to_engine_plan(
-    payload: SionnaInputDTO | Mapping[str, Any],
+def _bounds_to_dict(b: SceneBounds) -> dict[str, float]:
+    return {"min_x": b.min_x, "max_x": b.max_x, "min_y": b.min_y, "max_y": b.max_y}
+
+
+def build_engine_plan(
     *,
-    material_map: dict[str, str] | None = None,
-    measurement_plane_z_m: float = 1.0,
+    scene: FloorScene,
+    access_point: AccessPoint,
+    simulation: SimulationConfig,
+    measurement_plane: MeasurementPlane,
+    materials: Mapping[str, RadioMaterial] | None = None,
 ) -> dict[str, Any]:
-    dto = payload if isinstance(payload, SionnaInputDTO) else SionnaInputDTO.model_validate(payload)
-    cfg = dto.config
-    ant = dto.antenna
-    pos = ant.position_m
-    if not isinstance(pos, (list, tuple)) or len(pos) < 3:
-        raise ValueError("Sionna path requires antenna.position_m [x, y, z]")
+    """도메인 객체 묶음을 Sionna runtime용 plan으로 변환."""
+    table = dict(materials) if materials is not None else radio_material_table()
+
+    bounds = measurement_plane.bounds or scene.bounds or scene.compute_bounds()
+    if not bounds.contains_xy(access_point.x, access_point.y):
+        raise ValueError(
+            f"AP {access_point.id} position ({access_point.x}, {access_point.y}) "
+            "is outside scene bounds"
+        )
+
+    freq_ghz = access_point.frequency_ghz or simulation.physical.frequency_ghz
+    tx_power_dbm = (
+        access_point.tx_power_dbm
+        if access_point.tx_power_dbm is not None
+        else simulation.physical.tx_power_dbm
+    )
 
     return {
         "engine": "sionna_rt",
-        "purpose": "internal_precise_validation",
-        "scene_plan": _scene_schema_to_sionna_scene_plan(dto.scene, material_map=material_map),
+        "scene_plan": _scene_to_plan(scene, table),
         "antenna": {
-            "tx_id": ant.tx_id,
-            "position_m": [float(pos[0]), float(pos[1]), float(pos[2])],
-            "tx_power_dbm": float(cfg.tx_power_dbm),
-            "frequency_ghz": float(cfg.frequency_ghz),
+            "tx_id": access_point.id,
+            "position_m": [float(access_point.x), float(access_point.y), float(access_point.z)],
+            "frequency_ghz": float(freq_ghz),
+            "tx_power_dbm": float(tx_power_dbm),
         },
-        "solver": {
-            "max_depth": int(cfg.reflection_order),
-            "measurement_plane_z_m": float(measurement_plane_z_m),
+        "measurement_plane": {
+            "z_m": float(measurement_plane.z_m),
+            "cell_size_m": float(measurement_plane.cell_size_m),
+            "bounds": _bounds_to_dict(bounds),
         },
-        "material_table": material_map if material_map is not None else DEFAULT_WALL_MATERIAL_TO_SIONNA_ITU,
+        "config": {
+            "physical": simulation.physical.model_dump(),
+            "propagation": simulation.propagation.model_dump(),
+            "solver": simulation.solver.model_dump(),
+        },
     }

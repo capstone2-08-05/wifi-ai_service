@@ -186,6 +186,43 @@ python -m uvicorn main:app --host 0.0.0.0 --port 9000 --reload
   - `file` (`png|jpg|jpeg`)
 - `/internal/sionna/run` 응답은 `imageUrl`(템플릿 기반 URL) 포함
 
+### `/internal/sionna/run` 요청 구조
+
+도메인 객체 기반으로 검증된 입력만 받습니다 (PR `refactor: 도면 객체와 RadioMaterial 도메인 분리`).
+
+```json
+{
+  "engine": "sionna_rt",
+  "floor_id": "demo",
+  "scene": {
+    "walls": [
+      {"id": "w1", "start_xy": [0, 0], "end_xy": [4, 0],
+       "height_m": 2.6, "thickness_m": 0.12, "material_id": "concrete"}
+    ],
+    "openings": [
+      {"id": "d1", "wall_id": "w1", "kind": "door",
+       "center_xy": [2, 0], "width_m": 0.9, "bottom_z_m": 0, "height_m": 2.1,
+       "material_id": "wood"}
+    ],
+    "rooms": [
+      {"id": "r1", "polygon_xy": [[0, 0], [4, 0], [4, 3], [0, 3]]}
+    ]
+  },
+  "access_point": {"id": "ap1", "position_m": [2.0, 1.5, 1.2]},
+  "measurement_plane": {"z_m": 1.0, "cell_size_m": 0.25},
+  "simulation": {
+    "physical":   {"frequency_ghz": 5.0, "tx_power_dbm": 20.0},
+    "propagation": {"los": true, "specular_reflection": true,
+                    "refraction": true, "diffuse_reflection": false,
+                    "diffraction": false},
+    "solver":     {"max_depth": 5, "samples_per_tx": 500000, "seed": 42}
+  }
+}
+```
+
+기본 `material_id`: `concrete | glass | wood | metal | plasterboard | unknown`.
+`simulation` 전체 또는 sub-config는 omit 가능 (Wi-Fi 기본값 사용).
+
 ## Backend Integration
 
 `web-platform`(backend)에서 아래 값으로 호출:

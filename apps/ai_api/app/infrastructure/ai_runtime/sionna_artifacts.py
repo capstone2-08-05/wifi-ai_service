@@ -29,6 +29,36 @@ def _resolve_auto_color_limits(valid_values: np.ndarray) -> tuple[float, float]:
     return (float(p5), float(p95))
 
 
+def _opening_endpoints(opening: dict[str, Any], walls_by_id: dict[str, dict[str, Any]]) -> tuple[tuple[float, float], tuple[float, float]] | None:
+    wall = walls_by_id.get(str(opening.get("wall_id", "")))
+    if wall is None:
+        return None
+    try:
+        wx1, wy1 = float(wall["x1"]), float(wall["y1"])
+        wx2, wy2 = float(wall["x2"]), float(wall["y2"])
+        cx, cy = float(opening["center_xy"][0]), float(opening["center_xy"][1])
+        half = float(opening["width_m"]) / 2.0
+    except Exception:
+        return None
+    dx, dy = wx2 - wx1, wy2 - wy1
+    length = (dx * dx + dy * dy) ** 0.5
+    if length <= 1e-9:
+        return None
+    ux, uy = dx / length, dy / length
+    return ((cx - ux * half, cy - uy * half), (cx + ux * half, cy + uy * half))
+
+
+def _polygon_centroid(polygon: list[Any]) -> tuple[float, float] | None:
+    try:
+        xs = [float(p[0]) for p in polygon]
+        ys = [float(p[1]) for p in polygon]
+    except Exception:
+        return None
+    if not xs:
+        return None
+    return (sum(xs) / len(xs), sum(ys) / len(ys))
+
+
 def _draw_scene_overlay(
     ax: Any,
     *,
@@ -38,7 +68,10 @@ def _draw_scene_overlay(
     width: int,
     height: int,
 ) -> None:
-    for wall in scene_plan.get("walls", []):
+    walls = scene_plan.get("walls", []) or []
+    walls_by_id: dict[str, dict[str, Any]] = {str(w.get("id", "")): w for w in walls if isinstance(w, dict)}
+
+    for wall in walls:
         try:
             x1, y1 = to_grid_xy(float(wall["x1"]), float(wall["y1"]), bounds, width, height)
             x2, y2 = to_grid_xy(float(wall["x2"]), float(wall["y2"]), bounds, width, height)
@@ -47,22 +80,29 @@ def _draw_scene_overlay(
         ax.plot([x1, x2], [y1, y2], color="white", linewidth=1.2, alpha=0.9)
 
     for opening in scene_plan.get("openings", []):
+        endpoints = _opening_endpoints(opening, walls_by_id)
+        if endpoints is None:
+            continue
+        (sx, sy), (ex, ey) = endpoints
         try:
-            x1, y1 = to_grid_xy(float(opening["x1"]), float(opening["y1"]), bounds, width, height)
-            x2, y2 = to_grid_xy(float(opening["x2"]), float(opening["y2"]), bounds, width, height)
+            gx1, gy1 = to_grid_xy(sx, sy, bounds, width, height)
+            gx2, gy2 = to_grid_xy(ex, ey, bounds, width, height)
         except Exception:
             continue
-        ax.plot([x1, x2], [y1, y2], color="#35d4ff", linewidth=1.4, linestyle="--", alpha=0.95)
+        ax.plot([gx1, gx2], [gy1, gy2], color="#35d4ff", linewidth=1.4, linestyle="--", alpha=0.95)
 
     for room in scene_plan.get("rooms", []):
-        center = room.get("center")
-        if not (isinstance(center, list) and len(center) >= 2):
+        polygon = room.get("polygon_xy")
+        if not isinstance(polygon, list) or len(polygon) < 3:
             continue
         rid = str(room.get("id", "")).strip()
         if not rid:
             continue
+        centroid = _polygon_centroid(polygon)
+        if centroid is None:
+            continue
         try:
-            cx, cy = to_grid_xy(float(center[0]), float(center[1]), bounds, width, height)
+            cx, cy = to_grid_xy(centroid[0], centroid[1], bounds, width, height)
         except Exception:
             continue
         ax.text(cx, cy, rid, color="white", fontsize=6, ha="center", va="center", alpha=0.9)
