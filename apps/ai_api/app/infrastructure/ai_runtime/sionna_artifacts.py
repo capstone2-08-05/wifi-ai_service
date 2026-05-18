@@ -107,6 +107,25 @@ def _draw_scene_overlay(
             continue
         ax.text(cx, cy, rid, color="white", fontsize=6, ha="center", va="center", alpha=0.9)
 
+    for piece in scene_plan.get("furniture", []) or []:
+        polygon = piece.get("polygon_xy")
+        if not isinstance(polygon, list) or len(polygon) < 3:
+            continue
+        try:
+            grid_pts = [
+                to_grid_xy(float(p[0]), float(p[1]), bounds, width, height)
+                for p in polygon
+                if len(p) >= 2
+            ]
+        except Exception:
+            continue
+        if len(grid_pts) < 3:
+            continue
+        # closed polygon outline
+        gx = [p[0] for p in grid_pts] + [grid_pts[0][0]]
+        gy = [p[1] for p in grid_pts] + [grid_pts[0][1]]
+        ax.plot(gx, gy, color="#ffbf47", linewidth=1.0, linestyle=":", alpha=0.9)
+
     pos = antenna.get("position_m")
     if isinstance(pos, list) and len(pos) >= 2:
         try:
@@ -118,6 +137,7 @@ def _draw_scene_overlay(
     legend_handles = [
         Line2D([0], [0], color="white", linewidth=1.2, label="Wall"),
         Line2D([0], [0], color="#35d4ff", linewidth=1.4, linestyle="--", label="Opening"),
+        Line2D([0], [0], color="#ffbf47", linewidth=1.0, linestyle=":", label="Furniture"),
         Line2D([0], [0], marker="*", markersize=10, markerfacecolor="#00ffd0", markeredgecolor="black", linewidth=0, label="AP"),
     ]
     ax.legend(handles=legend_handles, loc="upper right", fontsize=7, framealpha=0.75)

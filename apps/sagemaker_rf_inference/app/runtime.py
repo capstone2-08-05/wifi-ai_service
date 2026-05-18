@@ -205,6 +205,11 @@ def _build_engine_plan(
                     "thickness_m": float(w.get("thickness", w.get("thickness_m", 0.12))),
                     "height_m": float(w.get("height", w.get("height_m", 2.6))),
                     "sionna_material_key": _sionna_material_key(w.get("material")),
+                    # SageMaker input.schema.json 은 아직 RadioMaterial calibration 필드를
+                    # 노출하지 않음 — runtime이 기대하는 키를 기본값으로 채워 plan 호환성 유지.
+                    "attenuation_scale": 1.0,
+                    "loss_offset_db": 0.0,
+                    "learnable": False,
                 }
             )
         except (KeyError, TypeError, ValueError):

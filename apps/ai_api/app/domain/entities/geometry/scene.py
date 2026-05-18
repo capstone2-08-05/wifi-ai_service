@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+import math
+
 from pydantic import BaseModel, Field, model_validator
 
 from app.domain.entities.geometry.furniture import FurnitureObject
 from app.domain.entities.geometry.opening import OpeningObject
 from app.domain.entities.geometry.room import RoomObject
 from app.domain.entities.geometry.wall import WallObject
+
+# 검증 시 허용 오차 (centimeter 수준)
+_OPENING_PERP_TOLERANCE_M = 0.01
+_OPENING_FIT_TOLERANCE_M = 0.01
+_OPENING_OVERLAP_TOLERANCE_M = 1e-6
 
 
 class SceneBounds(BaseModel):
@@ -42,6 +49,62 @@ class FloorScene(BaseModel):
                 raise ValueError(
                     f"opening {opening.id} references unknown wall_id {opening.wall_id}"
                 )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_opening_placement(self) -> "FloorScene":
+        """Opening center가 wall 위에 있는지, width가 wall 길이에 들어가는지, 같은 wall 위에서
+        opening끼리 겹치지 않는지 검증. Sionna mesh split 단계가 가정하는 조건이 여기서 보장된다.
+        """
+        if not self.openings:
+            return self
+        walls_by_id = {w.id: w for w in self.walls}
+
+        openings_by_wall: dict[str, list[OpeningObject]] = {}
+        for op in self.openings:
+            openings_by_wall.setdefault(op.wall_id, []).append(op)
+
+        for wall_id, ops in openings_by_wall.items():
+            wall = walls_by_id[wall_id]
+            x1, y1 = wall.start_xy
+            x2, y2 = wall.end_xy
+            dx, dy = x2 - x1, y2 - y1
+            wall_length = math.hypot(dx, dy)
+            if wall_length <= 1e-9:
+                continue  # degenerate wall — 별도 validator가 잡음
+
+            intervals: list[tuple[float, float, str]] = []
+            for op in ops:
+                cx, cy = op.center_xy
+                t = ((cx - x1) * dx + (cy - y1) * dy) / (wall_length * wall_length)
+                proj_x = x1 + t * dx
+                proj_y = y1 + t * dy
+                perp = math.hypot(cx - proj_x, cy - proj_y)
+                if perp > _OPENING_PERP_TOLERANCE_M:
+                    raise ValueError(
+                        f"opening {op.id} center is {perp:.3f}m off wall {wall_id} axis"
+                    )
+                s_center = t * wall_length
+                half = op.width_m / 2.0
+                s_start = s_center - half
+                s_end = s_center + half
+                if (
+                    s_start < -_OPENING_FIT_TOLERANCE_M
+                    or s_end > wall_length + _OPENING_FIT_TOLERANCE_M
+                ):
+                    raise ValueError(
+                        f"opening {op.id} (along-wall [{s_start:.3f}, {s_end:.3f}]m) "
+                        f"does not fit within wall {wall_id} length {wall_length:.3f}m"
+                    )
+                intervals.append((s_start, s_end, op.id))
+
+            intervals.sort()
+            for i in range(len(intervals) - 1):
+                if intervals[i][1] > intervals[i + 1][0] + _OPENING_OVERLAP_TOLERANCE_M:
+                    raise ValueError(
+                        f"openings {intervals[i][2]} and {intervals[i + 1][2]} "
+                        f"overlap on wall {wall_id}"
+                    )
         return self
 
     def compute_bounds(self, *, pad_m: float = 0.5) -> SceneBounds:
