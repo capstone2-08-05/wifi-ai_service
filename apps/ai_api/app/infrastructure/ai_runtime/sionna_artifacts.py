@@ -17,16 +17,26 @@ from app.infrastructure.settings import OUTPUT_DIR
 INVALID_DBM_THRESHOLD = -200.0
 
 
-def _resolve_auto_color_limits(valid_values: np.ndarray) -> tuple[float, float]:
+def _resolve_auto_color_limits(
+    valid_values: np.ndarray,
+    visualization_cfg: dict[str, Any] | None = None,
+) -> tuple[float, float]:
+    cfg = visualization_cfg or {}
+    fb_lo = float(cfg.get("heatmap_fallback_vmin_dbm", -90.0))
+    fb_hi = float(cfg.get("heatmap_fallback_vmax_dbm", -30.0))
     if valid_values.size == 0:
-        return (-90.0, -30.0)
-    p5, p95 = np.percentile(valid_values, [5.0, 95.0])
-    if not np.isfinite(p5) or not np.isfinite(p95):
-        return (-90.0, -30.0)
-    if float(p95 - p5) < 8.0:
+        return (fb_lo, fb_hi)
+    p_lo = float(cfg.get("heatmap_clip_percentile_lo", 5.0))
+    p_hi = float(cfg.get("heatmap_clip_percentile_hi", 95.0))
+    min_span = float(cfg.get("heatmap_min_span_db", 8.0))
+    lo, hi = np.percentile(valid_values, [p_lo, p_hi])
+    if not np.isfinite(lo) or not np.isfinite(hi):
+        return (fb_lo, fb_hi)
+    if float(hi - lo) < min_span:
         mid = float(np.mean(valid_values))
-        return (mid - 4.0, mid + 4.0)
-    return (float(p5), float(p95))
+        half = min_span / 2.0
+        return (mid - half, mid + half)
+    return (float(lo), float(hi))
 
 
 def _opening_endpoints(opening: dict[str, Any], walls_by_id: dict[str, dict[str, Any]]) -> tuple[tuple[float, float], tuple[float, float]] | None:
@@ -156,11 +166,12 @@ def save_radiomap_png(
     scene_plan: dict[str, Any],
     antenna: dict[str, Any],
     bounds: dict[str, Any],
+    visualization_cfg: dict[str, Any] | None = None,
 ) -> str | None:
     try:
         arr = np.asarray(radiomap_dbm, dtype=float)
         valid_values = arr[arr > INVALID_DBM_THRESHOLD]
-        vmin, vmax = _resolve_auto_color_limits(valid_values)
+        vmin, vmax = _resolve_auto_color_limits(valid_values, visualization_cfg)
         masked = np.ma.masked_where(arr <= INVALID_DBM_THRESHOLD, arr)
         out_path = _output_dir(sionna_run_id) / "radiomap_heatmap.png"
         fig, ax = plt.subplots(figsize=(7.2, 5.4))

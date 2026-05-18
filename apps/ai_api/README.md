@@ -223,6 +223,26 @@ python -m uvicorn main:app --host 0.0.0.0 --port 9000 --reload
 기본 `material_id`: `concrete | glass | wood | metal | plasterboard | unknown`.
 `simulation` 전체 또는 sub-config는 omit 가능 (Wi-Fi 기본값 사용).
 
+#### Config 우선순위 (높음 → 낮음)
+
+```
+1. request body 의 sub-config 필드
+     simulation.physical / simulation.propagation / simulation.solver
+     scene_defaults / antenna / visualization / materials
+2. request body 의 correction_profile (per-floor/project 보정 프로필)
+3. app 도메인 defaults (Pydantic Field defaults)
+```
+
+resolve_sionna_config() 가 모든 layer 를 merge 해서 `ResolvedSionnaConfig` 를 만들고,
+runtime/adapter 는 이것만 본다. **모델/서버 재배포 없이 backend 가 request 또는 correction_profile
+만 바꿔서 다른 결과를 만들 수 있다.**
+
+응답 `artifacts.config` 에는 다음이 echo됨:
+- `physical / propagation / solver / scene_defaults / antenna / visualization` — 실제 실행 값
+- `provenance` — dotted-path 별 어느 layer (request/correction_profile/app_default) 에서 왔는지
+- `materials_applied` — kind/parent_id/segment_index/material 별 적용 상세
+- `deferred_corrections` — 아직 runtime 이 적용 못 한 보정 flag
+
 #### 현재 시뮬레이션에 반영되는 범위
 
 **적용됨:**

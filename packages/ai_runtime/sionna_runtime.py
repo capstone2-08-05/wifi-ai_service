@@ -212,6 +212,8 @@ def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
     physical_cfg = dict(config.get("physical") or {})
     propagation_cfg = dict(config.get("propagation") or {})
     solver_cfg = dict(config.get("solver") or {})
+    scene_defaults_cfg = dict(config.get("scene_defaults") or {})
+    antenna_cfg = dict(config.get("antenna") or {})
 
     pos = antenna.get("position_m")
     if not isinstance(pos, list) or len(pos) < 3:
@@ -248,7 +250,11 @@ def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
 
         scene = load_scene(None, merge_shapes=False)
 
-        floor_mat = ITURadioMaterial("itu-floor", "concrete", thickness=0.05)
+        floor_material_id = str(scene_defaults_cfg.get("floor_material_id", "concrete"))
+        floor_thickness_m = float(scene_defaults_cfg.get("floor_thickness_m", 0.05))
+        floor_mat = ITURadioMaterial(
+            "itu-floor", floor_material_id, thickness=max(1e-4, floor_thickness_m)
+        )
         scene_objects = [
             SceneObject(fname=str(floor_obj), name="rf_floor", radio_material=floor_mat),
         ]
@@ -486,6 +492,9 @@ def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
             )
 
         # ─── furniture extrusions ────────────────────────────────────────────
+        furniture_default_thk = float(
+            scene_defaults_cfg.get("furniture_default_thickness_m", _FURNITURE_DEFAULT_THICKNESS_M)
+        )
         for k, fpiece in enumerate(scene_plan.get("furniture", []) or []):
             polygon = fpiece.get("polygon_xy") or []
             if len(polygon) < 3:
@@ -494,7 +503,10 @@ def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
             f_scale = float(fpiece.get("attenuation_scale", 1.0))
             f_loss_off = float(fpiece.get("loss_offset_db", 0.0))
             f_learn = bool(fpiece.get("learnable", False))
-            f_eff_thk = max(1e-4, _FURNITURE_DEFAULT_THICKNESS_M * f_scale)
+            # per-piece radio_thickness_m override → scene_defaults → module fallback
+            f_raw_thk = fpiece.get("radio_thickness_m")
+            f_radio_thk = float(f_raw_thk) if f_raw_thk is not None else furniture_default_thk
+            f_eff_thk = max(1e-4, f_radio_thk * f_scale)
             f_mat_id = str(fpiece.get("material_id", fpiece["sionna_material_key"]))
             f_sionna_key = str(fpiece["sionna_material_key"])
             f_id = str(fpiece.get("id", f"furniture_{k}"))
@@ -518,7 +530,7 @@ def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
             _record_correction(
                 kind="furniture_box", parent_id=f_id, segment_index=0,
                 material_id=f_mat_id, sionna_key=f_sionna_key,
-                geom_thk=_FURNITURE_DEFAULT_THICKNESS_M, scale=f_scale,
+                geom_thk=f_radio_thk, scale=f_scale,
                 eff_thk=f_eff_thk, loss_offset_db=f_loss_off, learnable=f_learn,
             )
 
@@ -539,18 +551,22 @@ def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
         )
         scene.frequency = freq_ghz * 1e9
         scene.tx_array = PlanarArray(
-            num_rows=1,
-            num_cols=1,
-            vertical_spacing=0.5,
-            horizontal_spacing=0.5,
-            pattern="iso",
-            polarization="V",
+            num_rows=int(antenna_cfg.get("array_rows", 1)),
+            num_cols=int(antenna_cfg.get("array_cols", 1)),
+            vertical_spacing=float(antenna_cfg.get("vertical_spacing", 0.5)),
+            horizontal_spacing=float(antenna_cfg.get("horizontal_spacing", 0.5)),
+            pattern=str(antenna_cfg.get("pattern", "iso")),
+            polarization=str(antenna_cfg.get("polarization", "V")),
+        )
+        visualization_cfg = dict(config.get("visualization") or {})
+        tx_display_radius = float(
+            visualization_cfg.get("tx_display_radius_m", 0.15)
         )
         tx = Transmitter(
             name=str(antenna.get("tx_id", "ap_tx")),
             position=[float(pos[0]), float(pos[1]), float(pos[2])],
             power_dbm=tx_power_dbm,
-            display_radius=0.15,
+            display_radius=tx_display_radius,
         )
         scene.add(tx)
 
@@ -641,6 +657,21 @@ def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
                 "seed": seed,
                 "cell_size_m": cell_size_m,
             },
+            # adapter가 plan에 넣어둔 ResolvedSionnaConfig sub-configs 를 그대로 echo —
+            # 이번 실행이 정확히 어떤 값으로 돌았는지 응답에 남기기 위해.
+            "scene_defaults": scene_defaults_cfg,
+            "antenna": {
+                **antenna_cfg,
+                # 실제 PlanarArray 호출에 들어간 값 (default fallback 포함)
+                "applied": {
+                    "array_rows": int(antenna_cfg.get("array_rows", 1)),
+                    "array_cols": int(antenna_cfg.get("array_cols", 1)),
+                    "pattern": str(antenna_cfg.get("pattern", "iso")),
+                    "polarization": str(antenna_cfg.get("polarization", "V")),
+                },
+            },
+            "visualization": visualization_cfg,
+            "provenance": dict(config.get("provenance") or {}),
             "materials_applied": materials_applied,
             "deferred_corrections": {
                 # 어떤 calibration 필드가 통과는 됐지만 아직 runtime에 적용 안 됐는지.

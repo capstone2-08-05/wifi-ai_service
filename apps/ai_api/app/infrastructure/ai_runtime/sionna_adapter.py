@@ -16,7 +16,7 @@ MeasurementPlane)를 받아 Sionna RT runtime이 소비할 engine plan(dict)으�
   창문(sill 위)과 닫힌 문(바닥부터)을 구분. material 은 opening 자체의 `material_id` 사용
   (보통 door=wood, window=glass). 열린 문 시나리오는 후속 (`is_open: bool` 필드 추가 시).
 - **Furniture**: `polygon_xy` 를 z 축으로 `height_m` 만큼 extrusion 한 prism mesh 생성.
-  ITURadioMaterial thickness 기본값은 0.1m (가구는 명시적 두께가 없음 — `attenuation_scale` 로 보정 가능).
+  ITURadioMaterial thickness 우선순위: piece.radio_thickness_m > scene_defaults.furniture_default_thickness_m > 0.1m 모듈 fallback.
 - RadioMaterial calibration 필드:
     - `attenuation_scale` — **적용됨**. runtime이 ITURadioMaterial thickness 에 곱하여
       transmission/reflection loss 를 조정. 기하학적 mesh는 영향받지 않는다.
@@ -33,8 +33,7 @@ from app.domain.entities.radio import (
     AccessPoint,
     MeasurementPlane,
     RadioMaterial,
-    SimulationConfig,
-    radio_material_table,
+    ResolvedSionnaConfig,
 )
 
 
@@ -104,6 +103,12 @@ def _scene_to_plan(scene: FloorScene, table: Mapping[str, RadioMaterial]) -> dic
             "polygon_xy": [[float(x), float(y)] for x, y in piece.polygon_xy],
             "height_m": float(piece.height_m),
             "material_id": piece.material_id,
+            # None 이면 runtime 이 scene_defaults.furniture_default_thickness_m 로 fallback
+            "radio_thickness_m": (
+                float(piece.radio_thickness_m)
+                if piece.radio_thickness_m is not None
+                else None
+            ),
             **_material_payload(_resolve_material(piece.material_id, table)),
         }
         for piece in scene.furniture
@@ -126,12 +131,15 @@ def build_engine_plan(
     *,
     scene: FloorScene,
     access_point: AccessPoint,
-    simulation: SimulationConfig,
+    resolved_config: ResolvedSionnaConfig,
     measurement_plane: MeasurementPlane,
-    materials: Mapping[str, RadioMaterial] | None = None,
 ) -> dict[str, Any]:
-    """도메인 객체 묶음을 Sionna runtime용 plan으로 변환."""
-    table = dict(materials) if materials is not None else radio_material_table()
+    """도메인 + 이미 resolve된 config 를 Sionna runtime용 plan dict 으로 변환.
+
+    materials 는 `resolved_config.materials` 가 단일 진실 — 이 시점에서는 이미 request /
+    correction_profile / app_defaults 가 merge 끝난 상태.
+    """
+    table = dict(resolved_config.materials)
 
     bounds = measurement_plane.bounds or scene.bounds or scene.compute_bounds()
     if not bounds.contains_xy(access_point.x, access_point.y):
@@ -140,12 +148,15 @@ def build_engine_plan(
             "is outside scene bounds"
         )
 
-    freq_ghz = access_point.frequency_ghz or simulation.physical.frequency_ghz
-    tx_power_dbm = (
+    physical = resolved_config.physical
+    freq_ghz = access_point.frequency_ghz or physical.frequency_ghz
+    base_tx_power = (
         access_point.tx_power_dbm
         if access_point.tx_power_dbm is not None
-        else simulation.physical.tx_power_dbm
+        else physical.tx_power_dbm
     )
+    # 전역 보정 — runtime이 적용하기 전에 plan 에서 미리 더한 값을 전달.
+    tx_power_dbm = float(base_tx_power) + float(physical.tx_power_offset_db)
 
     return {
         "engine": "sionna_rt",
@@ -154,7 +165,7 @@ def build_engine_plan(
             "tx_id": access_point.id,
             "position_m": [float(access_point.x), float(access_point.y), float(access_point.z)],
             "frequency_ghz": float(freq_ghz),
-            "tx_power_dbm": float(tx_power_dbm),
+            "tx_power_dbm": tx_power_dbm,
         },
         "measurement_plane": {
             "z_m": float(measurement_plane.z_m),
@@ -162,8 +173,12 @@ def build_engine_plan(
             "bounds": _bounds_to_dict(bounds),
         },
         "config": {
-            "physical": simulation.physical.model_dump(),
-            "propagation": simulation.propagation.model_dump(),
-            "solver": simulation.solver.model_dump(),
+            "physical": physical.model_dump(),
+            "propagation": resolved_config.propagation.model_dump(),
+            "solver": resolved_config.solver.model_dump(),
+            "scene_defaults": resolved_config.scene_defaults.model_dump(),
+            "antenna": resolved_config.antenna.model_dump(),
+            "visualization": resolved_config.visualization.model_dump(),
+            "provenance": dict(resolved_config.provenance),
         },
     }
