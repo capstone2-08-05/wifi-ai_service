@@ -65,42 +65,6 @@ def _nearest_valid_cell(
     return float(dbm_map[int(ys[idx]), int(xs[idx])]), False, "nearest_valid"
 
 
-def _scene_bounds(scene_plan: Mapping[str, Any], antenna_pos: list[float]) -> tuple[float, float, float, float]:
-    xs: list[float] = []
-    ys: list[float] = []
-
-    for wall in scene_plan.get("walls", []):
-        try:
-            xs.extend([float(wall["x1"]), float(wall["x2"])])
-            ys.extend([float(wall["y1"]), float(wall["y2"])])
-        except Exception:
-            continue
-
-    for room in scene_plan.get("rooms", []):
-        points = room.get("points")
-        if not isinstance(points, list):
-            continue
-        for point in points:
-            if isinstance(point, (list, tuple)) and len(point) >= 2:
-                xs.append(float(point[0]))
-                ys.append(float(point[1]))
-
-    if not xs or not ys:
-        ax, ay = float(antenna_pos[0]), float(antenna_pos[1])
-        return (ax - 2.0, ax + 2.0, ay - 2.0, ay + 2.0)
-
-    min_x, max_x = min(xs), max(xs)
-    min_y, max_y = min(ys), max(ys)
-    pad = 0.5
-    if math.isclose(min_x, max_x):
-        min_x -= 1.0
-        max_x += 1.0
-    if math.isclose(min_y, max_y):
-        min_y -= 1.0
-        max_y += 1.0
-    return (min_x - pad, max_x + pad, min_y - pad, max_y + pad)
-
-
 def _write_floor_obj(path: Path, *, min_x: float, max_x: float, min_y: float, max_y: float) -> None:
     lines = [
         f"v {min_x:.6f} {min_y:.6f} 0.0",
@@ -161,13 +125,14 @@ def _write_wall_box_obj(
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def run_sionna_rt_from_engine_plan(
-    plan: Mapping[str, Any],
-    *,
-    cell_size_m: float = 0.5,
-    samples_per_tx: int = 100_000,
-    seed: int = 42,
-) -> dict[str, Any]:
+def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
+    """Engine plan을 받아 Sionna RT RadioMapSolver를 실행한다.
+
+    plan은 ai_api `app.infrastructure.ai_runtime.sionna_adapter.build_engine_plan` 또는
+    sagemaker `apps.sagemaker_rf_inference.app.runtime._build_engine_plan`이 생성하는 구조와
+    동일한 키를 가져야 한다 — 즉 solver/propagation/physical 설정이 plan 안에
+    이미 포함되어 있다. 더 이상 함수 kwargs로 solver 옵션을 받지 않는다.
+    """
     try:
         from sionna.rt import ITURadioMaterial, PlanarArray, RadioMapSolver, SceneObject, Transmitter, load_scene
     except Exception as exc:
@@ -177,19 +142,39 @@ def run_sionna_rt_from_engine_plan(
 
     antenna = dict(plan.get("antenna") or {})
     scene_plan = dict(plan.get("scene_plan") or {})
-    solver_cfg = dict(plan.get("solver") or {})
+    measurement_plane = dict(plan.get("measurement_plane") or {})
+    config = dict(plan.get("config") or {})
+    physical_cfg = dict(config.get("physical") or {})
+    propagation_cfg = dict(config.get("propagation") or {})
+    solver_cfg = dict(config.get("solver") or {})
 
     pos = antenna.get("position_m")
     if not isinstance(pos, list) or len(pos) < 3:
         raise ValueError("engine_plan.antenna.position_m [x, y, z] is required")
 
-    min_x, max_x, min_y, max_y = _scene_bounds(scene_plan, pos)
-    width = max(1.0, float(max_x - min_x))
-    height = max(1.0, float(max_y - min_y))
+    bounds = dict(measurement_plane.get("bounds") or {})
+    if not bounds:
+        raise ValueError("engine_plan.measurement_plane.bounds is required")
+    min_x = float(bounds["min_x"])
+    max_x = float(bounds["max_x"])
+    min_y = float(bounds["min_y"])
+    max_y = float(bounds["max_y"])
+    width = max(1.0, max_x - min_x)
+    height = max(1.0, max_y - min_y)
     cx = min_x + width / 2.0
     cy = min_y + height / 2.0
-    z_plane = float(solver_cfg.get("measurement_plane_z_m", 1.0))
-    max_depth = int(solver_cfg.get("max_depth", 3))
+
+    z_plane = float(measurement_plane["z_m"])
+    cell_size_m = float(measurement_plane["cell_size_m"])
+    max_depth = int(solver_cfg["max_depth"])
+    samples_per_tx = int(solver_cfg["samples_per_tx"])
+    seed = int(solver_cfg["seed"])
+
+    los = bool(propagation_cfg.get("los", True))
+    specular_reflection = bool(propagation_cfg.get("specular_reflection", True))
+    refraction = bool(propagation_cfg.get("refraction", True))
+    diffuse_reflection = bool(propagation_cfg.get("diffuse_reflection", False))
+    diffraction = bool(propagation_cfg.get("diffraction", False))
 
     with tempfile.TemporaryDirectory(prefix="sionna-rt-") as td:
         mesh_dir = Path(td)
@@ -205,15 +190,12 @@ def run_sionna_rt_from_engine_plan(
 
         wall_material_cache: dict[str, Any] = {}
         for i, wall in enumerate(scene_plan.get("walls", [])):
-            try:
-                wx1 = float(wall["x1"])
-                wy1 = float(wall["y1"])
-                wx2 = float(wall["x2"])
-                wy2 = float(wall["y2"])
-                wth = max(0.01, float(wall.get("thickness_m", 0.12)))
-                wh = max(0.5, float(wall.get("height_m", 2.6)))
-            except Exception:
-                continue
+            wx1 = float(wall["x1"])
+            wy1 = float(wall["y1"])
+            wx2 = float(wall["x2"])
+            wy2 = float(wall["y2"])
+            wth = float(wall["thickness_m"])
+            wh = float(wall["height_m"])
             wall_obj = mesh_dir / f"wall_{i}.obj"
             _write_wall_box_obj(
                 wall_obj,
@@ -226,7 +208,7 @@ def run_sionna_rt_from_engine_plan(
             )
             if not wall_obj.exists():
                 continue
-            itu_name = str(wall.get("itu_radio_material", "plasterboard"))
+            itu_name = str(wall["sionna_material_key"])
             if itu_name not in wall_material_cache:
                 wall_material_cache[itu_name] = ITURadioMaterial(
                     f"itu-wall-{itu_name}-{i}",
@@ -243,8 +225,11 @@ def run_sionna_rt_from_engine_plan(
 
         scene.edit(add=scene_objects)
 
-        freq_ghz = float(antenna.get("frequency_ghz", 5.0))
-        tx_power_dbm = float(antenna.get("tx_power_dbm", 20.0))
+        freq_ghz = float(antenna.get("frequency_ghz") or physical_cfg.get("frequency_ghz", 5.0))
+        tx_power_dbm = float(
+            antenna.get("tx_power_dbm") if antenna.get("tx_power_dbm") is not None
+            else physical_cfg.get("tx_power_dbm", 20.0)
+        )
         scene.frequency = freq_ghz * 1e9
         scene.tx_array = PlanarArray(
             num_rows=1,
@@ -263,20 +248,29 @@ def run_sionna_rt_from_engine_plan(
         scene.add(tx)
 
         solver = RadioMapSolver()
-        rm = solver(
-            scene=scene,
-            center=[cx, cy, z_plane],
-            orientation=[0.0, 0.0, 0.0],
-            size=[width, height],
-            cell_size=[float(cell_size_m), float(cell_size_m)],
-            samples_per_tx=int(samples_per_tx),
-            max_depth=max_depth,
-            los=True,
-            specular_reflection=True,
-            diffuse_reflection=False,
-            refraction=False,
-            seed=int(seed),
-        )
+        solver_kwargs: dict[str, Any] = {
+            "scene": scene,
+            "center": [cx, cy, z_plane],
+            "orientation": [0.0, 0.0, 0.0],
+            "size": [width, height],
+            "cell_size": [cell_size_m, cell_size_m],
+            "samples_per_tx": samples_per_tx,
+            "max_depth": max_depth,
+            "los": los,
+            "specular_reflection": specular_reflection,
+            "diffuse_reflection": diffuse_reflection,
+            "refraction": refraction,
+            "diffraction": diffraction,
+            "seed": seed,
+        }
+        try:
+            rm = solver(**solver_kwargs)
+        except TypeError as exc:
+            # 일부 Sionna 버전은 diffraction 인자를 지원하지 않음. metadata만 남기고 fallback.
+            if "diffraction" not in str(exc):
+                raise
+            solver_kwargs.pop("diffraction", None)
+            rm = solver(**solver_kwargs)
         rss_w = _to_numpy(rm.rss)
 
     while rss_w.ndim > 2:
@@ -316,17 +310,30 @@ def run_sionna_rt_from_engine_plan(
         "grid_shape": [int(rss_dbm.shape[0]), int(rss_dbm.shape[1])],
         "radiomap_dbm": rss_dbm.tolist(),
         "bounds_m": {
-            "min_x": float(min_x),
-            "max_x": float(max_x),
-            "min_y": float(min_y),
-            "max_y": float(max_y),
-            "z": float(z_plane),
+            "min_x": min_x,
+            "max_x": max_x,
+            "min_y": min_y,
+            "max_y": max_y,
+            "z": z_plane,
         },
-        "solver": {
-            "cell_size_m": float(cell_size_m),
-            "samples_per_tx": int(samples_per_tx),
-            "max_depth": int(max_depth),
-            "seed": int(seed),
+        "config": {
+            "physical": {
+                "frequency_ghz": freq_ghz,
+                "tx_power_dbm": tx_power_dbm,
+            },
+            "propagation": {
+                "los": los,
+                "specular_reflection": specular_reflection,
+                "refraction": refraction,
+                "diffuse_reflection": diffuse_reflection,
+                "diffraction": diffraction,
+            },
+            "solver": {
+                "max_depth": max_depth,
+                "samples_per_tx": samples_per_tx,
+                "seed": seed,
+                "cell_size_m": cell_size_m,
+            },
         },
         "valid_cell_count": valid_cell_count,
         "invalid_cell_count": invalid_cell_count,

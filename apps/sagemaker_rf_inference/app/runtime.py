@@ -120,46 +120,91 @@ def sionna_version_str() -> str:
         return ""
 
 
+# sionna_runtime 의 plan 구조와 일치해야 함 (ai_api 의 app.infrastructure.ai_runtime.sionna_adapter.build_engine_plan 과 동일).
+# SceneSchema 의 material id 를 그대로 Sionna ITU material key 로 사용한다 (concrete/glass/...).
+# 알려지지 않은 id 는 plasterboard 로 폴백.
+_MATERIAL_TO_SIONNA_KEY: dict[str, str] = {
+    "concrete": "concrete",
+    "glass": "glass",
+    "wood": "wood",
+    "metal": "metal",
+    "plasterboard": "plasterboard",
+    "unknown": "plasterboard",
+}
+
+# physical/propagation 기본값 — domain SimulationConfig 와 동일한 Wi-Fi 기본값.
+# input.simulation 이 이 값들을 명시하지 않는 한 이 기본값을 사용.
+_DEFAULT_PROPAGATION = {
+    "los": True,
+    "specular_reflection": True,
+    "refraction": True,
+    "diffuse_reflection": False,
+    "diffraction": False,
+}
+
+
+def _sionna_material_key(raw: Any) -> str:
+    if not isinstance(raw, str):
+        return "plasterboard"
+    return _MATERIAL_TO_SIONNA_KEY.get(raw.strip().lower(), "plasterboard")
+
+
+def _compute_scene_bounds(
+    scene_dict: dict[str, Any], ap: AccessPoint, *, pad_m: float = 0.5
+) -> dict[str, float]:
+    xs: list[float] = []
+    ys: list[float] = []
+    for w in scene_dict.get("walls") or []:
+        try:
+            xs.extend([float(w["x1"]), float(w["x2"])])
+            ys.extend([float(w["y1"]), float(w["y2"])])
+        except (KeyError, TypeError, ValueError):
+            continue
+    for r in scene_dict.get("rooms") or []:
+        for p in r.get("points") or []:
+            if isinstance(p, (list, tuple)) and len(p) >= 2:
+                try:
+                    xs.append(float(p[0]))
+                    ys.append(float(p[1]))
+                except (TypeError, ValueError):
+                    continue
+    if not xs or not ys:
+        return {
+            "min_x": ap.x_m - 2.0,
+            "max_x": ap.x_m + 2.0,
+            "min_y": ap.y_m - 2.0,
+            "max_y": ap.y_m + 2.0,
+        }
+    return {
+        "min_x": min(xs) - pad_m,
+        "max_x": max(xs) + pad_m,
+        "min_y": min(ys) - pad_m,
+        "max_y": max(ys) + pad_m,
+    }
+
+
 def _build_engine_plan(
     scene_dict: dict[str, Any],
     ap: AccessPoint,
     sim: SimulationParams,
 ) -> dict[str, Any]:
-    """input.simulation + scene.json + 단일 AP → sionna_runtime 의 engine_plan."""
-    return {
-        "antenna": {
-            "tx_id": ap.id,
-            "position_m": [float(ap.x_m), float(ap.y_m), float(ap.z_m)],
-            "frequency_ghz": float(sim.frequency_hz) / 1e9,
-            "tx_power_dbm": float(sim.tx_power_dbm),
-        },
-        "scene_plan": _scene_to_plan(scene_dict),
-        "solver": {
-            "measurement_plane_z_m": float(sim.measurement_plane_z_m),
-            "max_depth": int(sim.max_depth),
-        },
-    }
+    """input.simulation + scene.json + 단일 AP → sionna_runtime 의 engine_plan.
 
-
-def _scene_to_plan(scene_dict: dict[str, Any]) -> dict[str, Any]:
-    """SceneSchema dict → sionna_runtime 이 기대하는 scene_plan (벽/룸).
-
-    sionna_runtime 은 wall: {x1,y1,x2,y2,thickness_m,height_m,itu_radio_material}
-    room: {points: [[x,y],...]} 형식을 받는다. SceneSchema 의 walls 는
-    {x1,y1,x2,y2,thickness,height,material} 라서 키 이름만 맞춰주면 됨.
+    plan 구조는 ai_api 의 app.infrastructure.ai_runtime.sionna_adapter.build_engine_plan 과 동일하다.
     """
     walls_out: list[dict[str, Any]] = []
     for w in scene_dict.get("walls") or []:
         try:
             walls_out.append(
                 {
+                    "id": str(w.get("id", "")),
                     "x1": float(w["x1"]),
                     "y1": float(w["y1"]),
                     "x2": float(w["x2"]),
                     "y2": float(w["y2"]),
                     "thickness_m": float(w.get("thickness", w.get("thickness_m", 0.12))),
                     "height_m": float(w.get("height", w.get("height_m", 2.6))),
-                    "itu_radio_material": str(w.get("material", "plasterboard")),
+                    "sionna_material_key": _sionna_material_key(w.get("material")),
                 }
             )
         except (KeyError, TypeError, ValueError):
@@ -167,11 +212,45 @@ def _scene_to_plan(scene_dict: dict[str, Any]) -> dict[str, Any]:
 
     rooms_out: list[dict[str, Any]] = []
     for r in scene_dict.get("rooms") or []:
-        pts = r.get("points")
+        pts = r.get("points") or r.get("polygon_xy")
         if isinstance(pts, list):
-            rooms_out.append({"points": pts})
+            rooms_out.append({"id": str(r.get("id", "")), "polygon_xy": pts})
 
-    return {"walls": walls_out, "rooms": rooms_out}
+    bounds = _compute_scene_bounds(scene_dict, ap)
+    freq_ghz = float(sim.frequency_hz) / 1e9
+
+    return {
+        "engine": "sionna_rt",
+        "antenna": {
+            "tx_id": ap.id,
+            "position_m": [float(ap.x_m), float(ap.y_m), float(ap.z_m)],
+            "frequency_ghz": freq_ghz,
+            "tx_power_dbm": float(sim.tx_power_dbm),
+        },
+        "scene_plan": {
+            "walls": walls_out,
+            "openings": [],
+            "rooms": rooms_out,
+            "furniture": [],
+        },
+        "measurement_plane": {
+            "z_m": float(sim.measurement_plane_z_m),
+            "cell_size_m": float(sim.resolution_m),
+            "bounds": bounds,
+        },
+        "config": {
+            "physical": {
+                "frequency_ghz": freq_ghz,
+                "tx_power_dbm": float(sim.tx_power_dbm),
+            },
+            "propagation": dict(_DEFAULT_PROPAGATION),
+            "solver": {
+                "max_depth": int(sim.max_depth),
+                "samples_per_tx": int(sim.samples_per_tx),
+                "seed": int(sim.seed),
+            },
+        },
+    }
 
 
 def run_simulation_for_all_aps(
@@ -241,12 +320,7 @@ def run_simulation_for_all_aps(
             ap.id, sim.frequency_hz / 1e9, sim.resolution_m, sim.max_depth,
         )
         try:
-            rt_out = run_sionna_rt_from_engine_plan(
-                plan,
-                cell_size_m=float(sim.resolution_m),
-                samples_per_tx=int(sim.samples_per_tx),
-                seed=int(sim.seed),
-            )
+            rt_out = run_sionna_rt_from_engine_plan(plan)
         except Exception:
             # CloudWatch 에 full traceback 을 남겨야 진짜 원인이 보임.
             # handler 가 위에서 다시 wrap 하기 전에 raw exc 를 여기서 먼저 기록.

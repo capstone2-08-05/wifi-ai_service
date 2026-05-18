@@ -1,4 +1,4 @@
-"""Sionna RT 런타임 호출 어댑터 (입력 plan 변환 → 실행 → 결과/아티팩트 구조화)."""
+"""Sionna RT 런타임 호출 어댑터 (도메인 입력 → engine plan → 실행 → 결과/아티팩트)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from typing import Any
 
 import numpy as np
 
+from app.domain.entities.radio import RadioMaterial, radio_material_table
 from app.infrastructure.ai_runtime.sionna_artifacts import (
     INVALID_DBM_THRESHOLD,
     save_geometry_debug_json,
@@ -16,29 +17,29 @@ from app.infrastructure.ai_runtime.sionna_artifacts import (
     save_valid_mask_png,
 )
 from app.infrastructure.ai_runtime.sionna_geometry import build_room_mask, room_validity_stats
-from app.infrastructure.settings import sionna_cell_size_m, sionna_samples_per_tx, sionna_seed
-from packages.ai_runtime.sionna_adapter import sionna_input_dto_to_engine_plan
+from app.presentation.requests.sionna_request_dto import SionnaRunRequestDto
+from app.infrastructure.ai_runtime.sionna_adapter import build_engine_plan
 from packages.ai_runtime.sionna_runtime import run_sionna_rt_from_engine_plan
 
 
-def run_sionna_with_runtime(payload: dict[str, Any]) -> dict[str, Any]:
+def run_sionna_with_runtime(body: SionnaRunRequestDto) -> dict[str, Any]:
     sionna_run_id = str(uuid.uuid4())
-    engine = str(payload.get("engine", "sionna_rt"))
-    run_type = payload.get("run_type", "run")
-    floor_id = payload.get("floor_id")
-    input_data = payload["input_data"]
 
-    if engine != "sionna_rt":
-        raise ValueError("only engine=sionna_rt is supported")
+    materials: dict[str, RadioMaterial] = radio_material_table()
+    if body.materials:
+        for mat in body.materials:
+            materials[mat.id] = mat
 
-    plan = sionna_input_dto_to_engine_plan(input_data)
+    plan = build_engine_plan(
+        scene=body.scene,
+        access_point=body.access_point,
+        simulation=body.simulation,
+        measurement_plane=body.measurement_plane,
+        materials=materials,
+    )
+
     try:
-        sionna_result = run_sionna_rt_from_engine_plan(
-            plan,
-            cell_size_m=sionna_cell_size_m(),
-            samples_per_tx=sionna_samples_per_tx(),
-            seed=sionna_seed(),
-        )
+        sionna_result = run_sionna_rt_from_engine_plan(plan)
     except ImportError as exc:
         return _failed_response(sionna_run_id, exc, prefix="ImportError")
     except Exception as exc:
@@ -81,7 +82,7 @@ def run_sionna_with_runtime(payload: dict[str, Any]) -> dict[str, Any]:
         "runtime_result_path": save_runtime_result_json(sionna_run_id, sionna_result),
     }
 
-    metrics = _build_metrics(sionna_result, run_type=run_type, floor_id=floor_id)
+    metrics = _build_metrics(sionna_result, run_type=body.run_type, floor_id=body.floor_id)
     artifacts = _build_artifacts(sionna_result, artifact_paths, geometry_debug_payload)
 
     return {
@@ -89,15 +90,14 @@ def run_sionna_with_runtime(payload: dict[str, Any]) -> dict[str, Any]:
         "status": "succeeded",
         "metrics": metrics,
         "artifacts": artifacts,
-        "output_root": "",
         "manifest": {
             "engine": "sionna_rt",
-            "run_type": run_type,
-            "floor_id": floor_id,
+            "run_type": body.run_type,
+            "floor_id": body.floor_id,
             "metrics": metrics,
             "artifacts": artifacts,
+            "config": sionna_result.get("config"),
         },
-        "paths": None,
         "error": None,
     }
 
@@ -108,9 +108,7 @@ def _failed_response(sionna_run_id: str, exc: Exception, *, prefix: str) -> dict
         "status": "failed",
         "metrics": {"mode": "sionna_rt_runtime", "error": str(exc)},
         "artifacts": {},
-        "output_root": "",
         "manifest": None,
-        "paths": None,
         "error": f"{prefix}: {exc}",
     }
 
@@ -189,6 +187,7 @@ def _build_artifacts(
         "valid_cell_count": sionna_result.get("valid_cell_count"),
         "invalid_cell_count": sionna_result.get("invalid_cell_count"),
         "valid_ratio": sionna_result.get("valid_ratio"),
+        "config": sionna_result.get("config"),
     }
     for key, value in paths.items():
         if value is not None:

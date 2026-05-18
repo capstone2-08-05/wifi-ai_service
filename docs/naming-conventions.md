@@ -72,7 +72,7 @@
 - Request DTO: `SionnaRunRequestDto`, `InferenceUploadRequestDto`
 - Response DTO (내부): `SionnaRunResponseDto`
 - Response Contract (공용): `UnetInferenceResponse`, `YoloInferenceResponse`
-- Entity: `SionnaRunPathsEntity`
+- Domain Entity (Sionna): `FloorScene`, `WallObject`, `AccessPoint`, `RadioMaterial`, `SimulationConfig`
 - Usecase function: `run_sionna_usecase`, `run_unet_usecase`
 
 ## Prohibited Patterns

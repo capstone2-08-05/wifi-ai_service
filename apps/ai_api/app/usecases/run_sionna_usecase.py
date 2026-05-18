@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
 
 from app.api.errors import AppError, ErrorCode
 from app.presentation.requests.sionna_request_dto import SionnaRunRequestDto
 
 
-def run_sionna_usecase(body: SionnaRunRequestDto, runner) -> dict[str, Any]:
+SionnaRunner = Callable[[SionnaRunRequestDto], dict[str, Any]]
+
+
+def run_sionna_usecase(body: SionnaRunRequestDto, runner: SionnaRunner) -> dict[str, Any]:
     if body.engine != "sionna_rt":
         raise AppError(
             status_code=400,
@@ -17,13 +20,7 @@ def run_sionna_usecase(body: SionnaRunRequestDto, runner) -> dict[str, Any]:
             context={"engine": body.engine, "run_type": body.run_type},
         )
 
-    payload: dict[str, Any] = {
-        "engine": body.engine,
-        "run_type": body.run_type,
-        "floor_id": body.floor_id,
-        "input_data": body.input.data,
-    }
-    result = runner(payload)
+    result = runner(body)
 
     if result.get("status") == "failed":
         raw_error = str(result.get("error") or "Sionna RT run failed")
