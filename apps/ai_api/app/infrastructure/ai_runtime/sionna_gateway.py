@@ -7,7 +7,7 @@ from typing import Any
 
 import numpy as np
 
-from app.domain.entities.radio import RadioMaterial, radio_material_table
+from app.infrastructure.ai_runtime.sionna_adapter import build_engine_plan
 from app.infrastructure.ai_runtime.sionna_artifacts import (
     INVALID_DBM_THRESHOLD,
     save_geometry_debug_json,
@@ -18,24 +18,27 @@ from app.infrastructure.ai_runtime.sionna_artifacts import (
 )
 from app.infrastructure.ai_runtime.sionna_geometry import build_room_mask, room_validity_stats
 from app.presentation.requests.sionna_request_dto import SionnaRunRequestDto
-from app.infrastructure.ai_runtime.sionna_adapter import build_engine_plan
+from app.usecases.resolve_sionna_config import resolve_sionna_config
 from packages.ai_runtime.sionna_runtime import run_sionna_rt_from_engine_plan
 
 
 def run_sionna_with_runtime(body: SionnaRunRequestDto) -> dict[str, Any]:
     sionna_run_id = str(uuid.uuid4())
 
-    materials: dict[str, RadioMaterial] = radio_material_table()
-    if body.materials:
-        for mat in body.materials:
-            materials[mat.id] = mat
+    resolved = resolve_sionna_config(
+        simulation=body.simulation,
+        scene_defaults=body.scene_defaults,
+        antenna=body.antenna,
+        visualization=body.visualization,
+        materials=body.materials,
+        correction_profile=body.correction_profile,
+    )
 
     plan = build_engine_plan(
         scene=body.scene,
         access_point=body.access_point,
-        simulation=body.simulation,
+        resolved_config=resolved,
         measurement_plane=body.measurement_plane,
-        materials=materials,
     )
 
     try:
@@ -61,6 +64,7 @@ def run_sionna_with_runtime(body: SionnaRunRequestDto) -> dict[str, Any]:
         room_mask=room_mask,
     )
 
+    visualization_cfg = dict(sionna_result.get("config", {}).get("visualization") or {})
     artifact_paths = {
         "visualization_path": save_radiomap_png(
             sionna_run_id,
@@ -68,6 +72,7 @@ def run_sionna_with_runtime(body: SionnaRunRequestDto) -> dict[str, Any]:
             scene_plan=scene_plan,
             antenna=antenna,
             bounds=bounds,
+            visualization_cfg=visualization_cfg,
         ),
         "valid_mask_path": save_valid_mask_png(sionna_run_id, valid_mask),
         "geometry_overlay_path": save_geometry_overlay_png(

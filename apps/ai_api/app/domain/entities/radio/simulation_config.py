@@ -4,10 +4,16 @@ from pydantic import BaseModel, Field
 
 
 class PhysicalConfig(BaseModel):
-    """결과의 물리적 의미를 결정하는 값. RSSI 보정/material 학습 시 변경 가능."""
+    """결과의 물리적 의미를 결정하는 값. RSSI 보정/material 학습 시 변경 가능.
+
+    - tx_power_offset_db: 모든 TX 의 송신 전력에 더해지는 전역 보정. 측정값-시뮬값 mismatch
+      를 단순히 평행이동으로 맞출 때 사용. runtime이 `tx_power_dbm += tx_power_offset_db` 로
+      적용.
+    """
 
     frequency_ghz: float = Field(default=5.0, gt=0.0)
     tx_power_dbm: float = 20.0
+    tx_power_offset_db: float = 0.0
 
 
 class PropagationConfig(BaseModel):

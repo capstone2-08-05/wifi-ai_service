@@ -205,6 +205,11 @@ def _build_engine_plan(
                     "thickness_m": float(w.get("thickness", w.get("thickness_m", 0.12))),
                     "height_m": float(w.get("height", w.get("height_m", 2.6))),
                     "sionna_material_key": _sionna_material_key(w.get("material")),
+                    # SageMaker input.schema.json 은 아직 RadioMaterial calibration 필드를
+                    # 노출하지 않음 — runtime이 기대하는 키를 기본값으로 채워 plan 호환성 유지.
+                    "attenuation_scale": 1.0,
+                    "loss_offset_db": 0.0,
+                    "learnable": False,
                 }
             )
         except (KeyError, TypeError, ValueError):
@@ -242,12 +247,37 @@ def _build_engine_plan(
             "physical": {
                 "frequency_ghz": freq_ghz,
                 "tx_power_dbm": float(sim.tx_power_dbm),
+                "tx_power_offset_db": 0.0,
             },
             "propagation": dict(_DEFAULT_PROPAGATION),
             "solver": {
                 "max_depth": int(sim.max_depth),
                 "samples_per_tx": int(sim.samples_per_tx),
                 "seed": int(sim.seed),
+            },
+            # SageMaker input.schema.json 은 ConfigResolver 노출 전이므로 ai_api 도메인 기본값을 그대로 emit.
+            "scene_defaults": {
+                "floor_material_id": "concrete",
+                "floor_thickness_m": 0.05,
+                "default_wall_height_m": 2.6,
+                "default_wall_thickness_m": 0.12,
+                "furniture_default_thickness_m": 0.1,
+            },
+            "antenna": {
+                "array_rows": 1,
+                "array_cols": 1,
+                "vertical_spacing": 0.5,
+                "horizontal_spacing": 0.5,
+                "pattern": "iso",
+                "polarization": "V",
+            },
+            "visualization": {
+                "tx_display_radius_m": 0.15,
+                "heatmap_clip_percentile_lo": 5.0,
+                "heatmap_clip_percentile_hi": 95.0,
+                "heatmap_min_span_db": 8.0,
+                "heatmap_fallback_vmin_dbm": -90.0,
+                "heatmap_fallback_vmax_dbm": -30.0,
             },
         },
     }

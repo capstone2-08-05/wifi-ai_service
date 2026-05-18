@@ -223,14 +223,44 @@ python -m uvicorn main:app --host 0.0.0.0 --port 9000 --reload
 기본 `material_id`: `concrete | glass | wood | metal | plasterboard | unknown`.
 `simulation` 전체 또는 sub-config는 omit 가능 (Wi-Fi 기본값 사용).
 
-#### 현재 시뮬레이션에 반영되는 범위 (한정)
+#### Config 우선순위 (높음 → 낮음)
 
-다음 항목은 입력으로 받지만 **현재 Sionna RT runtime은 metadata로만 통과시키고
-실제 ray-tracing 결과에는 아직 반영하지 않습니다.** 후속 PR에서 처리 예정.
+```
+1. request body 의 sub-config 필드
+     simulation.physical / simulation.propagation / simulation.solver
+     scene_defaults / antenna / visualization / materials
+2. request body 의 correction_profile (per-floor/project 보정 프로필)
+3. app 도메인 defaults (Pydantic Field defaults)
+```
 
-- `scene.openings` (door / window) — wall opening subtraction이 적용되지 않음
-- `scene.furniture` — mesh가 생성되지 않음
-- `RadioMaterial.attenuation_scale`, `loss_offset_db`, `learnable` — RSSI calibration placeholder
+resolve_sionna_config() 가 모든 layer 를 merge 해서 `ResolvedSionnaConfig` 를 만들고,
+runtime/adapter 는 이것만 본다. **모델/서버 재배포 없이 backend 가 request 또는 correction_profile
+만 바꿔서 다른 결과를 만들 수 있다.**
+
+응답 `artifacts.config` 에는 다음이 echo됨:
+- `physical / propagation / solver / scene_defaults / antenna / visualization` — 실제 실행 값
+- `provenance` — dotted-path 별 어느 layer (request/correction_profile/app_default) 에서 왔는지
+- `materials_applied` — kind/parent_id/segment_index/material 별 적용 상세
+- `deferred_corrections` — 아직 runtime 이 적용 못 한 보정 flag
+
+#### 현재 시뮬레이션에 반영되는 범위
+
+**적용됨:**
+- **Walls** — opening 위치에서 segment 로 분할되어 mesh 생성. 각 segment 가 자체 SceneObject.
+- **Openings (door/window)** — wall 축에 정렬된 박스로 mesh. `bottom_z_m` 으로 창문 sill 표현,
+  material 은 opening 자체의 `material_id` 사용 (door=wood, window=glass 가 일반적). 닫힌 문 가정.
+- **Furniture** — `polygon_xy` 를 `height_m` 만큼 수직 extrusion 한 prism mesh. ITURadioMaterial
+  thickness 기본값 0.1m. `attenuation_scale` 로 보정 가능.
+- **`RadioMaterial.attenuation_scale`** — runtime이 ITURadioMaterial thickness 에 곱하여
+  transmission/reflection loss 를 조정. 응답 `artifacts.config.materials_applied[]` 에 entry당
+  `kind / parent_id / segment_index / geometric_thickness_m / attenuation_scale /
+  effective_thickness_m` 등이 echo됨. 기하 mesh 와 시각화는 영향 받지 않음.
+
+**미적용 (metadata로만 통과, 후속 PR 예정):**
+- `RadioMaterial.loss_offset_db` — per-cell material mask 인프라 도입 후 적용 예정 (응답에서
+  값은 echo 되지만 `loss_offset_applied: false`, `config.deferred_corrections.loss_offset_db: true`)
+- `RadioMaterial.learnable` — differentiable optimization 진입점이 생기면 사용
+- 열린 문 / 부분 가구 투과율 등 세부 모델링 — 필요 시 OpeningObject 에 `is_open` 등 필드 추가 예정
 
 ## Backend Integration
 
