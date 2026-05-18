@@ -120,7 +120,7 @@ def sionna_version_str() -> str:
         return ""
 
 
-# sionna_runtime 의 plan 구조와 일치해야 함 (packages.ai_runtime.sionna_adapter 와 동일).
+# sionna_runtime 의 plan 구조와 일치해야 함 (ai_api 의 app.infrastructure.ai_runtime.sionna_adapter.build_engine_plan 과 동일).
 # SceneSchema 의 material id 를 그대로 Sionna ITU material key 로 사용한다 (concrete/glass/...).
 # 알려지지 않은 id 는 plasterboard 로 폴백.
 _MATERIAL_TO_SIONNA_KEY: dict[str, str] = {
@@ -190,7 +190,7 @@ def _build_engine_plan(
 ) -> dict[str, Any]:
     """input.simulation + scene.json + 단일 AP → sionna_runtime 의 engine_plan.
 
-    plan 구조는 packages.ai_runtime.sionna_adapter.build_engine_plan 과 동일하다.
+    plan 구조는 ai_api 의 app.infrastructure.ai_runtime.sionna_adapter.build_engine_plan 과 동일하다.
     """
     walls_out: list[dict[str, Any]] = []
     for w in scene_dict.get("walls") or []:

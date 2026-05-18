@@ -128,7 +128,8 @@ def _write_wall_box_obj(
 def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
     """Engine plan을 받아 Sionna RT RadioMapSolver를 실행한다.
 
-    plan은 [packages.ai_runtime.sionna_adapter.build_engine_plan]가 생성한 구조와
+    plan은 ai_api `app.infrastructure.ai_runtime.sionna_adapter.build_engine_plan` 또는
+    sagemaker `apps.sagemaker_rf_inference.app.runtime._build_engine_plan`이 생성하는 구조와
     동일한 키를 가져야 한다 — 즉 solver/propagation/physical 설정이 plan 안에
     이미 포함되어 있다. 더 이상 함수 kwargs로 solver 옵션을 받지 않는다.
     """
@@ -247,21 +248,29 @@ def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
         scene.add(tx)
 
         solver = RadioMapSolver()
-        rm = solver(
-            scene=scene,
-            center=[cx, cy, z_plane],
-            orientation=[0.0, 0.0, 0.0],
-            size=[width, height],
-            cell_size=[cell_size_m, cell_size_m],
-            samples_per_tx=samples_per_tx,
-            max_depth=max_depth,
-            los=los,
-            specular_reflection=specular_reflection,
-            diffuse_reflection=diffuse_reflection,
-            refraction=refraction,
-            diffraction=diffraction,
-            seed=seed,
-        )
+        solver_kwargs: dict[str, Any] = {
+            "scene": scene,
+            "center": [cx, cy, z_plane],
+            "orientation": [0.0, 0.0, 0.0],
+            "size": [width, height],
+            "cell_size": [cell_size_m, cell_size_m],
+            "samples_per_tx": samples_per_tx,
+            "max_depth": max_depth,
+            "los": los,
+            "specular_reflection": specular_reflection,
+            "diffuse_reflection": diffuse_reflection,
+            "refraction": refraction,
+            "diffraction": diffraction,
+            "seed": seed,
+        }
+        try:
+            rm = solver(**solver_kwargs)
+        except TypeError as exc:
+            # 일부 Sionna 버전은 diffraction 인자를 지원하지 않음. metadata만 남기고 fallback.
+            if "diffraction" not in str(exc):
+                raise
+            solver_kwargs.pop("diffraction", None)
+            rm = solver(**solver_kwargs)
         rss_w = _to_numpy(rm.rss)
 
     while rss_w.ndim > 2:

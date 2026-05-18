@@ -223,6 +223,15 @@ python -m uvicorn main:app --host 0.0.0.0 --port 9000 --reload
 기본 `material_id`: `concrete | glass | wood | metal | plasterboard | unknown`.
 `simulation` 전체 또는 sub-config는 omit 가능 (Wi-Fi 기본값 사용).
 
+#### 현재 시뮬레이션에 반영되는 범위 (한정)
+
+다음 항목은 입력으로 받지만 **현재 Sionna RT runtime은 metadata로만 통과시키고
+실제 ray-tracing 결과에는 아직 반영하지 않습니다.** 후속 PR에서 처리 예정.
+
+- `scene.openings` (door / window) — wall opening subtraction이 적용되지 않음
+- `scene.furniture` — mesh가 생성되지 않음
+- `RadioMaterial.attenuation_scale`, `loss_offset_db`, `learnable` — RSSI calibration placeholder
+
 ## Backend Integration
 
 `web-platform`(backend)에서 아래 값으로 호출:

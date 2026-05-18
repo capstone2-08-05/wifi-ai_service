@@ -18,7 +18,7 @@ from app.infrastructure.ai_runtime.sionna_artifacts import (
 )
 from app.infrastructure.ai_runtime.sionna_geometry import build_room_mask, room_validity_stats
 from app.presentation.requests.sionna_request_dto import SionnaRunRequestDto
-from packages.ai_runtime.sionna_adapter import build_engine_plan
+from app.infrastructure.ai_runtime.sionna_adapter import build_engine_plan
 from packages.ai_runtime.sionna_runtime import run_sionna_rt_from_engine_plan
 
 
@@ -90,7 +90,6 @@ def run_sionna_with_runtime(body: SionnaRunRequestDto) -> dict[str, Any]:
         "status": "succeeded",
         "metrics": metrics,
         "artifacts": artifacts,
-        "output_root": "",
         "manifest": {
             "engine": "sionna_rt",
             "run_type": body.run_type,
@@ -99,7 +98,6 @@ def run_sionna_with_runtime(body: SionnaRunRequestDto) -> dict[str, Any]:
             "artifacts": artifacts,
             "config": sionna_result.get("config"),
         },
-        "paths": None,
         "error": None,
     }
 
@@ -110,9 +108,7 @@ def _failed_response(sionna_run_id: str, exc: Exception, *, prefix: str) -> dict
         "status": "failed",
         "metrics": {"mode": "sionna_rt_runtime", "error": str(exc)},
         "artifacts": {},
-        "output_root": "",
         "manifest": None,
-        "paths": None,
         "error": f"{prefix}: {exc}",
     }
 

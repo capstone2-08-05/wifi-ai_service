@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class AccessPoint(BaseModel):
@@ -12,9 +12,16 @@ class AccessPoint(BaseModel):
 
     id: str
     position_m: tuple[float, float, float]
-    tx_power_dbm: float | None = None
-    frequency_ghz: float | None = None
+    tx_power_dbm: float | None = Field(default=None, ge=-100.0, le=60.0)
+    frequency_ghz: float | None = Field(default=None, gt=0.0)
     name: str | None = None
+
+    @field_validator("position_m")
+    @classmethod
+    def _validate_position(cls, v: tuple[float, float, float]) -> tuple[float, float, float]:
+        if v[2] < 0.0:
+            raise ValueError(f"AP z_m must be >= 0, got {v[2]}")
+        return v
 
     @property
     def x(self) -> float:

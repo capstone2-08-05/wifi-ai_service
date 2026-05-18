@@ -1,5 +1,1 @@
-from app.domain.entities.sionna_entity import SionnaRunPathsEntity
-
-__all__ = [
-    "SionnaRunPathsEntity",
-]
+__all__: list[str] = []
