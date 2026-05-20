@@ -9,6 +9,10 @@ data:
 
 infer:
   threshold: 0.5
+  # sliding_window=true — 원본 해상도 patch 추론. 512 단일 resize(false)는 큰 도면을
+  # 512로 뭉개 얇은 내벽이 사라지고 두꺼운 외벽만 남음(외벽 끊김/벽 누락 원인).
+  # OCR 이 strip+U-Net 과 병렬로 돌게 바뀌어, 슬라이딩이어도 총시간 ≈ max(U-Net, OCR)
+  # 라 timeout(600s) 안에 들어옴. dev 에서 너무 느리면 다시 false 로.
   sliding_window: true
   patch_size:
   stride:

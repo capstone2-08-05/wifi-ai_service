@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 
 from app.infrastructure.settings import OUTPUT_DIR, default_device, unet_checkpoint_path, unet_config_path
+from packages.ai_runtime.floorplan_priors import extract_floorplan_priors
 from packages.ai_runtime.unet_runtime import load_unet_runtime, run_unet_probability_inference
 
 UNET_OUTPUT_DIR = OUTPUT_DIR / "unet"
@@ -26,7 +27,15 @@ def preload_unet_model() -> None:
     )
 
 
-def run_unet_inference(file_id: str, image_bytes: bytes, filename: str) -> tuple[str, dict]:
+def run_unet_inference(
+    file_id: str, image_bytes: bytes, filename: str
+) -> tuple[str, dict, dict]:
+    """U-Net 추론 + 사전 분석 priors 같이 추출.
+
+    반환:
+      (prob_map_npy_path, metrics_dict, priors_dict)
+      priors_dict = {"ocrPriors": [...], "linePriors": [...], "roiTransform": None}
+    """
     UNET_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     bgr = _decode_bgr(image_bytes)
 
@@ -34,12 +43,27 @@ def run_unet_inference(file_id: str, image_bytes: bytes, filename: str) -> tuple
     run_dir = UNET_OUTPUT_DIR / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
 
-    prob_map, rt = run_unet_probability_inference(
-        bgr,
-        config_path=unet_config_path(),
-        checkpoint_path=unet_checkpoint_path(),
-        default_device=default_device(),
-    )
+    # priors(OCR/line) 와 U-Net 은 독립 → 스레드로 병렬 실행해 총 시간 = max(둘).
+    # easyocr/U-Net 둘 다 torch 라 추론 중 GIL 해제 → CPU 스레드 병렬 효과 있음.
+    # 순차로 하면 OCR(수십초~수분) + U-Net(수분) 합산이라 timeout 위험.
+    import concurrent.futures
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _ex:
+        priors_future = _ex.submit(extract_floorplan_priors, bgr)
+        try:
+            prob_map, rt = run_unet_probability_inference(
+                bgr,
+                config_path=unet_config_path(),
+                checkpoint_path=unet_checkpoint_path(),
+                default_device=default_device(),
+            )
+        finally:
+            # U-Net 끝나면 priors 결과 회수 (실패해도 빈 priors 로 진행).
+            try:
+                priors = priors_future.result()
+            except Exception:
+                priors = {"ocrPriors": [], "linePriors": [], "roiTransform": None}
+
     prob_map = prob_map.astype(np.float32, copy=False)
     model_name = str(rt["model"])
     note = (
@@ -72,4 +96,4 @@ def run_unet_inference(file_id: str, image_bytes: bytes, filename: str) -> tuple
         "maxProb": float(prob_map.max()),
         "overlayPath": str(out_overlay),
     }
-    return str(out_npy), metrics
+    return str(out_npy), metrics, priors

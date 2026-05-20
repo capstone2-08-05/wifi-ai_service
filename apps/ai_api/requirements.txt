@@ -10,3 +10,5 @@ httpx>=0.27.0
 ultralytics==8.3.230
 PyYAML
 python-multipart>=0.0.9
+# Floorplan priors — OCR (텍스트/치수) + line detection 추출 (unet 응답에 같이 포함).
+easyocr==1.7.2
