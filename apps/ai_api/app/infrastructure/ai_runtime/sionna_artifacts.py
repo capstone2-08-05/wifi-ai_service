@@ -1,4 +1,16 @@
-"""Sionna 결과의 시각화/JSON 아티팩트 생성·디스크 저장."""
+"""Sionna 결과의 시각화/JSON 아티팩트 생성·디스크 저장.
+
+## Thread safety
+
+`matplotlib.pyplot` 사용 X — pyplot 은 전역 figure registry + "current figure" 포인터를
+관리하는 stateful module 이라 FastAPI sync route 가 thread pool 에서 동시 호출되면
+race condition (figure mix-up, 메모리 누수) 가능.
+
+→ OO API (`matplotlib.figure.Figure` + 명시적 `FigureCanvasAgg`) 만 사용. Figure 객체는
+   함수 local scope 라 thread 간 격리, GC 도 자동 (pyplot 의 close() 불필요).
+
+`matplotlib.use("Agg")` 도 필요 없음 — `FigureCanvasAgg` 를 직접 박으므로.
+"""
 
 from __future__ import annotations
 
@@ -6,15 +18,10 @@ import json
 from pathlib import Path
 from typing import Any
 
-# matplotlib backend을 GUI 없는 Agg 로 강제 — FastAPI sync route 가 thread pool 에서
-# 실행돼서 main thread 가 아니므로 TkAgg 기본값은 "Starting Matplotlib GUI outside main
-# thread" 경고 + 종료 시 tkinter cleanup RuntimeError 를 일으킴. Agg 는 디스크 저장만
-# 하므로 thread-safe. plt 임포트 전에 호출해야 함.
-import matplotlib
-matplotlib.use("Agg")
-
-import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
@@ -180,6 +187,17 @@ def _output_dir(sionna_run_id: str) -> Path:
     return out_dir
 
 
+def _new_figure(figsize: tuple[float, float], dpi: int = 100) -> Figure:
+    """Thread-safe figure 생성 — Agg canvas 명시적으로 연결, pyplot 안 거침.
+
+    pyplot 의 전역 figure registry/current-figure 포인터를 안 건드리므로 thread 간 race
+    없음. canvas 가 fig.canvas 로 접근 가능 (matplotlib 이 자동 연결).
+    """
+    fig = Figure(figsize=figsize, dpi=dpi)
+    FigureCanvasAgg(fig)  # canvas 를 fig 에 attach (생성자가 fig.canvas 로 등록)
+    return fig
+
+
 def save_radiomap_png(
     sionna_run_id: str,
     radiomap_dbm: list[list[float]],
@@ -204,7 +222,7 @@ def save_radiomap_png(
         valid_values = arr[arr > INVALID_DBM_THRESHOLD]
         vmin, vmax = _resolve_auto_color_limits(valid_values, visualization_cfg)
         masked = np.ma.masked_where(arr <= INVALID_DBM_THRESHOLD, arr)
-        cmap = plt.get_cmap("inferno").copy()
+        cmap = mpl.colormaps["inferno"].copy()
         cmap.set_bad(color="#5a5a5a", alpha=0.0)  # invalid 셀은 투명 — 캔버스 배경 노출
 
         out_dir = _output_dir(sionna_run_id)
@@ -215,7 +233,8 @@ def save_radiomap_png(
         overlay_path = out_dir / "radiomap_heatmap.png"
         h, w = arr.shape
         # 데이터 한 셀당 픽셀 1:1 보존 (interpolation 은 SVG/브라우저가 알아서 늘림).
-        fig_overlay, ax_overlay = plt.subplots(figsize=(w / 100.0, h / 100.0), dpi=100)
+        fig_overlay = _new_figure(figsize=(w / 100.0, h / 100.0), dpi=100)
+        ax_overlay = fig_overlay.subplots()
         ax_overlay.imshow(
             masked,
             cmap=cmap,
@@ -228,12 +247,12 @@ def save_radiomap_png(
         fig_overlay.savefig(
             overlay_path, dpi=100, bbox_inches="tight", pad_inches=0, transparent=True
         )
-        plt.close(fig_overlay)
 
         # (2) Annotated debug — 사람 보기용 (현재 캔버스에는 안 깔림).
         annotated_path = out_dir / "radiomap_heatmap_annotated.png"
-        fig_ann, ax_ann = plt.subplots(figsize=(7.2, 5.4))
-        cmap_ann = plt.get_cmap("inferno").copy()
+        fig_ann = _new_figure(figsize=(7.2, 5.4))
+        ax_ann = fig_ann.subplots()
+        cmap_ann = mpl.colormaps["inferno"].copy()
         cmap_ann.set_bad(color="#5a5a5a", alpha=1.0)
         im = ax_ann.imshow(
             masked,
@@ -261,9 +280,8 @@ def save_radiomap_png(
             "Gray = not simulated / invalid cell",
             fontsize=8, color="#444444",
         )
-        plt.tight_layout()
-        plt.savefig(annotated_path, dpi=150)
-        plt.close(fig_ann)
+        fig_ann.tight_layout()
+        fig_ann.savefig(annotated_path, dpi=150)
 
         return str(overlay_path.resolve())
     except Exception:
@@ -273,7 +291,8 @@ def save_radiomap_png(
 def save_valid_mask_png(sionna_run_id: str, valid_mask: np.ndarray) -> str | None:
     try:
         out_path = _output_dir(sionna_run_id) / "valid_mask.png"
-        fig, ax = plt.subplots(figsize=(7.2, 5.4))
+        fig = _new_figure(figsize=(7.2, 5.4))
+        ax = fig.subplots()
         ax.imshow(valid_mask.astype(float), origin="lower", cmap="gray", vmin=0.0, vmax=1.0, interpolation="nearest")
         ax.set_title("Valid Cell Mask (white=valid)")
         ax.set_xlabel("X grid")
@@ -287,9 +306,8 @@ def save_valid_mask_png(sionna_run_id: str, valid_mask: np.ndarray) -> str | Non
             fontsize=7,
             framealpha=0.75,
         )
-        plt.tight_layout()
-        plt.savefig(out_path, dpi=140)
-        plt.close(fig)
+        fig.tight_layout()
+        fig.savefig(out_path, dpi=140)
         return str(out_path.resolve())
     except Exception:
         return None
@@ -306,7 +324,8 @@ def save_geometry_overlay_png(
 ) -> str | None:
     try:
         out_path = _output_dir(sionna_run_id) / "geometry_overlay.png"
-        fig, ax = plt.subplots(figsize=(7.2, 5.4))
+        fig = _new_figure(figsize=(7.2, 5.4))
+        ax = fig.subplots()
         base = np.zeros((height, width), dtype=float)
         ax.imshow(base, origin="lower", cmap="gray", vmin=0.0, vmax=1.0)
         _draw_scene_overlay(
@@ -320,9 +339,8 @@ def save_geometry_overlay_png(
         ax.set_title("Geometry Debug Overlay")
         ax.set_xlabel("X grid")
         ax.set_ylabel("Y grid")
-        plt.tight_layout()
-        plt.savefig(out_path, dpi=140)
-        plt.close(fig)
+        fig.tight_layout()
+        fig.savefig(out_path, dpi=140)
         return str(out_path.resolve())
     except Exception:
         return None
