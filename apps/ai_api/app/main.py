@@ -1,4 +1,13 @@
+import logging
 import os
+
+# 앱 로거 활성화 — module-level `logger.info()` 가 콘솔에 보이도록.
+# force=True: uvicorn 이 이미 root logger 에 handler 를 박았을 경우 덮어쓰기.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    force=True,
+)
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware

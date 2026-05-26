@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import uuid
 from typing import Any
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 from app.infrastructure.ai_runtime.sionna_adapter import build_engine_plan
 from app.infrastructure.ai_runtime.sionna_artifacts import (

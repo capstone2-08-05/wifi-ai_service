@@ -6,6 +6,13 @@ import json
 from pathlib import Path
 from typing import Any
 
+# matplotlib backend을 GUI 없는 Agg 로 강제 — FastAPI sync route 가 thread pool 에서
+# 실행돼서 main thread 가 아니므로 TkAgg 기본값은 "Starting Matplotlib GUI outside main
+# thread" 경고 + 종료 시 tkinter cleanup RuntimeError 를 일으킴. Agg 는 디스크 저장만
+# 하므로 thread-safe. plt 임포트 전에 호출해야 함.
+import matplotlib
+matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D

@@ -1,3 +1,13 @@
+"""ai_api 도메인의 SimulationConfig.
+
+⚠️ web-platform 경로에서의 source of truth 는 여기가 아님:
+   `web-platform/backend/app/core/rf_defaults.py`
+
+web-platform 의 `rf_backend_local._build_sionna_request_payload` 가 모든 sub-config
+(physical / solver / propagation) 를 명시적으로 채워서 보내므로 이 모듈의 Field default
+는 사용되지 않는다. 단, ai_api `/internal/sionna/run` 을 직접 호출하는 다른 클라이언트
+(테스트/CLI 등) 에선 fallback 으로 동작. 혼선 방지 위해 rf_defaults.py 와 **같은 값** 유지.
+"""
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
