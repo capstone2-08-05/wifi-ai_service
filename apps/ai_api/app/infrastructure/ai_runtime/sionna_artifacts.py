@@ -17,6 +17,20 @@ from app.infrastructure.settings import OUTPUT_DIR
 INVALID_DBM_THRESHOLD = -200.0
 
 
+def resolve_radiomap_color_limits(
+    radiomap_dbm: list[list[float]] | np.ndarray,
+    visualization_cfg: dict[str, Any] | None = None,
+) -> tuple[float, float]:
+    """이 run 의 heatmap auto color scale (p5-p95) — sionna_gateway 등 외부에서 사용.
+
+    invalid 셀 (값 <= INVALID_DBM_THRESHOLD) 은 제외하고 percentile 계산.
+    valid 값이 비었거나 spread 가 너무 좁으면 fallback (cfg 의 -90/-30 등) 사용.
+    """
+    arr = np.asarray(radiomap_dbm, dtype=float)
+    valid = arr[arr > INVALID_DBM_THRESHOLD]
+    return _resolve_auto_color_limits(valid, visualization_cfg)
+
+
 def _resolve_auto_color_limits(
     valid_values: np.ndarray,
     visualization_cfg: dict[str, Any] | None = None,
@@ -168,41 +182,83 @@ def save_radiomap_png(
     bounds: dict[str, Any],
     visualization_cfg: dict[str, Any] | None = None,
 ) -> str | None:
+    """Sionna RadioMap → 2 개의 PNG 동시 저장.
+
+      1) radiomap_heatmap.png : **clean overlay (chrome 없음)** + image 규약 y (top=row0).
+         프론트 캔버스의 `<image>` 가 floor 좌표에 1:1 정렬해서 깔려야 하므로 이게 1차.
+
+      2) radiomap_heatmap_annotated.png : 디버그/사람 보기용 (제목/축/colorbar/legend 포함).
+         physics 규약(origin=lower) + scene overlay (벽/AP/문 등). 검증용 — 캔버스 X.
+
+    이전엔 (2) 형식만 저장해서 chrome 도 캔버스에 깔리고 Y축이 뒤집혀 보였음 (#bugfix).
+    """
     try:
         arr = np.asarray(radiomap_dbm, dtype=float)
         valid_values = arr[arr > INVALID_DBM_THRESHOLD]
         vmin, vmax = _resolve_auto_color_limits(valid_values, visualization_cfg)
         masked = np.ma.masked_where(arr <= INVALID_DBM_THRESHOLD, arr)
-        out_path = _output_dir(sionna_run_id) / "radiomap_heatmap.png"
-        fig, ax = plt.subplots(figsize=(7.2, 5.4))
         cmap = plt.get_cmap("inferno").copy()
-        cmap.set_bad(color="#5a5a5a", alpha=1.0)
-        im = ax.imshow(
+        cmap.set_bad(color="#5a5a5a", alpha=0.0)  # invalid 셀은 투명 — 캔버스 배경 노출
+
+        out_dir = _output_dir(sionna_run_id)
+
+        # (1) Clean overlay — 캔버스 정렬용.
+        # default origin (= 'upper'): PNG row 0 = data row 0 → SVG y=minY (top) 에 그려져
+        # walls/AP 의 image 규약 (y=0 이 top) 와 정확히 일치.
+        overlay_path = out_dir / "radiomap_heatmap.png"
+        h, w = arr.shape
+        # 데이터 한 셀당 픽셀 1:1 보존 (interpolation 은 SVG/브라우저가 알아서 늘림).
+        fig_overlay, ax_overlay = plt.subplots(figsize=(w / 100.0, h / 100.0), dpi=100)
+        ax_overlay.imshow(
+            masked,
+            cmap=cmap,
+            vmin=vmin,
+            vmax=vmax,
+            interpolation="nearest",
+        )
+        ax_overlay.axis("off")
+        fig_overlay.subplots_adjust(left=0, right=1, top=1, bottom=0)
+        fig_overlay.savefig(
+            overlay_path, dpi=100, bbox_inches="tight", pad_inches=0, transparent=True
+        )
+        plt.close(fig_overlay)
+
+        # (2) Annotated debug — 사람 보기용 (현재 캔버스에는 안 깔림).
+        annotated_path = out_dir / "radiomap_heatmap_annotated.png"
+        fig_ann, ax_ann = plt.subplots(figsize=(7.2, 5.4))
+        cmap_ann = plt.get_cmap("inferno").copy()
+        cmap_ann.set_bad(color="#5a5a5a", alpha=1.0)
+        im = ax_ann.imshow(
             masked,
             origin="lower",
-            cmap=cmap,
+            cmap=cmap_ann,
             vmin=vmin,
             vmax=vmax,
             interpolation="bicubic",
         )
         _draw_scene_overlay(
-            ax,
+            ax_ann,
             scene_plan=scene_plan,
             antenna=antenna,
             bounds=bounds,
             width=arr.shape[1],
             height=arr.shape[0],
         )
-        ax.set_title("Sionna RT RadioMap")
-        ax.set_xlabel("X grid")
-        ax.set_ylabel("Y grid")
-        cbar = fig.colorbar(im, ax=ax)
+        ax_ann.set_title("Sionna RT RadioMap (debug)")
+        ax_ann.set_xlabel("X grid")
+        ax_ann.set_ylabel("Y grid")
+        cbar = fig_ann.colorbar(im, ax=ax_ann)
         cbar.set_label(f"RSS (dBm), auto scale p5-p95 [{vmin:.1f}, {vmax:.1f}]")
-        fig.text(0.02, 0.01, "Gray = not simulated / invalid cell", fontsize=8, color="#444444")
+        fig_ann.text(
+            0.02, 0.01,
+            "Gray = not simulated / invalid cell",
+            fontsize=8, color="#444444",
+        )
         plt.tight_layout()
-        plt.savefig(out_path, dpi=150)
-        plt.close(fig)
-        return str(out_path.resolve())
+        plt.savefig(annotated_path, dpi=150)
+        plt.close(fig_ann)
+
+        return str(overlay_path.resolve())
     except Exception:
         return None
 
@@ -285,6 +341,7 @@ def save_runtime_result_json(sionna_run_id: str, runtime_result: dict[str, Any])
 
 __all__ = [
     "INVALID_DBM_THRESHOLD",
+    "resolve_radiomap_color_limits",
     "save_radiomap_png",
     "save_valid_mask_png",
     "save_geometry_overlay_png",

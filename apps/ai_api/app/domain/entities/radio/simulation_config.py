@@ -22,8 +22,8 @@ class PropagationConfig(BaseModel):
     los: bool = True
     specular_reflection: bool = True
     refraction: bool = True
-    diffuse_reflection: bool = False
-    diffraction: bool = False
+    diffuse_reflection: bool = True
+    diffraction: bool = True
 
 
 class SolverConfig(BaseModel):
