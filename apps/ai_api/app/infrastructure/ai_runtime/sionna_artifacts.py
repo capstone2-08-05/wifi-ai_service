@@ -29,6 +29,7 @@ from app.infrastructure.ai_runtime.sionna_geometry import to_grid_xy
 from app.infrastructure.settings import OUTPUT_DIR
 
 INVALID_DBM_THRESHOLD = -200.0
+RADIOMAP_CMAP = "jet"
 
 
 def resolve_radiomap_color_limits(
@@ -222,7 +223,7 @@ def save_radiomap_png(
         valid_values = arr[arr > INVALID_DBM_THRESHOLD]
         vmin, vmax = _resolve_auto_color_limits(valid_values, visualization_cfg)
         masked = np.ma.masked_where(arr <= INVALID_DBM_THRESHOLD, arr)
-        cmap = mpl.colormaps["inferno"].copy()
+        cmap = mpl.colormaps[RADIOMAP_CMAP].copy()
         cmap.set_bad(color="#5a5a5a", alpha=0.0)  # invalid 셀은 투명 — 캔버스 배경 노출
 
         out_dir = _output_dir(sionna_run_id)
@@ -252,7 +253,7 @@ def save_radiomap_png(
         annotated_path = out_dir / "radiomap_heatmap_annotated.png"
         fig_ann = _new_figure(figsize=(7.2, 5.4))
         ax_ann = fig_ann.subplots()
-        cmap_ann = mpl.colormaps["inferno"].copy()
+        cmap_ann = mpl.colormaps[RADIOMAP_CMAP].copy()
         cmap_ann.set_bad(color="#5a5a5a", alpha=1.0)
         im = ax_ann.imshow(
             masked,

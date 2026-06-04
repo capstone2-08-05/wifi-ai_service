@@ -192,7 +192,7 @@ def _build_artifacts(
             "color_scale": {
                 "vmin_dbm": float(vmin_dbm),
                 "vmax_dbm": float(vmax_dbm),
-                "cmap": "inferno",
+                "cmap": "jet",
                 "invalid_color": "transparent",
             },
         },
