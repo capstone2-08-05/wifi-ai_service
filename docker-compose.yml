@@ -1,0 +1,22 @@
+services:
+  rf-service:
+    build:
+      context: .
+      dockerfile: apps/ai_api/Dockerfile
+    container_name: wifi-rf-service
+    restart: unless-stopped
+    ports:
+      - "${PORT:-9000}:${PORT:-9000}"
+    volumes:
+      # 모델 가중치 — 컨테이너 안 /opt/models 에 마운트
+      # .env 에서 UNET_CHECKPOINT_PATH=/opt/models/unet/best_unet.pth 으로 지정
+      - ./apps/trainer/src/models:/opt/models:ro
+      - ./apps/ai_api/data/output:/opt/app/apps/ai_api/data/output
+    env_file:
+      - apps/ai_api/.env
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -fsS http://127.0.0.1:${PORT:-9000}/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 120s
+      retries: 3

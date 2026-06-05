@@ -1,76 +1,44 @@
-# Docker build context 축소.
-# build context 가 rf-service/ 라 이 파일이 적용된다.
-# (apps/sagemaker_inference/.dockerignore 는 적용 안 됨)
-
-# ============================================
-# Version control
-# ============================================
+# 버전 관리
 .git
-.gitignore
-.gitattributes
+.github
+**/.gitignore
 
-# ============================================
-# Python
-# ============================================
+# Python 캐시
 **/__pycache__
-**/.venv
-**/venv
-**/.pytest_cache
-**/.mypy_cache
-**/.ruff_cache
 **/*.pyc
 **/*.pyo
 **/*.pyd
-**/.coverage
-**/htmlcov
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
 
-# ============================================
-# IDE / OS
-# ============================================
-**/.idea
-**/.vscode
-**/.vs
-**/*.swp
-**/*.swo
-**/.DS_Store
-**/Thumbs.db
+# 가상환경
+**/.venv
+**/venv
+**/env
 
-# ============================================
-# 데이터 / 실험 산출물
-# ============================================
-**/data
-**/output
-**/outputs
-**/runs
-**/wandb
-**/.ipynb_checkpoints
-**/artifacts
+# 모델 가중치 — 이미지에 포함하지 않고 볼륨 마운트로 주입
+apps/trainer/src/models/**/*.pth
+apps/trainer/src/models/**/*.pt
+apps/trainer/src/models/**/*.ckpt
+apps/trainer/src/models/**/*.h5
 
-# ============================================
-# 학습 체크포인트 — 컨테이너에 굽는 best_*.{pth,pt} 만 예외로 포함
-# ============================================
-apps/trainer/src/models/**
-!apps/trainer/src/models/
-!apps/trainer/src/models/unet/
-!apps/trainer/src/models/unet/best_unet.pth
-!apps/trainer/src/models/yolo/
-!apps/trainer/src/models/yolo/best.pt
+# 학습 코드 — 운영 이미지에 불필요
+apps/trainer/
+apps/sagemaker_inference/
+apps/sagemaker_rf_inference/
 
-# ============================================
-# 다른 앱의 빌드 / 테스트 산출물
-# ============================================
-apps/ai_api/data
-apps/sagemaker_inference/tests
-apps/sagemaker_inference/scripts
+# 로컬 출력 및 임시 파일
+apps/ai_api/data/output/
 
-# Docker 메타
-**/Dockerfile.bak
-**/.dockerignore.bak
+# 환경 파일 (서버에서 직접 주입)
+.env
+apps/ai_api/.env
 
-# 환경 파일
-**/.env
-**/.env.*
-!**/.env.example
+# 문서
+docs/
+*.md
 
-# 로그
-**/*.log
+# 빌드 관련
+buildspec*.yml
+docker-compose.yml
