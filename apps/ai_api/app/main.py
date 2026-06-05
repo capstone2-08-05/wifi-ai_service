@@ -1,4 +1,16 @@
+import logging
+import os
+
+# 앱 로거 활성화 — module-level `logger.info()` 가 콘솔에 보이도록.
+# force=True: uvicorn 이 이미 root logger 에 handler 를 박았을 경우 덮어쓰기.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    force=True,
+)
+
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 
@@ -10,6 +22,24 @@ from app.infrastructure.ai_runtime.yolo_gateway import preload_yolo_model
 from app.infrastructure.settings import preload_models
 
 app = FastAPI(title="capstone2-ai", version="0.1.0")
+
+# CORS — 프론트엔드(:5173) 가 /internal/sionna/images/* 등을 <img> 로 직접 로드할 때 필요.
+# 또한 backend (:8000) 가 일부 endpoint 를 호출할 수도 있어 같이 허용.
+# env 로 origin 커스터마이즈 가능 (콤마 구분), 기본은 dev 포트들.
+_default_origins = "http://localhost:5173,http://localhost:8000"
+_origins = [
+    o.strip()
+    for o in os.getenv("CORS_ALLOW_ORIGINS", _default_origins).split(",")
+    if o.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(inference_router)
 app.include_router(sionna_router, prefix="/internal", tags=["internal"])
 

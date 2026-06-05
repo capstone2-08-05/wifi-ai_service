@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import uuid
 from typing import Any
 
 import numpy as np
 
+logger = logging.getLogger(__name__)
+
 from app.infrastructure.ai_runtime.sionna_adapter import build_engine_plan
 from app.infrastructure.ai_runtime.sionna_artifacts import (
     INVALID_DBM_THRESHOLD,
+    resolve_radiomap_color_limits,
     save_geometry_debug_json,
     save_geometry_overlay_png,
     save_radiomap_png,
@@ -172,12 +177,24 @@ def _build_artifacts(
     paths: dict[str, str | None],
     geometry_debug_payload: dict[str, Any],
 ) -> dict[str, Any]:
+    # 저장된 heatmap PNG 와 동일한 vmin/vmax 를 응답에 포함 → 프론트가 colorbar 를
+    # 정확히 같은 스케일로 표시. visualization_cfg 가 fallback/percentile 결정.
+    visualization_cfg = dict((sionna_result.get("config") or {}).get("visualization") or {})
+    vmin_dbm, vmax_dbm = resolve_radiomap_color_limits(
+        sionna_result["radiomap_dbm"], visualization_cfg,
+    )
     artifacts: dict[str, Any] = {
         "engine": "sionna_rt",
         "radiomap": {
             "grid_shape": sionna_result["grid_shape"],
             "bounds_m": sionna_result["bounds_m"],
             "values_dbm": sionna_result["radiomap_dbm"],
+            "color_scale": {
+                "vmin_dbm": float(vmin_dbm),
+                "vmax_dbm": float(vmax_dbm),
+                "cmap": "jet",
+                "invalid_color": "transparent",
+            },
         },
         "rssi": {
             **sionna_result["rss_dbm"],
