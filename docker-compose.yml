@@ -14,13 +14,6 @@ services:
       - ./apps/ai_api/data/output:/opt/app/apps/ai_api/data/output
     env_file:
       - apps/ai_api/.env
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
     healthcheck:
       test: ["CMD", "sh", "-c", "curl -fsS http://127.0.0.1:${PORT:-9000}/health"]
       interval: 30s

@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:2.16.1-gpu
+FROM tensorflow/tensorflow:2.16.1
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -8,11 +8,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/opt/app \
     HOST=0.0.0.0 \
     PORT=9000 \
-    DEFAULT_DEVICE=auto \
-    NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics \
-    NVIDIA_VISIBLE_DEVICES=all \
-    MITSUBA_VARIANT=cuda_ad_mono_polarized \
-    LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/lib/x86_64-linux-gnu
+    DEFAULT_DEVICE=cpu \
+    MITSUBA_VARIANT=llvm_ad_mono_polarized
 
 WORKDIR /opt/app
 

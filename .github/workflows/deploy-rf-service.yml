@@ -146,8 +146,6 @@ jobs:
           docker run -d \
             --name "${CONTAINER_NAME}" \
             --restart unless-stopped \
-            --gpus all \
-            --shm-size 1g \
             --env-file "${APP_DIR}/.env" \
             -p "${HOST_PORT}:${CONTAINER_PORT}" \
             -v "${APP_DIR}/models:/opt/models:ro" \
