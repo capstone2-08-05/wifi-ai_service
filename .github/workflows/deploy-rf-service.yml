@@ -8,6 +8,13 @@ on:
       - "apps/ai_api/**"
       - "packages/**"
       - ".github/workflows/deploy-rf-service.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/ai_api/**"
+      - "packages/**"
+      - ".github/workflows/deploy-rf-service.yml"
   workflow_dispatch:
 
 permissions:
@@ -67,6 +74,7 @@ jobs:
           cache-to: type=gha,mode=min
 
       - name: Deploy rf-service on server
+        if: github.event_name != 'pull_request'
         env:
           SERVER_HOST: ${{ secrets.RF_SERVER_HOST }}
           SERVER_USER: ${{ secrets.RF_SERVER_USER }}
