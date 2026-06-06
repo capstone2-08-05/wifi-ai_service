@@ -26,8 +26,8 @@ env:
   IMAGE_NAME: ${{ github.repository }}/rf-service
   CONTAINER_NAME: wifi-rf-service
   APP_DIR: /opt/rf-service
-  HOST_PORT: 8080
-  CONTAINER_PORT: 8080
+  HOST_PORT: 9000
+  CONTAINER_PORT: 9000
 
 jobs:
   build-and-deploy:
