@@ -349,9 +349,9 @@ def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
             wall_ops = openings_by_wall.get(wid, [])
             op_intervals: list[tuple[float, float, Mapping[str, Any]]] = []
             for op in wall_ops:
-                cx = float(op["center_xy"][0])
-                cy = float(op["center_xy"][1])
-                s_center = ((cx - wx1) * w_dx + (cy - wy1) * w_dy) / w_len
+                op_cx = float(op["center_xy"][0])
+                op_cy = float(op["center_xy"][1])
+                s_center = ((op_cx - wx1) * w_dx + (op_cy - wy1) * w_dy) / w_len
                 half = float(op["width_m"]) / 2.0
                 s_start = max(0.0, s_center - half)
                 s_end = min(w_len, s_center + half)
@@ -443,9 +443,9 @@ def run_sionna_rt_from_engine_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
             if w_len <= 1e-9:
                 continue
             ux, uy = w_dx / w_len, w_dy / w_len
-            cx = float(op["center_xy"][0])
-            cy = float(op["center_xy"][1])
-            s_center = ((cx - wx1) * w_dx + (cy - wy1) * w_dy) / w_len
+            op_cx = float(op["center_xy"][0])
+            op_cy = float(op["center_xy"][1])
+            s_center = ((op_cx - wx1) * w_dx + (op_cy - wy1) * w_dy) / w_len
             half = float(op["width_m"]) / 2.0
             s_start = max(0.0, s_center - half)
             s_end = min(w_len, s_center + half)
