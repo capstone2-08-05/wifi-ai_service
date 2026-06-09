@@ -229,15 +229,14 @@ def save_radiomap_png(
         out_dir = _output_dir(sionna_run_id)
 
         # (1) Clean overlay — 캔버스 정렬용.
-        # default origin (= 'upper'): PNG row 0 = data row 0 → SVG y=minY (top) 에 그려져
-        # walls/AP 의 image 규약 (y=0 이 top) 와 정확히 일치.
+        # Sionna rss row 0 = max_y (Y-up 3D convention) → np.flipud 로 뒤집어
+        # SVG Y-down (row 0 = min_y = top) 과 정렬.
         overlay_path = out_dir / "radiomap_heatmap.png"
         h, w = arr.shape
-        # 데이터 한 셀당 픽셀 1:1 보존 (interpolation 은 SVG/브라우저가 알아서 늘림).
         fig_overlay = _new_figure(figsize=(w / 100.0, h / 100.0), dpi=100)
         ax_overlay = fig_overlay.subplots()
         ax_overlay.imshow(
-            masked,
+            np.flipud(masked),
             cmap=cmap,
             vmin=vmin,
             vmax=vmax,
