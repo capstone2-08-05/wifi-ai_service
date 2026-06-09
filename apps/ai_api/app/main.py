@@ -13,13 +13,14 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.errors import AppError, ErrorCode
 from app.api.routes.inference import router as inference_router
 from app.api.routes.sionna import router as sionna_router
 from app.infrastructure.ai_runtime.unet_gateway import preload_unet_model
 from app.infrastructure.ai_runtime.yolo_gateway import preload_yolo_model
-from app.infrastructure.settings import preload_models
+from app.infrastructure.settings import OUTPUT_DIR, preload_models
 
 app = FastAPI(title="capstone2-ai", version="0.1.0")
 
@@ -42,6 +43,11 @@ app.add_middleware(
 
 app.include_router(inference_router)
 app.include_router(sionna_router, prefix="/internal", tags=["internal"])
+
+# 백엔드가 절대 경로를 URL로 그대로 사용하는 구조를 위한 마운트.
+# 예: GET /opt/app/apps/ai_api/data/output/unet/.../wall_prob.npy
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+app.mount(str(OUTPUT_DIR), StaticFiles(directory=str(OUTPUT_DIR)), name="output")
 
 
 @app.exception_handler(AppError)
